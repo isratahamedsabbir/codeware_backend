@@ -12,7 +12,7 @@ class PostCsvExporter extends CsvExporter
      * @param  list<int>  $ids
      * @return Collection<int, Post>
      */
-    protected function records(array $ids, string $search, string $status): Collection
+    protected function records(array $ids, string $search, string $status, string $type = ''): Collection
     {
         return Post::query()
             ->with('category')

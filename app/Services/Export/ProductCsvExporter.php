@@ -12,7 +12,7 @@ class ProductCsvExporter extends CsvExporter
      * @param  list<int>  $ids
      * @return Collection<int, Product>
      */
-    protected function records(array $ids, string $search, string $status): Collection
+    protected function records(array $ids, string $search, string $status, string $type = ''): Collection
     {
         return Product::query()
             ->with(['categories', 'page', 'brand', 'vendor'])

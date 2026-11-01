@@ -27,9 +27,9 @@ abstract class CsvExporter
      *
      * @param  list<int>  $ids
      */
-    public function export(array $ids, string $search, string $status, bool $template = false): StreamedResponse
+    public function export(array $ids, string $search, string $status, string $type = '', bool $template = false): StreamedResponse
     {
-        $records = $template ? collect() : $this->records($ids, $search, $status);
+        $records = $template ? collect() : $this->records($ids, $search, $status, $type);
 
         $filename = ($template ? $this->templateBaseName() : $this->fileBaseName())
             .'-'.now()->format('Y-m-d-His').'.csv';
@@ -58,7 +58,7 @@ abstract class CsvExporter
      * @param  list<int>  $ids
      * @return Collection<int, Model>
      */
-    abstract protected function records(array $ids, string $search, string $status): Collection;
+    abstract protected function records(array $ids, string $search, string $status, string $type = ''): Collection;
 
     /**
      * The spreadsheet's header row, in the order the importer expects.

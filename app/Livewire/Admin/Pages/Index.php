@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Pages;
 
 use App\Concerns\HasBulkSelection;
 use App\Concerns\HasPerPage;
+use App\Concerns\ImportsCsv;
 use App\Concerns\WithSearch;
 use App\Models\Page;
 use App\Models\Post;
@@ -14,6 +15,8 @@ use App\Support\AdminActivity;
 use App\Support\EnvFile;
 use App\Support\PageCascade;
 use App\Support\PuckEditor;
+use App\Services\Import\CsvImporter;
+use App\Services\Import\PageCsvImporter;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
@@ -23,7 +26,7 @@ use RuntimeException;
 
 class Index extends Component
 {
-    use HasBulkSelection, HasPerPage, WithPagination, WithSearch;
+    use HasBulkSelection, HasPerPage, ImportsCsv, WithPagination, WithSearch;
 
     /**
      * Human-readable labels for every Page::$type value — used for the type
@@ -69,6 +72,21 @@ class Index extends Component
         $this->editorBaseUrl = EnvFile::get('CMS_EDITOR_BASE_URL', '') ?? '';
         $this->frontendUrl = EnvFile::get('FRONTEND_URL', '') ?? '';
         $this->pagePreviewPath = EnvFile::get('FRONTEND_PAGE_PATH', '') ?? '';
+    }
+
+    protected function csvImporter(): CsvImporter
+    {
+        return new PageCsvImporter;
+    }
+
+    protected function importModalName(): string
+    {
+        return 'page-import';
+    }
+
+    protected function importEntityLabel(): string
+    {
+        return 'page';
     }
 
     public function updatedTypeFilter(): void

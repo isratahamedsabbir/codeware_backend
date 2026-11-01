@@ -12,7 +12,7 @@ class ServiceCsvExporter extends CsvExporter
      * @param  list<int>  $ids
      * @return Collection<int, Service>
      */
-    protected function records(array $ids, string $search, string $status): Collection
+    protected function records(array $ids, string $search, string $status, string $type = ''): Collection
     {
         return Service::query()
             ->when($ids !== [], fn ($q) => $q->whereIn('id', $ids), fn ($q) => $q

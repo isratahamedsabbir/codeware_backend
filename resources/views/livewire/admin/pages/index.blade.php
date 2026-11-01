@@ -86,8 +86,18 @@
             @endforeach
         </select>
 
+        <div class="ml-auto flex items-center gap-2">
+            <flux:button size="sm" variant="ghost" icon="arrow-down-tray"
+                href="{{ route('admin.pages.export', ['search' => $search, 'type' => $typeFilter]) }}">
+                Export CSV
+            </flux:button>
+            <flux:button size="sm" variant="ghost" icon="arrow-up-tray" wire:click="openImport">
+                Import CSV
+            </flux:button>
+        </div>
+
         {{-- Search --}}
-        <div class="relative max-w-xs ml-auto">
+        <div class="relative max-w-xs">
             <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="11" cy="11" r="8" />
@@ -440,6 +450,87 @@
                 </flux:modal.close>
             </div>
         </div>
+    </flux:modal>
+
+    {{-- Import Modal --}}
+    <flux:modal name="page-import" class="md:w-[34rem]"
+        x-on:open-modal.window="if ($event.detail.name === 'page-import') $flux.modal('page-import').show()"
+        x-on:close-modal.window="if ($event.detail.name === 'page-import') $flux.modal('page-import').close()">
+        @if ($importModalOpen)
+        <div class="space-y-4">
+            <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                        <flux:icon.arrow-up-tray class="w-5 h-5 text-primary" />
+                    </div>
+                    <flux:heading>Import pages</flux:heading>
+                </div>
+                <a href="{{ route('admin.pages.export', ['template' => 1]) }}"
+                    class="text-xs font-medium text-indigo-600 hover:underline shrink-0">
+                    Download template
+                </a>
+            </div>
+
+            <flux:text class="text-sm text-zinc-500">
+                Upload a CSV with the same columns as the export. Only <span class="font-medium text-zinc-700">Title (EN)</span>
+                is required — match an existing page by its ID or slug. Only standalone pages (Type "page") can be created;
+                product, post and category pages are imported from their own screens. Bengali text is preserved, so keep
+                the file UTF-8 encoded.
+            </flux:text>
+
+            <flux:field>
+                <flux:label>CSV file</flux:label>
+                <flux:input type="file" wire:model="importFile" accept=".csv,.txt" />
+                <flux:error name="importFile" />
+            </flux:field>
+
+            <flux:checkbox wire:model="importUpdateExisting"
+                label="Overwrite existing pages (matched by ID or slug)" />
+
+            @if ($importResult)
+                <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3 space-y-2 text-sm">
+                    <p class="font-medium text-zinc-700">
+                        {{ $importResult['created'] }} created &middot;
+                        {{ $importResult['updated'] }} updated &middot;
+                        {{ $importResult['skipped'] }} skipped
+                    </p>
+
+                    @if (count($importResult['warnings']))
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-amber-600">Warnings</p>
+                            <ul class="mt-1 list-disc pl-4 space-y-1 text-xs text-amber-700">
+                                @foreach ($importResult['warnings'] as $warning)
+                                    <li>{{ $warning }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    @if (count($importResult['errors']))
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-rose-600">Skipped rows</p>
+                            <ul class="mt-1 list-disc pl-4 space-y-1 text-xs text-rose-700">
+                                @foreach ($importResult['errors'] as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+                </div>
+            @endif
+
+            <div class="flex items-center gap-2 pt-1">
+                <flux:button size="sm" variant="primary" wire:click="importCsv"
+                    wire:loading.attr="disabled" wire:target="importFile,importCsv">
+                    Import
+                </flux:button>
+                <flux:modal.close>
+                    <flux:button size="sm" variant="ghost" wire:click="closeImport">Close</flux:button>
+                </flux:modal.close>
+                <span wire:loading wire:target="importFile" class="text-xs text-zinc-500">Uploading&hellip;</span>
+            </div>
+        </div>
+        @endif
     </flux:modal>
 
 </div>
