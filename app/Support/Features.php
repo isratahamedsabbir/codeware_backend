@@ -45,6 +45,8 @@ class Features
         'location' => 'Location (Countries, Divisions, Districts, Upazilas)',
         'advance' => 'Advance (Sitemap & Robots.txt)',
         'plugins' => 'Plugins (install & manage plugin modules)',
+        'crud' => 'CRUD (builder & generated record screens)',
+        'about' => 'About (company info page)',
     ];
 
     /**

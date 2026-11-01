@@ -95,8 +95,10 @@ Route::middleware(['auth', 'admin', 'activity-log', 'mfa'])->group(function () {
     // reachable regardless of role or feature flags.
     Route::get('/developer-guide', DeveloperGuide::class)->name('developer-guide');
 
-    // About — company info, always reachable regardless of role or feature flags
-    Route::get('/about', About::class)->name('about');
+    // About — company info, reachable by every admin role; only the "about" feature toggle can turn it off
+    Route::middleware('feature:about')->group(function () {
+        Route::get('/about', About::class)->name('about');
+    });
 
     // Posts — the "blog" feature. Post Categories and Tags moved out to the
     // shared Categories/Tags screens (feature:taxonomy below) since both are now
@@ -195,11 +197,13 @@ Route::middleware(['auth', 'admin', 'activity-log', 'mfa'])->group(function () {
 
         // CRUD Builder — define a table and its fields; the table, sidebar link and
         // records screen come out of it. See App\Support\Cruds.
-        Route::get('/cruds', App\Livewire\Admin\Cruds\Index::class)->name('cruds');
-        Route::get('/cruds/create', App\Livewire\Admin\Cruds\Form::class)->name('cruds.create');
-        Route::get('/cruds/{id}/edit', App\Livewire\Admin\Cruds\Form::class)->whereNumber('id')->name('cruds.edit');
-        Route::get('/cruds/{slug}/export', [CrudExportController::class, 'export'])->name('cruds.export');
-        Route::get('/cruds/{slug}/records', Records::class)->name('cruds.records');
+        Route::middleware('feature:crud')->group(function () {
+            Route::get('/cruds', App\Livewire\Admin\Cruds\Index::class)->name('cruds');
+            Route::get('/cruds/create', App\Livewire\Admin\Cruds\Form::class)->name('cruds.create');
+            Route::get('/cruds/{id}/edit', App\Livewire\Admin\Cruds\Form::class)->whereNumber('id')->name('cruds.edit');
+            Route::get('/cruds/{slug}/export', [CrudExportController::class, 'export'])->name('cruds.export');
+            Route::get('/cruds/{slug}/records', Records::class)->name('cruds.records');
+        });
 
         Route::middleware('feature:email-templates')->group(function () {
             Route::get('/email-templates', App\Livewire\Admin\EmailTemplates\Index::class)->name('email-templates');

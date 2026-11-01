@@ -124,6 +124,8 @@ class MenuItem extends Model
         'admin.advance' => 'advance',
         'admin.plugin-settings' => 'plugins',
         'admin.plugins' => 'plugins',
+        'admin.cruds' => 'crud',
+        'admin.about' => 'about',
         'admin.history' => 'audit-log',
         'admin.countries' => 'location',
         'admin.divisions' => 'location',

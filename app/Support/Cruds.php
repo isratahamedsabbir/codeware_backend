@@ -163,7 +163,7 @@ class Cruds
     /** Adds the CRUD group (builder link + one link per CRUD) to the sidebar. */
     public static function extendMenu(Collection $menu): Collection
     {
-        if (! Gate::allows('access-admin-system') || ! Schema::hasTable('cruds')) {
+        if (! Features::enabled('crud') || ! Gate::allows('access-admin-system') || ! Schema::hasTable('cruds')) {
             return $menu;
         }
 
