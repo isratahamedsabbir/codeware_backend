@@ -138,6 +138,34 @@
                 </x-admin-section-card>
             @endif
 
+            {{-- Two-factor — a recovery path for a user locked out of their own
+                 second factor (lost phone, removed passkey). Clearing it lets
+                 them enrol again at next login; see Form::resetMfa(). --}}
+            @if ($userId && $mfa)
+                <x-admin-section-card variant="postbox" persist-key="user-mfa" title="Two-factor authentication" :collapsed="false"
+                    description="Passkeys, authenticator app and emailed code.">
+                    <div class="space-y-3">
+                        <ul class="text-xs text-zinc-600 space-y-1">
+                            <li>Passkeys: <span class="font-medium text-zinc-800">{{ $mfa['passkeys'] }}</span></li>
+                            <li>Authenticator app: <span class="font-medium text-zinc-800">{{ $mfa['totp'] ? 'On' : 'Off' }}</span></li>
+                            <li>Emailed code: <span class="font-medium text-zinc-800">{{ $mfa['email'] ? 'On' : 'Off' }}</span></li>
+                        </ul>
+
+                        @if ($userId === auth()->id())
+                            <p class="text-xs text-zinc-400">Manage your own from your profile.</p>
+                        @elseif ($mfa['any'])
+                            <button type="button" wire:click="resetMfa"
+                                wire:confirm="Remove all of this user's passkeys, authenticator app and emailed-code setup, and sign them out? They can set new ones at their next login."
+                                class="text-xs font-medium text-red-600 hover:text-red-700 cursor-pointer">
+                                Reset two-factor data
+                            </button>
+                        @else
+                            <p class="text-xs text-zinc-400">No two-factor data to reset.</p>
+                        @endif
+                    </div>
+                </x-admin-section-card>
+            @endif
+
             {{-- Signature --}}
             <x-admin-section-card variant="postbox" persist-key="user-signature" title="Signature" :collapsed="false"
                 description="Draw or upload a signature image.">

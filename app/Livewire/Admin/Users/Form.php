@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\UserDocument;
 use App\Support\AdminActivity;
 use App\Support\SafeUpload;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -141,6 +142,43 @@ class Form extends Component
         $this->dispatch('notify', message: 'Document deleted');
     }
 
+    /**
+     * Wipes every second factor on the account (passkeys, authenticator app +
+     * its recovery codes, emailed code) for someone who can no longer answer
+     * their challenge. Their password still works; if a policy requires MFA for
+     * their role, the next login lands on the enrolment screen where they
+     * register fresh factors (see EnsureMfaEnforced). Sessions are dropped so a
+     * stale login cannot outlive the factors it was approved with.
+     */
+    public function resetMfa(): void
+    {
+        if (! $this->userId) {
+            return;
+        }
+
+        if ($this->userId === auth()->id()) {
+            $this->dispatch('notify', message: 'Manage your own two-factor settings from your profile');
+
+            return;
+        }
+
+        $user = User::findOrFail($this->userId);
+
+        DB::transaction(function () use ($user) {
+            $user->passkeys()->delete();
+            $user->forceFill([
+                'two_factor_secret' => null,
+                'two_factor_recovery_codes' => null,
+                'two_factor_confirmed_at' => null,
+                'email_otp_enabled_at' => null,
+            ])->save();
+            DB::table('sessions')->where('user_id', $user->id)->delete();
+        });
+
+        AdminActivity::log('updated', "Reset two-factor authentication for user: {$user->email}");
+        $this->dispatch('notify', message: 'Two-factor data cleared. The user can set it up again.');
+    }
+
     public function save(): void
     {
         if ($this->userId === 1) {
@@ -260,11 +298,33 @@ class Form extends Component
         return $this->existingPhotoPath;
     }
 
+    /**
+     * Which second factors the edited account currently has, for the sidebar card.
+     *
+     * @return array{passkeys: int, totp: bool, email: bool, any: bool}
+     */
+    private function mfaState(): array
+    {
+        $user = User::findOrFail($this->userId);
+
+        $passkeys = $user->passkeys()->count();
+        $totp = filled($user->two_factor_secret);
+        $email = $user->email_otp_enabled_at !== null;
+
+        return [
+            'passkeys' => $passkeys,
+            'totp' => $totp,
+            'email' => $email,
+            'any' => $passkeys > 0 || $totp || $email,
+        ];
+    }
+
     public function render()
     {
         return view('livewire.admin.users.form', [
             'roles' => Role::withCount('permissions')->where('status', 'active')->orderBy('name')->get(),
             'vendors' => ProductVendor::orderBy('name')->get(['id', 'name']),
+            'mfa' => $this->userId ? $this->mfaState() : null,
             'documents' => $this->userId
                 ? UserDocument::where('user_id', $this->userId)->latest()->get()
                 : collect(),

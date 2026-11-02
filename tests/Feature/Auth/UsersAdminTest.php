@@ -299,3 +299,41 @@ it('does not touch sessions when a user is unblocked', function () {
     expect($user->fresh()->is_blocked)->toBeFalse();
     expect(DB::table('sessions')->where('id', 'session-unblocked-user')->exists())->toBeTrue();
 });
+
+it('lets an admin reset another user\'s two-factor data from the edit page', function () {
+    $user = User::factory()->create();
+    $user->forceFill([
+        'two_factor_secret' => encrypt('secret'),
+        'two_factor_recovery_codes' => encrypt('[]'),
+        'two_factor_confirmed_at' => now(),
+        'email_otp_enabled_at' => now(),
+    ])->save();
+    DB::table('passkeys')->insert([
+        'user_id' => $user->id,
+        'name' => 'Laptop',
+        'credential_id' => 'abc',
+        'credential' => '{}',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    Livewire::test(UsersForm::class, ['id' => $user->id])
+        ->assertSee('Reset two-factor data')
+        ->call('resetMfa');
+
+    $user->refresh();
+
+    expect($user->two_factor_secret)->toBeNull()
+        ->and($user->two_factor_recovery_codes)->toBeNull()
+        ->and($user->two_factor_confirmed_at)->toBeNull()
+        ->and($user->email_otp_enabled_at)->toBeNull()
+        ->and(DB::table('passkeys')->where('user_id', $user->id)->count())->toBe(0);
+});
+
+it('does not reset the signed-in admin\'s own two-factor data from the edit page', function () {
+    $this->admin->forceFill(['email_otp_enabled_at' => now()])->save();
+
+    Livewire::test(UsersForm::class, ['id' => $this->admin->id])->call('resetMfa');
+
+    expect($this->admin->refresh()->email_otp_enabled_at)->not->toBeNull();
+});
