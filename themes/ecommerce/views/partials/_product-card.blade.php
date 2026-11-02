@@ -78,8 +78,23 @@
             </a>
         </h3>
 
+        <div class="mt-auto flex flex-wrap items-baseline gap-x-2 gap-y-0.5 pt-2">
+            @if ($discount)
+                <span class="text-[15px] font-bold text-sf-price">{{ $money($discount) }}</span>
+                <span class="text-sm text-red-600 line-through">{{ $money($product->price) }}</span>
+            @else
+                <span class="text-[15px] font-bold text-sf-price">{{ $money($product->price) }}</span>
+            @endif
+
+            @if (($sold = $product->soldQuantity()) > 0)
+                <span class="ms-auto inline-flex items-center gap-1 text-xs text-zinc-500" title="{{ __('Units sold') }}">
+                    {{ $sold }} {{ __('sold') }}
+                </span>
+            @endif
+        </div>
+
         @if ($variantOptions->isNotEmpty())
-            <div class="mt-1.5 flex flex-col gap-1.5">
+            <div class="mt-1 flex flex-col gap-1.5">
                 @foreach ($variantOptions as $attributeName => $values)
                     <div class="flex flex-wrap items-center gap-1.5" title="{{ $attributeName }}">
                         @foreach (array_slice($values, 0, 4, true) as $value => $available)
@@ -97,21 +112,6 @@
                 @endforeach
             </div>
         @endif
-
-        <div class="mt-auto flex flex-wrap items-baseline gap-x-2 gap-y-0.5 pt-2">
-            @if ($discount)
-                <span class="text-[15px] font-bold text-sf-price">{{ $money($discount) }}</span>
-                <span class="text-sm text-red-600 line-through">{{ $money($product->price) }}</span>
-            @else
-                <span class="text-[15px] font-bold text-sf-price">{{ $money($product->price) }}</span>
-            @endif
-
-            @if (($sold = $product->soldQuantity()) > 0)
-                <span class="ms-auto inline-flex items-center gap-1 text-xs text-zinc-500" title="{{ __('Units sold') }}">
-                    {{ $sold }} {{ __('sold') }}
-                </span>
-            @endif
-        </div>
 
         <div class="pt-3">
             <livewire:frontend.add-to-cart-button

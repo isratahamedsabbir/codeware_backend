@@ -69,7 +69,16 @@
              through a portrait-shaped box and lost most of its middle. Between lg
              and xl the promos sit side by side under a full-width banner instead,
              which is what the stacking order already did below lg. --}}
-        <section class="mt-6 grid w-full grid-cols-1 gap-4 xl:h-[440px] xl:grid-cols-3">
+        @php
+            // A promo tile with no uploaded image is left out rather than drawn as
+            // an empty gradient block; with neither, the main banner takes the full
+            // width. One tile alone fills the whole side column.
+            $promos = array_values(array_filter([
+                ['image' => $promoImage1, 'label' => __('New arrivals'), 'url' => $promoLink('theme_ecommerce_promo_1_link')],
+                ['image' => $promoImage2, 'label' => __('Best deals'), 'url' => $promoLink('theme_ecommerce_promo_2_link')],
+            ], fn ($promo) => filled($promo['image'])));
+        @endphp
+        <section class="mt-6 grid w-full grid-cols-1 gap-4 xl:h-[440px] {{ $promos !== [] ? 'xl:grid-cols-3' : '' }}">
             <a href="{{ $heroSlides[0]['url'] ?? route('shop') }}"
                 @if (count($heroSlides) > 1)
                     :href="links[active]"
@@ -96,7 +105,7 @@
                     @dragstart.prevent
                     @click.capture="if (moved) { $event.preventDefault(); $event.stopPropagation(); moved = false; }"
                 @endif
-                class="group/hero relative block aspect-[1200/440] touch-pan-y select-none cursor-grab overflow-hidden rounded-card xl:col-span-2 xl:aspect-auto xl:h-full">
+                class="group/hero relative block aspect-[1200/440] touch-pan-y select-none cursor-grab overflow-hidden rounded-card xl:aspect-auto xl:h-full {{ $promos !== [] ? 'xl:col-span-2' : '' }}">
                 @if ($heroSlides !== [])
                     @foreach ($heroSlides as $i => $slide)
                         @php $hasText = filled($slide['title']) || filled($slide['description']); @endphp
@@ -153,22 +162,16 @@
                 @endif
             </a>
 
-            <div class="grid grid-cols-2 gap-4 xl:flex xl:flex-col">
-                @foreach ([
-                    ['image' => $promoImage1, 'label' => __('New arrivals'), 'url' => $promoLink('theme_ecommerce_promo_1_link')],
-                    ['image' => $promoImage2, 'label' => __('Best deals'), 'url' => $promoLink('theme_ecommerce_promo_2_link')],
-                ] as $promo)
-                    <a href="{{ $promo['url'] }}" class="group/promo relative block h-32 overflow-hidden rounded-card sm:h-44 lg:h-56 xl:h-1/2">
-                        @if ($promo['image'])
+            @if ($promos !== [])
+                <div class="grid gap-4 xl:flex xl:flex-col {{ count($promos) > 1 ? 'grid-cols-2' : 'grid-cols-1' }}">
+                    @foreach ($promos as $promo)
+                        <a href="{{ $promo['url'] }}" class="group/promo relative block h-32 overflow-hidden rounded-card sm:h-44 lg:h-56 {{ count($promos) > 1 ? 'xl:h-1/2' : 'xl:h-full' }}">
                             <img src="{{ $promo['image'] }}" alt="{{ $promo['label'] }}" loading="lazy" decoding="async" width="600" height="400" class="h-full w-full object-cover transition duration-500 group-hover/promo:scale-105">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
-                        @else
-                            <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-brand">
-                            </div>
-                        @endif
-                    </a>
-                @endforeach
-            </div>
+                        </a>
+                    @endforeach
+                </div>
+            @endif
         </section>
     </div>
 

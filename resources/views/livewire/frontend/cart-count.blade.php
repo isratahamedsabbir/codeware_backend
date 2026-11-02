@@ -1,5 +1,8 @@
 <a
     href="{{ route('cart') }}"
+    {{-- Opens the slide-in panel when the page has one; otherwise (cart,
+         checkout) the link just navigates. --}}
+    x-on:click="if (document.querySelector('[data-cart-drawer]')) { $event.preventDefault(); $dispatch('open-cart-drawer'); }"
     aria-label="{{ __('My cart') }} ({{ $count }})"
     title="{{ __('My cart') }}"
     class="relative flex h-10 w-10 items-center justify-center rounded-full text-white transition hover:bg-white/10"

@@ -143,4 +143,10 @@
 {{-- Campaign landing pages pass `withoutPopup` — an ad click shouldn't land behind a modal. --}}
 @unless ($withoutPopup ?? false)
     <livewire:frontend.announce-popup />
+
+    {{-- Floating cart + slide-in panel. Left off the cart and checkout pages,
+         which are the cart already, and off landing pages (see above). --}}
+    @unless (request()->routeIs('cart', 'checkout', 'checkout.confirmation'))
+        <livewire:frontend.cart-drawer :key="'cart-drawer'" />
+    @endunless
 @endunless
