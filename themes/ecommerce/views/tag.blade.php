@@ -30,8 +30,7 @@
     <section>
         <div class="mb-6 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
             <div>
-                <h2 class="text-2xl font-bold text-sf-heading">{{ __('Products tagged :tag', ['tag' => $tag->name]) }}</h2>
-                <p class="mt-1 text-sm text-zinc-500">{{ __(':count products found', ['count' => $products->total()]) }}</p>
+                <p class="text-sm text-zinc-500">{{ __(':count products found', ['count' => $products->total()]) }}</p>
             </div>
             <a href="{{ route('shop', ['tag' => $tag->slug]) }}" class="text-sm font-semibold text-brand hover:underline">
                 {{ __('Filter in shop') }} →

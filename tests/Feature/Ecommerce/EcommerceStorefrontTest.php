@@ -351,22 +351,28 @@ it('shows brands without a logo on the ecommerce homepage', function () {
         ->assertSee('/brand/acme-supplies');
 });
 
-it('prepends category and brand dropdowns to the ecommerce header menu', function () {
+it('lists featured categories and brands in the ecommerce header nav, after the menu links', function () {
     $this->seed(FrontendMenuSeeder::class);
 
-    $category = ProductCategory::factory()->create(['name' => ['en' => 'Fertilizers', 'bn' => '']]);
+    $category = ProductCategory::factory()->create(['name' => ['en' => 'Fertilizers', 'bn' => ''], 'featured' => true]);
     pairPageFor($category, 'product_category', 'fertilizers', $this->admin->id);
 
-    $brand = ProductBrand::factory()->create(['name' => ['en' => 'Acme Supplies', 'bn' => '']]);
-    storefrontProduct('acme-item', ['name' => ['en' => 'Acme Item', 'bn' => ''], 'brand_id' => $brand->id]);
+    $plain = ProductCategory::factory()->create(['name' => ['en' => 'Plain Category', 'bn' => ''], 'featured' => false]);
+    pairPageFor($plain, 'product_category', 'plain-category', $this->admin->id);
 
-    get('/')
-        ->assertOk()
-        ->assertSee('Categories')
-        ->assertSee('/category/fertilizers')
-        ->assertSee('Brands')
-        ->assertSee('/brand/acme-supplies')
-        ->assertSeeInOrder(['Categories', 'Brands', 'Home']);
+    ProductBrand::factory()->create(['name' => ['en' => 'Acme Supplies', 'bn' => ''], 'featured' => true]);
+    ProductBrand::factory()->create(['name' => ['en' => 'Quiet Brand', 'bn' => ''], 'featured' => false]);
+
+    // Desktop nav only — the mobile menu still lists every category and brand.
+    $nav = (string) str(get('/')->assertOk()->getContent())->after('<nav class="hidden border-b')->before('</nav>');
+
+    expect($nav)
+        ->toContain('/category/fertilizers')
+        ->toContain('/brand/acme-supplies')
+        ->not->toContain('Plain Category')
+        ->not->toContain('Quiet Brand')
+        ->and(strpos($nav, 'Home'))->toBeLessThan(strpos($nav, 'Fertilizers'))
+        ->and(strpos($nav, 'Fertilizers'))->toBeLessThan(strpos($nav, 'Acme Supplies'));
 });
 
 it('serves its own storefront templates and keeps them to itself', function () {
