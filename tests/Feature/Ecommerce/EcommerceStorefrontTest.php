@@ -351,7 +351,7 @@ it('shows brands without a logo on the ecommerce homepage', function () {
         ->assertSee('/brand/acme-supplies');
 });
 
-it('lists featured categories and brands in the ecommerce header nav, after the menu links', function () {
+it('lists featured categories and brands in the ecommerce header, after the menu links, on desktop and mobile', function () {
     $this->seed(FrontendMenuSeeder::class);
 
     $category = ProductCategory::factory()->create(['name' => ['en' => 'Fertilizers', 'bn' => ''], 'featured' => true]);
@@ -363,8 +363,9 @@ it('lists featured categories and brands in the ecommerce header nav, after the 
     ProductBrand::factory()->create(['name' => ['en' => 'Acme Supplies', 'bn' => ''], 'featured' => true]);
     ProductBrand::factory()->create(['name' => ['en' => 'Quiet Brand', 'bn' => ''], 'featured' => false]);
 
-    // Desktop nav only — the mobile menu still lists every category and brand.
-    $nav = (string) str(get('/')->assertOk()->getContent())->after('<nav class="hidden border-b')->before('</nav>');
+    // Desktop nav: menu links first, then featured categories, then brands.
+    $html = get('/')->assertOk()->getContent();
+    $nav = (string) str($html)->after('<nav class="hidden border-b')->before('</nav>');
 
     expect($nav)
         ->toContain('/category/fertilizers')
@@ -373,6 +374,18 @@ it('lists featured categories and brands in the ecommerce header nav, after the 
         ->not->toContain('Quiet Brand')
         ->and(strpos($nav, 'Home'))->toBeLessThan(strpos($nav, 'Fertilizers'))
         ->and(strpos($nav, 'Fertilizers'))->toBeLessThan(strpos($nav, 'Acme Supplies'));
+
+    // The mobile menu mirrors the desktop nav instead of listing every
+    // category and brand.
+    $mobile = (string) str($html)->after('id="mobile-menu"')->before('</header>');
+
+    expect($mobile)
+        ->toContain('/category/fertilizers')
+        ->toContain('/brand/acme-supplies')
+        ->not->toContain('Plain Category')
+        ->not->toContain('Quiet Brand')
+        ->and(strpos($mobile, 'Home'))->toBeLessThan(strpos($mobile, 'Fertilizers'))
+        ->and(strpos($mobile, 'Fertilizers'))->toBeLessThan(strpos($mobile, 'Acme Supplies'));
 });
 
 it('serves its own storefront templates and keeps them to itself', function () {

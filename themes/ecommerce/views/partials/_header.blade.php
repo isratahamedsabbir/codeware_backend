@@ -19,6 +19,10 @@
     $headerTopCategories = $headerCategories
         ->reject(fn ($category) => $category->parent_id && $headerCategoryIds->has($category->parent_id));
 
+    // Both the desktop nav and the mobile menu list featured categories only,
+    // and their dropdowns hold featured children only, at every level.
+    $featuredChildrenByParent = $headerChildrenByParent->map(fn ($children) => $children->where('featured', true)->values());
+
     $headerBrands = \App\Models\ProductBrand::active()
         ->orderBy('sort_order')
         ->get();
@@ -221,10 +225,6 @@
                      per item (the rest stay in the mobile menu and the shop page). One with children gets a chevron and a dropdown that
                      opens on hover (or tap); the branch inside reuses the same
                      expandable rows as the mobile menu. --}}
-                @php
-                    // The dropdowns hold featured children only, at every level.
-                    $featuredChildrenByParent = $headerChildrenByParent->map(fn ($children) => $children->where('featured', true)->values());
-                @endphp
                 @foreach ($headerTopCategories->where('featured', true) as $category)
                     @php $categoryChildren = $featuredChildrenByParent->get($category->id, collect()); @endphp
                     <li>
@@ -296,48 +296,44 @@
             </div>
 
         <nav class="flex flex-col">
-            {{-- Categories and Brands collapse to a single row each so the menu
-                 stays short; tap the heading to open the list. --}}
-            @php
-                $mobileSection = 'flex w-full items-center justify-between rounded-md! px-3 py-2.5 text-sm font-semibold text-sf-text transition-colors hover:bg-gray-50 hover:text-brand';
-            @endphp
+            {{-- Same items and order as the desktop nav: flash deal, menu links,
+                 then the featured categories (each expandable into its featured
+                 children) and the featured brands. --}}
             @if ($hasLiveFlashDeal)
                 <a href="{{ route('flash-deals') }}" class="rounded-md px-3 py-2.5 text-sm font-bold text-sale transition-colors hover:bg-gray-50">⚡ {{ __('Flash Deals') }}</a>
             @endif
             @foreach ($menuItems ?? [] as $menuItem)
                 <a href="{{ url($menuItem->url) }}" class="rounded-md px-3 py-2.5 text-sm font-semibold text-sf-text transition-colors hover:bg-gray-50 hover:text-brand">{{ $menuItem->label }}</a>
             @endforeach
-            @if ($headerCategories->isNotEmpty())
-                <div x-data="{ open: false }" class="border-b border-zinc-100">
-                    <button type="button" @click="open = ! open" :aria-expanded="open" class="{{ $mobileSection }}">
-                        <span>{{ __('Categories') }}</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-zinc-500 transition-transform duration-200" :class="open && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" /></svg>
-                    </button>
-                    <div x-show="open" x-collapse x-cloak class="pb-2">
-                        @foreach ($headerTopCategories as $category)
-                            @include('theme-ecommerce::partials._header-category-item', [
-                                'category' => $category,
-                                'childrenByParent' => $headerChildrenByParent,
-                                'depth' => 0,
-                            ])
-                        @endforeach
-                        <a href="{{ route('shop') }}" class="mt-1 block px-3 py-2 text-sm font-semibold text-brand">{{ __('All categories') }} →</a>
+            @foreach ($headerTopCategories->where('featured', true) as $category)
+                @php $categoryChildren = $featuredChildrenByParent->get($category->id, collect()); @endphp
+                @if ($categoryChildren->isEmpty())
+                    <a href="{{ route('shop.category', $category->slug) }}" class="rounded-md px-3 py-2.5 text-sm font-semibold text-sf-text transition-colors hover:bg-gray-50 hover:text-brand">{{ $category->name }}</a>
+                @else
+                    <div x-data="{ open: false }">
+                        <div class="flex items-center">
+                            <a href="{{ route('shop.category', $category->slug) }}" class="min-w-0 flex-1 truncate rounded-md px-3 py-2.5 text-sm font-semibold text-sf-text transition-colors hover:bg-gray-50 hover:text-brand">{{ $category->name }}</a>
+                            <button type="button" @click="open = ! open" :aria-expanded="open"
+                                aria-label="{{ __('Show :name subcategories', ['name' => $category->name]) }}"
+                                class="me-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-gray-50 hover:text-brand">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform duration-200" :class="open && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" /></svg>
+                            </button>
+                        </div>
+                        <div x-show="open" x-collapse x-cloak class="pb-2">
+                            @foreach ($categoryChildren as $child)
+                                @include('theme-ecommerce::partials._header-category-item', [
+                                    'category' => $child,
+                                    'childrenByParent' => $featuredChildrenByParent,
+                                    'depth' => 0,
+                                ])
+                            @endforeach
+                        </div>
                     </div>
-                </div>
-            @endif
-            @if ($headerBrands->isNotEmpty())
-                <div x-data="{ open: false }" class="border-b border-zinc-100">
-                    <button type="button" @click="open = ! open" :aria-expanded="open" class="{{ $mobileSection }}">
-                        <span>{{ __('Brands') }}</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-zinc-500 transition-transform duration-200" :class="open && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" /></svg>
-                    </button>
-                    <div x-show="open" x-collapse x-cloak class="pb-2">
-                        @foreach ($headerBrands as $brand)
-                            <a href="{{ route('shop.brand', $brand->slug) }}" class="block rounded-md py-2 pl-9 pr-3 text-sm font-semibold text-zinc-700 transition-colors hover:bg-gray-50 hover:text-brand">{{ $brand->name }}</a>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
+                @endif
+            @endforeach
+            @foreach ($headerBrands->where('featured', true) as $brand)
+                <a href="{{ route('shop.brand', $brand->slug) }}" class="rounded-md px-3 py-2.5 text-sm font-semibold text-sf-text transition-colors hover:bg-gray-50 hover:text-brand">{{ $brand->name }}</a>
+            @endforeach
             @if ($productsEnabled)
                 <a href="{{ route('favorites') }}" class="rounded-md px-3 py-2.5 text-sm font-semibold text-sf-text transition-colors hover:bg-gray-50 hover:text-brand">{{ __('My favorites') }}</a>
             @endif

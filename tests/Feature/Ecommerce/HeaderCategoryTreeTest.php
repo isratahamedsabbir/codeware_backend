@@ -21,6 +21,7 @@ function headerCategory(string $name, string $slug, ?int $parentId = null, strin
         'name' => ['en' => $name, 'bn' => ''],
         'parent_id' => $parentId,
         'status' => $status,
+        'featured' => true,
     ]);
     pairPageFor($category, 'product_category', $slug, test()->author->id);
 
@@ -38,7 +39,7 @@ it('nests child categories under a + toggle in the header dropdown', function ()
     expect($html)->toContain('Show Seeds subcategories')
         ->and($html)->not->toContain('Show Fertilizers subcategories');
 
-    get('/')->assertSeeInOrder(['Show Seeds subcategories', '/category/seeds', 'x-show="expanded"', '/category/vegetable-seeds'], false);
+    get('/')->assertSeeInOrder(['Show Seeds subcategories', '/category/seeds', 'x-show="open"', '/category/vegetable-seeds'], false);
 });
 
 it('lifts a child to the top level when its parent is not listed', function () {
