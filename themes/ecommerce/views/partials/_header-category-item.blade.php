@@ -27,7 +27,7 @@
             <span class="ml-2.5 h-6 w-6 shrink-0"></span>
         @endif
 
-        <a href="{{ route('shop.category', $category->slug) }}"
+        <a href="{{ route('shop', ['category' => $category->slug]) }}"
             class="block min-w-0 flex-1 truncate py-2 pl-1.5 pr-4 text-sm font-semibold text-zinc-700 transition-colors hover:text-brand">
             {{ $category->name }}
         </a>

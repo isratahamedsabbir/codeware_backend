@@ -39,7 +39,7 @@ it('nests child categories under a + toggle in the header dropdown', function ()
     expect($html)->toContain('Show Seeds subcategories')
         ->and($html)->not->toContain('Show Fertilizers subcategories');
 
-    get('/')->assertSeeInOrder(['Show Seeds subcategories', '/category/seeds', 'x-show="open"', '/category/vegetable-seeds'], false);
+    get('/')->assertSeeInOrder(['Show Seeds subcategories', '/shop?category=seeds', 'x-show="open"', '/shop?category=vegetable-seeds'], false);
 });
 
 it('lifts a child to the top level when its parent is not listed', function () {
@@ -47,6 +47,6 @@ it('lifts a child to the top level when its parent is not listed', function () {
     headerCategory('Orphan Child', 'orphan-child', $hidden->id);
 
     get('/')->assertOk()
-        ->assertSee('/category/orphan-child', false)
+        ->assertSee('/shop?category=orphan-child', false)
         ->assertDontSee('Show Hidden Parent subcategories');
 });

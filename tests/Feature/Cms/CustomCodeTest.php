@@ -156,10 +156,10 @@ describe('page-type coverage', function () {
         $this->get('/blog/post-x')->assertOk()->assertSee('snip-b', false)->assertDontSee('snip-a', false);
     });
 
-    it('loads the picked snippet on a product category page', function () {
+    it('redirects a product category page to the filtered shop', function () {
         $c = ProductCategory::factory()->create(['status' => 'active']);
         Page::factory()->published()->create(['type' => 'product_category', 'category_id' => $c->id, 'slug' => 'cat-x', 'custom_code_id' => 'aaa']);
-        $this->get('/category/cat-x')->assertOk()->assertSee('snip-a', false);
+        $this->get('/category/cat-x')->assertRedirect('/shop?category=cat-x');
     });
 
     it('loads the picked snippet on the homepage', function () {

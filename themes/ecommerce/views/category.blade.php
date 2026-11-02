@@ -16,7 +16,7 @@
     ];
 
     if ($category->parent) {
-        $crumbs[] = ['label' => $category->parent->name, 'url' => route('shop.category', $category->parent->slug)];
+        $crumbs[] = ['label' => $category->parent->name, 'url' => route('shop', ['category' => $category->parent->slug])];
     }
 
     $crumbs[] = ['label' => $category->name, 'url' => null];
@@ -49,7 +49,7 @@
     @if ($children->isNotEmpty())
         <div class="mb-8 flex flex-wrap gap-3">
             @foreach ($children as $child)
-                <a href="{{ route('shop.category', $child->slug) }}"
+                <a href="{{ route('shop', ['category' => $child->slug]) }}"
                     class="rounded-full border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:border-brand hover:text-brand">
                     {{ $child->name }}
                 </a>

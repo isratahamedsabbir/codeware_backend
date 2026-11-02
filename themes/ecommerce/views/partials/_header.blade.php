@@ -229,8 +229,8 @@
                     @php $categoryChildren = $featuredChildrenByParent->get($category->id, collect()); @endphp
                     <li>
                         @if ($categoryChildren->isEmpty())
-                            <a href="{{ route('shop.category', $category->slug) }}"
-                                class="inline-block px-3 py-3.5 text-[15px] font-semibold transition-colors {{ url()->current() === route('shop.category', $category->slug) ? 'text-brand' : 'text-sf-nav-text hover:text-brand' }}">
+                            <a href="{{ route('shop', ['category' => $category->slug]) }}"
+                                class="inline-block px-3 py-3.5 text-[15px] font-semibold transition-colors {{ request()->routeIs('shop') && request('category') === $category->slug ? 'text-brand' : 'text-sf-nav-text hover:text-brand' }}">
                                 {{ $category->name }}
                             </a>
                         @else
@@ -247,7 +247,7 @@
                                 @click.outside="open = false" @keydown.escape.window="open = false"
                                 @nav-scroll.window="open = false" @scroll.window="open = false" class="relative">
                                 <div x-ref="anchor" class="flex items-center">
-                                    <a href="{{ route('shop.category', $category->slug) }}"
+                                    <a href="{{ route('shop', ['category' => $category->slug]) }}"
                                         :class="{ 'text-brand': open }"
                                         class="py-3.5 ps-3 text-[15px] font-semibold text-sf-nav-text transition-colors hover:text-brand">{{ $category->name }}</a>
                                     <button type="button" @click="place(); open = !open" :aria-expanded="open"
@@ -277,8 +277,8 @@
                 {{-- Featured brands follow the categories, as plain links. --}}
                 @foreach ($headerBrands->where('featured', true) as $brand)
                     <li>
-                        <a href="{{ route('shop.brand', $brand->slug) }}"
-                            class="inline-block px-3 py-3.5 text-[15px] font-semibold transition-colors {{ url()->current() === route('shop.brand', $brand->slug) ? 'text-brand' : 'text-sf-nav-text hover:text-brand' }}">
+                        <a href="{{ route('shop', ['brand' => $brand->slug]) }}"
+                            class="inline-block px-3 py-3.5 text-[15px] font-semibold transition-colors {{ request()->routeIs('shop') && request('brand') === $brand->slug ? 'text-brand' : 'text-sf-nav-text hover:text-brand' }}">
                             {{ $brand->name }}
                         </a>
                     </li>
@@ -308,11 +308,11 @@
             @foreach ($headerTopCategories->where('featured', true) as $category)
                 @php $categoryChildren = $featuredChildrenByParent->get($category->id, collect()); @endphp
                 @if ($categoryChildren->isEmpty())
-                    <a href="{{ route('shop.category', $category->slug) }}" class="rounded-md px-3 py-2.5 text-sm font-semibold text-sf-text transition-colors hover:bg-gray-50 hover:text-brand">{{ $category->name }}</a>
+                    <a href="{{ route('shop', ['category' => $category->slug]) }}" class="rounded-md px-3 py-2.5 text-sm font-semibold text-sf-text transition-colors hover:bg-gray-50 hover:text-brand">{{ $category->name }}</a>
                 @else
                     <div x-data="{ open: false }">
                         <div class="flex items-center">
-                            <a href="{{ route('shop.category', $category->slug) }}" class="min-w-0 flex-1 truncate rounded-md px-3 py-2.5 text-sm font-semibold text-sf-text transition-colors hover:bg-gray-50 hover:text-brand">{{ $category->name }}</a>
+                            <a href="{{ route('shop', ['category' => $category->slug]) }}" class="min-w-0 flex-1 truncate rounded-md px-3 py-2.5 text-sm font-semibold text-sf-text transition-colors hover:bg-gray-50 hover:text-brand">{{ $category->name }}</a>
                             <button type="button" @click="open = ! open" :aria-expanded="open"
                                 aria-label="{{ __('Show :name subcategories', ['name' => $category->name]) }}"
                                 class="me-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-gray-50 hover:text-brand">
@@ -332,7 +332,7 @@
                 @endif
             @endforeach
             @foreach ($headerBrands->where('featured', true) as $brand)
-                <a href="{{ route('shop.brand', $brand->slug) }}" class="rounded-md px-3 py-2.5 text-sm font-semibold text-sf-text transition-colors hover:bg-gray-50 hover:text-brand">{{ $brand->name }}</a>
+                <a href="{{ route('shop', ['brand' => $brand->slug]) }}" class="rounded-md px-3 py-2.5 text-sm font-semibold text-sf-text transition-colors hover:bg-gray-50 hover:text-brand">{{ $brand->name }}</a>
             @endforeach
             @if ($productsEnabled)
                 <a href="{{ route('favorites') }}" class="rounded-md px-3 py-2.5 text-sm font-semibold text-sf-text transition-colors hover:bg-gray-50 hover:text-brand">{{ __('My favorites') }}</a>

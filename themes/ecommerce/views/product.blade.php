@@ -45,7 +45,7 @@
     ];
 
     if ($category = $product->categories->first()) {
-        $crumbs[] = ['label' => $category->name, 'url' => route('shop.category', $category->slug)];
+        $crumbs[] = ['label' => $category->name, 'url' => route('shop', ['category' => $category->slug])];
     }
 
     $crumbs[] = ['label' => $product->name, 'url' => null];
@@ -328,14 +328,14 @@
                  then any tags — no labels in front of them. --}}
             <div class="mt-8 flex flex-wrap items-center gap-2 border-t border-zinc-100 pt-6">
                 @foreach ($product->categories as $category)
-                    <a href="{{ route('shop.category', $category->slug) }}"
+                    <a href="{{ route('shop', ['category' => $category->slug]) }}"
                         class="rounded-full border border-zinc-200 px-3 py-1 text-xs font-medium text-zinc-600 transition hover:border-brand hover:text-brand">
                         {{ $category->name }}
                     </a>
                 @endforeach
 
                 @if ($product->brand)
-                    <a href="{{ route('shop.brand', $product->brand->slug) }}"
+                    <a href="{{ route('shop', ['brand' => $product->brand->slug]) }}"
                         class="rounded-full bg-zinc-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-600 transition hover:bg-brand/10 hover:text-brand">
                         {{ $product->brand->name }}
                     </a>

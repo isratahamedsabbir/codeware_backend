@@ -234,8 +234,8 @@ it('renders a full product detail page', function () {
         ->assertSee('Premium')
         ->assertSee('Is it durable?')
         ->assertSee('Yes, very.')
-        ->assertSee('/brand/acme')
-        ->assertSee('/category/tools')
+        ->assertSee('/shop?brand=acme')
+        ->assertSee('/shop?category=tools')
         ->assertSee('/tag/premium');
 });
 
@@ -267,7 +267,7 @@ it('renders the variation picker with grouped options on the product page', func
         ->assertSee('\u0022initial_selection\u0022:{\u0022Size\u0022:\u0022M\u0022,\u0022Color\u0022:\u0022Red\u0022}', false);
 });
 
-it('renders a category landing page with its products', function () {
+it('redirects a category landing page to the shop with that category selected', function () {
     $category = ProductCategory::factory()->create(['name' => ['en' => 'Fertilizers', 'bn' => '']]);
     pairPageFor($category, 'product_category', 'fertilizers', $this->admin->id);
 
@@ -277,13 +277,16 @@ it('renders a category landing page with its products', function () {
     storefrontProduct('other', ['name' => ['en' => 'Other Product', 'bn' => '']]);
 
     get('/category/fertilizers')
+        ->assertRedirect('/shop?category=fertilizers');
+
+    get('/shop?category=fertilizers')
         ->assertOk()
         ->assertSee('Fertilizers')
         ->assertSee('NPK 20-20-20')
         ->assertDontSee('Other Product');
 });
 
-it('links child categories on a parent category landing page', function () {
+it('redirects a child category to the shop with that category selected', function () {
     $parent = ProductCategory::factory()->create(['name' => ['en' => 'Fertilizers', 'bn' => '']]);
     pairPageFor($parent, 'product_category', 'fertilizers', $this->admin->id);
 
@@ -294,17 +297,18 @@ it('links child categories on a parent category landing page', function () {
     ]);
     pairPageFor($child, 'product_category', 'organic', $this->admin->id);
 
-    get('/category/fertilizers')
-        ->assertOk()
-        ->assertSee('Organic')
-        ->assertSee('/category/organic');
+    get('/category/fertilizers')->assertRedirect('/shop?category=fertilizers');
+    get('/category/organic')->assertRedirect('/shop?category=organic');
 });
 
-it('renders a brand landing page by slug derived from its name', function () {
+it('redirects a brand landing page to the shop with that brand selected', function () {
     $brand = ProductBrand::factory()->create(['name' => ['en' => 'Acme Supplies', 'bn' => '']]);
     storefrontProduct('acme-item', ['name' => ['en' => 'Acme Item', 'bn' => ''], 'brand_id' => $brand->id]);
 
     get('/brand/acme_supplies')
+        ->assertRedirect('/shop?brand=acme_supplies');
+
+    get('/shop?brand=acme_supplies')
         ->assertOk()
         ->assertSee('Acme Supplies')
         ->assertSee('Acme Item');
@@ -348,7 +352,7 @@ it('shows brands without a logo on the ecommerce homepage', function () {
         ->assertOk()
         ->assertSee('Shop by brand')
         ->assertSee('Acme Supplies')
-        ->assertSee('/brand/acme-supplies');
+        ->assertSee('/shop?brand=acme-supplies');
 });
 
 it('lists featured categories and brands in the ecommerce header, after the menu links, on desktop and mobile', function () {
@@ -368,8 +372,8 @@ it('lists featured categories and brands in the ecommerce header, after the menu
     $nav = (string) str($html)->after('<nav class="hidden border-b')->before('</nav>');
 
     expect($nav)
-        ->toContain('/category/fertilizers')
-        ->toContain('/brand/acme-supplies')
+        ->toContain('/shop?category=fertilizers')
+        ->toContain('/shop?brand=acme-supplies')
         ->not->toContain('Plain Category')
         ->not->toContain('Quiet Brand')
         ->and(strpos($nav, 'Home'))->toBeLessThan(strpos($nav, 'Fertilizers'))
@@ -380,8 +384,8 @@ it('lists featured categories and brands in the ecommerce header, after the menu
     $mobile = (string) str($html)->after('id="mobile-menu"')->before('</header>');
 
     expect($mobile)
-        ->toContain('/category/fertilizers')
-        ->toContain('/brand/acme-supplies')
+        ->toContain('/shop?category=fertilizers')
+        ->toContain('/shop?brand=acme-supplies')
         ->not->toContain('Plain Category')
         ->not->toContain('Quiet Brand')
         ->and(strpos($mobile, 'Home'))->toBeLessThan(strpos($mobile, 'Fertilizers'))

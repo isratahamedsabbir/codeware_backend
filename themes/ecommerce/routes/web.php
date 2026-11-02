@@ -51,7 +51,9 @@ Route::get('/{slug}', [PageController::class, 'page'])
     ->name('page');
 
 // Category slugs live on each category's paired Page; brand/tag slugs are
-// derived from the primary-locale name.
+// derived from the primary-locale name. Category and brand URLs are legacy
+// addresses now: they redirect to the matching shop filter (see
+// ShopController), so old bookmarks and menu links keep working.
 Route::middleware('feature:products')->group(function () {
     Route::get('/shop', [ShopController::class, 'shop'])->name('shop');
     Route::get('/products/{slug}', [ProductController::class, 'product'])->name('products.show');

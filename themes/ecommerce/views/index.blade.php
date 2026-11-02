@@ -280,7 +280,7 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.21 4.29a1 1 0 0 1 1.42 0l5 5a1 1 0 0 1 0 1.42l-5 5a1 1 0 1 1-1.42-1.42L11.5 10 7.21 5.71a1 1 0 0 1 0-1.42Z" clip-rule="evenodd"/></svg>
                             </button>
                         </div>
-                        <a href="{{ route('shop.category', $category->slug) }}" class="inline-flex h-9 items-center gap-1 rounded-full border border-brand/20 bg-white px-4 text-sm font-semibold text-brand transition hover:bg-brand hover:text-white">
+                        <a href="{{ route('shop', ['category' => $category->slug]) }}" class="inline-flex h-9 items-center gap-1 rounded-full border border-brand/20 bg-white px-4 text-sm font-semibold text-brand transition hover:bg-brand hover:text-white">
                             {{ __('View all') }}
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.21 4.29a1 1 0 0 1 1.42 0l5 5a1 1 0 0 1 0 1.42l-5 5a1 1 0 1 1-1.42-1.42L11.5 10 7.21 5.71a1 1 0 0 1 0-1.42Z" clip-rule="evenodd"/></svg>
                         </a>
@@ -301,7 +301,7 @@
             ])
             <div class="grid grid-cols-2 gap-3 md:grid-cols-5 md:gap-4">
                 @foreach ($homeBrands as $brand)
-                    <a href="{{ route('shop.brand', $brand->slug) }}"
+                    <a href="{{ route('shop', ['brand' => $brand->slug]) }}"
                         class="flex min-h-[72px] items-center justify-center rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md {{ $brand->logo ? 'grayscale hover:grayscale-0' : '' }}">
                         @if ($brand->logo)
                             <img src="{{ $brand->logo }}" alt="{{ $brand->name }}" loading="lazy" decoding="async" width="160" height="48" class="max-h-12 w-auto object-contain">
