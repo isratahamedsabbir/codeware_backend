@@ -73,12 +73,12 @@
 
     <div class="flex flex-1 flex-col gap-1 p-3">
         <h3 class="text-[15px] font-medium leading-snug text-sf-text">
-            <a href="{{ route('products.show', $product->slug) }}" class="line-clamp-2 min-h-[36px] transition-colors hover:text-brand">
-                {{ $product->name }}
+            <a href="{{ route('products.show', $product->slug) }}" title="{{ $product->name }}" class="line-clamp-2 min-h-[36px] transition-colors hover:text-brand">
+                {{ \Illuminate\Support\Str::limit($product->name, 36) }}
             </a>
         </h3>
 
-        <div class="mt-auto flex flex-wrap items-baseline gap-x-2 gap-y-0.5 pt-2">
+        <div class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 pt-2">
             @if ($discount)
                 <span class="text-[15px] font-bold text-sf-price">{{ $money($discount) }}</span>
                 <span class="text-sm text-red-600 line-through">{{ $money($product->price) }}</span>
@@ -96,24 +96,44 @@
         @if ($variantOptions->isNotEmpty())
             <div class="mt-1 flex flex-col gap-1.5">
                 @foreach ($variantOptions as $attributeName => $values)
-                    <div class="flex flex-wrap items-center gap-1.5" title="{{ $attributeName }}">
-                        @foreach (array_slice($values, 0, 4, true) as $value => $available)
-                            @if ($available)
-                                <a href="{{ route('products.show', $product->slug) }}"
-                                    class="rounded-md border border-zinc-300 px-2.5 py-1 text-[13px] font-medium leading-none text-zinc-700 transition hover:border-brand hover:text-brand">{{ $value }}</a>
-                            @else
-                                <span class="cursor-not-allowed rounded-md border border-zinc-200 px-2.5 py-1 text-[13px] font-medium leading-none text-zinc-400 line-through opacity-70" title="{{ __('Out of stock') }}">{{ $value }}</span>
-                            @endif
-                        @endforeach
-                        @if (count($values) > 4)
-                            <span class="text-[13px] font-medium text-zinc-500">+{{ count($values) - 4 }}</span>
-                        @endif
+                    <div class="flex min-w-0 items-center gap-1" title="{{ $attributeName }}"
+                        x-data="{
+                            overflow: false,
+                            update() { this.overflow = this.$refs.track.scrollWidth > this.$refs.track.clientWidth + 1; },
+                            scroll(direction) {
+                                const track = this.$refs.track;
+                                track.scrollBy({ left: direction * Math.max(100, track.clientWidth * 0.75), behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+                            },
+                        }"
+                        x-init="$nextTick(() => { update(); new ResizeObserver(() => update()).observe($refs.track); })">
+                        <button type="button" x-cloak x-show="overflow" @click="scroll(-1)"
+                            aria-label="{{ __('Scroll :attribute options left', ['attribute' => $attributeName]) }}"
+                            class="shrink-0 rounded-full border border-zinc-200 bg-white p-1 text-zinc-600 shadow-sm transition hover:border-brand hover:text-brand"
+                            title="{{ __('Previous options') }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12.79 15.71a1 1 0 0 1-1.42 0l-5-5a1 1 0 0 1 0-1.42l5-5a1 1 0 1 1 1.42 1.42L8.5 10l4.29 4.29a1 1 0 0 1 0 1.42Z" clip-rule="evenodd"/></svg>
+                        </button>
+                        <div x-ref="track" class="no-scrollbar flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto scroll-smooth">
+                            @foreach ($values as $value => $available)
+                                @if ($available)
+                                    <a href="{{ route('products.show', $product->slug) }}"
+                                        class="shrink-0 rounded-md border border-zinc-300 px-2.5 py-1 text-[13px] font-medium leading-none text-zinc-700 transition hover:border-brand hover:text-brand">{{ $value }}</a>
+                                @else
+                                    <span class="shrink-0 cursor-not-allowed rounded-md border border-zinc-200 px-2.5 py-1 text-[13px] font-medium leading-none text-zinc-400 line-through opacity-70" title="{{ __('Out of stock') }}">{{ $value }}</span>
+                                @endif
+                            @endforeach
+                        </div>
+                        <button type="button" x-cloak x-show="overflow" @click="scroll(1)"
+                            aria-label="{{ __('Scroll :attribute options right', ['attribute' => $attributeName]) }}"
+                            class="shrink-0 rounded-full border border-zinc-200 bg-white p-1 text-zinc-600 shadow-sm transition hover:border-brand hover:text-brand"
+                            title="{{ __('More options') }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.21 4.29a1 1 0 0 1 1.42 0l5 5a1 1 0 0 1 0 1.42l-5 5a1 1 0 1 1-1.42-1.42L11.5 10 7.21 5.71a1 1 0 0 1 0-1.42Z" clip-rule="evenodd"/></svg>
+                        </button>
                     </div>
                 @endforeach
             </div>
         @endif
 
-        <div class="pt-3">
+        <div class="mt-auto pt-3">
             <livewire:frontend.add-to-cart-button
                 :product-id="$product->id"
                 :slug="$product->slug"
