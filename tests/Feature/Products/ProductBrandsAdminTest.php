@@ -160,3 +160,27 @@ it('deletes a brand, leaving products that used it with no brand', function () {
     expect(ProductBrand::find($brand->id))->toBeNull();
     expect($product->fresh()->brand)->toBeNull();
 });
+
+it('toggles a brand as featured from the index', function () {
+    $brand = ProductBrand::factory()->create(['name' => ['en' => 'Acme', 'bn' => '']]);
+
+    Livewire::test(ProductBrandIndex::class)->call('toggleFeatured', $brand->id);
+    expect($brand->refresh()->featured)->toBeTrue();
+
+    Livewire::test(ProductBrandIndex::class)->call('toggleFeatured', $brand->id);
+    expect($brand->refresh()->featured)->toBeFalse();
+});
+
+it('lists only featured brands in the storefront header, after the categories', function () {
+    \App\Models\Setting::set('site_theme', 'ecommerce');
+    \App\Support\Themes::forget();
+
+    ProductBrand::factory()->create(['name' => ['en' => 'Shown Brand', 'bn' => ''], 'featured' => true]);
+    ProductBrand::factory()->create(['name' => ['en' => 'Hidden Brand', 'bn' => ''], 'featured' => false]);
+
+    // The desktop nav only; the mobile menu still lists every brand.
+    $nav = str($this->get('/')->assertOk()->getContent())
+        ->after('<nav class="hidden border-b')->before('</nav>');
+
+    expect((string) $nav)->toContain('Shown Brand')->not->toContain('Hidden Brand');
+});

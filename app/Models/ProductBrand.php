@@ -34,10 +34,11 @@ class ProductBrand extends Model
 
     public array $translatable = ['name'];
 
-    protected $fillable = ['kind', 'type_id', 'name', 'logo', 'status', 'sort_order'];
+    protected $fillable = ['kind', 'type_id', 'name', 'logo', 'status', 'sort_order', 'featured'];
 
     protected $casts = [
         'sort_order' => 'integer',
+        'featured' => 'boolean',
     ];
 
     /**

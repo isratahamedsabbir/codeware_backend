@@ -48,6 +48,19 @@ class Index extends Component
         $this->dispatch('notify', message: 'Brand status updated');
     }
 
+    /**
+     * Featured brands are the ones the storefront header lists in its nav row
+     * (after the featured categories); the rest stay in the mobile menu.
+     */
+    public function toggleFeatured(int $id): void
+    {
+        $brand = ProductBrand::findOrFail($id);
+        $brand->update(['featured' => ! $brand->featured]);
+
+        AdminActivity::log('updated', "Product Brand: {$brand->name} ".($brand->featured ? 'featured' : 'unfeatured'));
+        $this->dispatch('notify', message: $brand->featured ? 'Brand featured in the header' : 'Brand removed from the header');
+    }
+
     public function confirmDelete(int $id): void
     {
         $this->deletingId = $id;

@@ -82,10 +82,11 @@
                 <colgroup>
                     <col style="width:6%">
                     <col style="width:7%">
-                    <col style="width:20%">
-                    <col style="width:12%">
-                    <col style="width:12%">
                     <col style="width:18%">
+                    <col style="width:11%">
+                    <col style="width:11%">
+                    <col style="width:13%">
+                    <col style="width:14%">
                     <col style="width:20%">
                 </colgroup>
                 <thead>
@@ -95,6 +96,7 @@
                         <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Name</th>
                         <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Type</th>
                         <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Status</th>
+                        <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Featured</th>
                         <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Created by</th>
                         <th class="sticky right-0 z-10 bg-zinc-50 border-l border-zinc-100 px-4 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Actions</th>
                     </tr>
@@ -164,6 +166,18 @@
                                 @endif
                             </td>
 
+                            {{-- Featured — shows the brand in the storefront header nav. --}}
+                            <td class="px-4 py-2">
+                                <button type="button" wire:click="toggleFeatured({{ $brand->id }})"
+                                    title="{{ $brand->featured ? 'Remove from header' : 'Show in header' }}"
+                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer border transition-colors {{ $brand->featured ? 'bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100' : 'bg-zinc-50 text-zinc-500 border-zinc-200 hover:bg-zinc-100' }}">
+                                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="{{ $brand->featured ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.5a.56.56 0 0 1 1.04 0l2.13 5.11 5.52.44c.5.04.7.66.32.97l-4.2 3.6 1.28 5.39a.56.56 0 0 1-.84.61L12 16.96l-4.73 2.86a.56.56 0 0 1-.84-.61l1.28-5.39-4.2-3.6a.56.56 0 0 1 .32-.97l5.52-.44 2.13-5.11Z" />
+                                    </svg>
+                                    {{ $brand->featured ? 'Featured' : 'Not featured' }}
+                                </button>
+                            </td>
+
                             {{-- Created by --}}
                             <td class="px-4 py-2 text-sm text-zinc-500">
                                 {{ $brand->creator?->name ?? '—' }}
@@ -182,7 +196,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-6 py-16 text-center">
+                            <td colspan="8" class="px-6 py-16 text-center">
                                 <flux:icon.star class="w-10 h-10 text-zinc-200 mx-auto mb-3" />
                                 <p class="text-sm text-zinc-600">No brands found.</p>
                             </td>

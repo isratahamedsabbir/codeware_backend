@@ -107,7 +107,6 @@
                         </div>
                     </details>
                 @endif
-                <livewire:frontend.cart-count :key="'cart-count'" />
                 <livewire:frontend.wishlist-count :key="'wishlist-count'" />
 
                 @auth
@@ -151,9 +150,11 @@
         </div>
     </div>
 
-    @if ($menuItems->isNotEmpty() || $headerCategories->isNotEmpty() || $headerBrands->isNotEmpty() || $hasLiveFlashDeal)
+    @if ($menuItems->isNotEmpty() || $headerTopCategories->where('featured', true)->isNotEmpty() || $headerBrands->where('featured', true)->isNotEmpty() || $hasLiveFlashDeal)
         <nav class="hidden border-b border-gray-100 bg-sf-nav shadow-sm md:block">
-            <ul class="mx-auto flex max-w-7xl items-center px-4 sm:px-6">
+            {{-- justify-evenly: however many items there are, they share the full row
+                 equally, so the bar looks finished with 5 links or 15. --}}
+            <ul class="mx-auto flex max-w-7xl flex-wrap items-center justify-evenly px-4 sm:px-6">
                 {{-- First in the row: the way into the live sale. --}}
                 @if ($hasLiveFlashDeal)
                     {{-- Playful on purpose: a soft pulsing glow, a light streak sweeping
@@ -169,7 +170,7 @@
                         @keyframes flash-deal-bolt { 0%, 60%, 100% { transform: scale(1) rotate(0); } 70% { transform: scale(1.25) rotate(-12deg); } 80% { transform: scale(1.1) rotate(10deg); } 90% { transform: scale(1.2) rotate(-6deg); } }
                         @media (prefers-reduced-motion: reduce) { .flash-deal-btn, .flash-deal-btn::after, .flash-deal-bolt { animation: none; } .flash-deal-btn:hover { transform: none; } }
                     </style>
-                    <li class="me-2">
+                    <li>
                         <a href="{{ route('flash-deals') }}"
                             class="flash-deal-btn inline-flex items-center gap-1.5 rounded-full bg-sale px-4 py-1.5 text-sm font-bold text-white shadow-sm transition hover:opacity-90 {{ request()->routeIs('flash-deals') ? 'ring-2 ring-offset-2 ring-sale/40' : '' }}">
                             <svg xmlns="http://www.w3.org/2000/svg" class="flash-deal-bolt h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -187,65 +188,62 @@
                         </a>
                     </li>
                 @endforeach
-                @if ($headerCategories->isNotEmpty())
+                {{-- The featured categories, right after the admin-managed links, one
+                     per item (the rest stay in the mobile menu and the shop page). One with children gets a chevron and a dropdown that
+                     opens on hover (or tap); the branch inside reuses the same
+                     expandable rows as the mobile menu. --}}
+                @php
+                    // The dropdowns hold featured children only, at every level.
+                    $featuredChildrenByParent = $headerChildrenByParent->map(fn ($children) => $children->where('featured', true)->values());
+                @endphp
+                @foreach ($headerTopCategories->where('featured', true) as $category)
+                    @php $categoryChildren = $featuredChildrenByParent->get($category->id, collect()); @endphp
                     <li>
-                        <div x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false" class="relative">
-                            <button type="button" @click="open = !open" :aria-expanded="open"
-                                :class="{ 'text-brand': open }"
-                                class="flex cursor-pointer items-center gap-1 px-3 py-3.5 text-[15px] font-semibold text-sf-nav-text transition-colors hover:text-brand">
-                                <span>{{ __('Categories') }}</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" />
-                                </svg>
-                            </button>
-                            <div x-show="open" x-cloak x-transition @click="open = false"
-                                class="absolute left-0 top-full z-50 ml-0 flex w-72 max-h-[min(24rem,60vh)] flex-col rounded-r-lg rounded-b-lg border border-gray-100 bg-white py-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
-                                <div class="min-h-0 overflow-y-auto overscroll-contain">
-                                    @foreach ($headerTopCategories as $category)
-                                        @include('theme-ecommerce::partials._header-category-item', [
-                                            'category' => $category,
-                                            'childrenByParent' => $headerChildrenByParent,
-                                            'depth' => 0,
-                                        ])
-                                    @endforeach
+                        @if ($categoryChildren->isEmpty())
+                            <a href="{{ route('shop.category', $category->slug) }}"
+                                class="inline-block px-3 py-3.5 text-[15px] font-semibold transition-colors {{ url()->current() === route('shop.category', $category->slug) ? 'text-brand' : 'text-sf-nav-text hover:text-brand' }}">
+                                {{ $category->name }}
+                            </a>
+                        @else
+                            <div x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false"
+                                @click.outside="open = false" @keydown.escape.window="open = false" class="relative">
+                                <div class="flex items-center">
+                                    <a href="{{ route('shop.category', $category->slug) }}"
+                                        :class="{ 'text-brand': open }"
+                                        class="py-3.5 ps-3 text-[15px] font-semibold text-sf-nav-text transition-colors hover:text-brand">{{ $category->name }}</a>
+                                    <button type="button" @click="open = !open" :aria-expanded="open"
+                                        aria-label="{{ __('Show :name subcategories', ['name' => $category->name]) }}"
+                                        class="cursor-pointer py-3.5 pe-3 ps-1 text-zinc-500 transition-colors hover:text-brand">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" />
+                                        </svg>
+                                    </button>
                                 </div>
-                                <a href="{{ route('shop') }}"
-                                    class="block border-t border-gray-100 bg-gray-50 px-4 py-2.5 text-center text-sm font-semibold text-brand transition-colors hover:text-brand/80">
-                                    {{ __('All categories') }}
-                                </a>
+                                <div x-show="open" x-cloak x-transition
+                                    class="absolute left-0 top-full z-50 flex w-64 max-h-[min(24rem,60vh)] flex-col rounded-b-lg rounded-tr-lg border border-gray-100 bg-white py-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
+                                    <div class="min-h-0 overflow-y-auto overscroll-contain">
+                                        @foreach ($categoryChildren as $child)
+                                            @include('theme-ecommerce::partials._header-category-item', [
+                                                'category' => $child,
+                                                'childrenByParent' => $featuredChildrenByParent,
+                                                'depth' => 0,
+                                            ])
+                                        @endforeach
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        @endif
                     </li>
-                @endif
-                @if ($headerBrands->isNotEmpty())
+                @endforeach
+                {{-- Featured brands follow the categories, as plain links. --}}
+                @foreach ($headerBrands->where('featured', true) as $brand)
                     <li>
-                        <div x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false" class="relative">
-                            <button type="button" @click="open = !open" :aria-expanded="open"
-                                :class="{ 'text-brand': open }"
-                                class="flex cursor-pointer items-center gap-1 px-3 py-3.5 text-[15px] font-semibold text-sf-nav-text transition-colors hover:text-brand">
-                                <span>{{ __('Brands') }}</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" />
-                                </svg>
-                            </button>
-                            <div x-show="open" x-cloak x-transition @click="open = false"
-                                class="absolute left-0 top-full z-50 ml-0 flex w-72 max-h-[min(24rem,60vh)] flex-col rounded-r-lg rounded-b-lg border border-gray-100 bg-white py-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
-                                <div class="min-h-0 overflow-y-auto overscroll-contain">
-                                    @foreach ($headerBrands as $brand)
-                                        <a href="{{ route('shop.brand', $brand->slug) }}"
-                                            class="block truncate px-4 py-2 text-sm font-semibold text-zinc-700 transition-colors hover:bg-gray-50 hover:text-brand">
-                                            {{ $brand->name }}
-                                        </a>
-                                    @endforeach
-                                </div>
-                                <a href="{{ route('shop') }}"
-                                    class="block border-t border-gray-100 bg-gray-50 px-4 py-2.5 text-center text-sm font-semibold text-brand transition-colors hover:text-brand/80">
-                                    {{ __('All brands') }}
-                                </a>
-                            </div>
-                        </div>
+                        <a href="{{ route('shop.brand', $brand->slug) }}"
+                            class="inline-block px-3 py-3.5 text-[15px] font-semibold transition-colors {{ url()->current() === route('shop.brand', $brand->slug) ? 'text-brand' : 'text-sf-nav-text hover:text-brand' }}">
+                            {{ $brand->name }}
+                        </a>
                     </li>
-                @endif
+                @endforeach
             </ul>
         </nav>
     @endif

@@ -41,6 +41,12 @@
     <div class="min-w-0 space-y-5" x-cloak>
 
     @php
+        // What the storefront draws at full desktop width (816 × 440 hero, 400 × 212
+        // tiles), doubled so the image stays sharp on high-density screens. Wider
+        // or taller images are cropped to fit, so keep the subject centred.
+        $heroSize = '1632 × 880';
+        $promoSize = '800 × 424';
+
         $promoTiles = [
             ['home_promo_banner_1', 'theme_ecommerce_promo_1_link', 'New arrivals', 'Top tile', '/shop?sort=newest'],
             ['home_promo_banner_2', 'theme_ecommerce_promo_2_link', 'Best deals', 'Bottom tile', '/shop'],
@@ -66,11 +72,11 @@
                          opens the media library. --}}
                     @foreach ($heroSlides as $i => $slide)
                         <div wire:key="hero-slide-{{ $i }}" x-show="activeSlide === {{ $i }}" @if ($i > 0) x-cloak @endif class="relative">
-                            <x-media-picker model="heroSlides.{{ $i }}.image" label="Slide {{ $i + 1 }}" size-hint="1920 × 600" preview dropzone drop-height="h-72 2xl:h-80"
+                            <x-media-picker model="heroSlides.{{ $i }}.image" label="Slide {{ $i + 1 }}" :size-hint="$heroSize" preview dropzone drop-height="h-72 2xl:h-80"
                                 only-images mimes="jpg,jpeg,png,gif,webp,avif" :max-size-mb="4" placeholder="Choose from the library" />
                             @if (filled($slide['image']))
                                 <span class="pointer-events-none absolute left-3 top-3 z-10 rounded-md bg-zinc-900/75 px-2 py-1 text-[11px] font-semibold text-white backdrop-blur">
-                                    Slide {{ $i + 1 }}
+                                    Slide {{ $i + 1 }} · {{ $heroSize }}
                                 </span>
                             @endif
 
@@ -138,11 +144,11 @@
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-1">
                         @foreach ($promoTiles as [$imageKey, $linkKey, $promoLabel, $promoPosition, $example])
                             <div class="relative min-w-0">
-                                <x-media-picker model="settings.{{ $imageKey }}" label="{{ $promoLabel }}" size-hint="1200 × 400" preview dropzone drop-height="h-32 2xl:h-36"
+                                <x-media-picker model="settings.{{ $imageKey }}" label="{{ $promoLabel }}" :size-hint="$promoSize" preview dropzone drop-height="h-32 2xl:h-36"
                                     only-images mimes="jpg,jpeg,png,gif,webp,avif" :max-size-mb="4" placeholder="Choose from the library" />
                                 @if (filled($settings[$imageKey] ?? null))
                                     <span class="pointer-events-none absolute left-3 top-3 z-10 rounded-md bg-zinc-900/75 px-2 py-1 text-[11px] font-semibold text-white backdrop-blur">
-                                        {{ $promoLabel }} · {{ $promoPosition }}
+                                        {{ $promoLabel }} · {{ $promoPosition }} · {{ $promoSize }}
                                     </span>
                                 @endif
 

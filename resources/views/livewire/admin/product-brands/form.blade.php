@@ -36,6 +36,8 @@
 
         <x-media-picker model="logo" label="Brand Logo" size-hint="Square, 512 × 512" placeholder="Select brand logo from library" mimes="jpg,jpeg,png,webp,avif,svg" only-images dropzone />
 
+        <flux:checkbox wire:model="featured" label="Featured" description="Show this brand in the storefront header, after the featured categories." />
+
         {{-- Footer --}}
         <div class="-mx-3 -mb-3 mt-4 flex items-center gap-3 flex-wrap rounded-b-[3px] border-t border-zinc-200 bg-zinc-50 px-3 py-3 dark:border-zinc-700 dark:bg-zinc-800/40">
             <x-admin-save-button :label="$brandId ? 'Update Brand' : 'Create Brand'" />

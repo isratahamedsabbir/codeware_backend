@@ -24,6 +24,9 @@ class Form extends Component
 
     public string $logo = '';
 
+    /** Listed in the storefront header nav, after the featured categories. */
+    public bool $featured = false;
+
     /**
      * Which pool the brand belongs to — the same post/product split as Tag.
      * Required, with no "shared (both)" option: a brand in neither pool was
@@ -47,6 +50,7 @@ class Form extends Component
         $this->brandId = $id;
         $this->hydrateTranslatable($brand, ['name']);
         $this->logo = $brand->logo ?? '';
+        $this->featured = (bool) $brand->featured;
         $this->typeId = $brand->type_id;
     }
 
@@ -68,6 +72,7 @@ class Form extends Component
         $data = [
             'name' => $this->translatablePayload('name'),
             'logo' => $this->logo ?: null,
+            'featured' => $this->featured,
             'type_id' => $this->typeId,
         ];
 
