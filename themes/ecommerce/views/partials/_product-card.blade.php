@@ -33,16 +33,19 @@
         }
     }
     $variantOptions = collect($variantOptions)->take(2);
+
+    // Small eyebrow above the name: the brand when there is one, else the first category.
+    $eyebrow = $product->brand?->name ?: $product->categories->first()?->name;
 @endphp
 
-<div class="group relative flex flex-col overflow-hidden rounded-card bg-white shadow-sm transition hover:shadow-md">
-    <a href="{{ route('products.show', $product->slug) }}" class="relative block overflow-hidden bg-zinc-100" aria-label="{{ $product->name }}">
+<div class="group relative flex h-full flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)] transition duration-300 hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-[0_10px_24px_-8px_rgba(16,24,40,0.18)]">
+    <a href="{{ route('products.show', $product->slug) }}" class="relative block overflow-hidden bg-zinc-50" aria-label="{{ $product->name }}">
         @if ($product->featured_image)
             <img src="{{ $product->featured_image }}" alt="{{ $product->name }}"
-                loading="lazy" decoding="async" width="380" height="190"
-                class="h-[190px] w-full object-cover transition duration-300 group-hover:scale-105">
+                loading="lazy" decoding="async" width="380" height="285"
+                class="aspect-[4/3] w-full object-cover transition duration-500 group-hover:scale-105 {{ ! $inStock && ! $isUpcoming ? 'opacity-60 grayscale' : '' }}">
         @else
-            <div class="flex h-[190px] w-full items-center justify-center text-zinc-300">
+            <div class="flex aspect-[4/3] w-full items-center justify-center bg-gradient-to-b from-zinc-50 to-zinc-100 text-zinc-300">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 7 9-5 9 5 0 10-9 5-9-5V7Zm0 0 9 5m0 0 9-5m-9 5v10" />
                 </svg>
@@ -50,17 +53,17 @@
         @endif
 
         @if ($discountPercent)
-            <span class="absolute left-2.5 top-2.5 rounded-md bg-sale px-3 py-1.5 text-lg font-bold leading-none text-white">
+            <span class="absolute left-2.5 top-2.5 rounded-md bg-sale px-2 py-1 text-xs font-bold leading-none tracking-wide text-white shadow-sm">
                 -{{ $discountPercent }}%
             </span>
         @elseif ($isUpcoming)
-            <span class="absolute left-2.5 top-2.5 rounded-md bg-amber-500 px-3 py-1.5 text-lg font-bold leading-none text-white">
+            <span class="absolute left-2.5 top-2.5 rounded-md bg-amber-500 px-2 py-1 text-xs font-bold uppercase leading-none tracking-wide text-white shadow-sm">
                 {{ __('Upcoming') }}
             </span>
         @endif
 
         @if (! $inStock && ! $isUpcoming)
-            <span class="absolute bottom-2.5 left-2.5 rounded bg-zinc-900/80 px-2 py-0.5 text-xs font-semibold text-white">
+            <span class="absolute inset-x-0 bottom-0 bg-zinc-900/75 py-1 text-center text-[11px] font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
                 {{ __('Out of stock') }}
             </span>
         @endif
@@ -71,19 +74,23 @@
         :key="'wishlist-'.$product->id"
     />
 
-    <div class="flex flex-1 flex-col gap-1 p-3">
-        <h3 class="text-[15px] font-medium leading-snug text-sf-text">
-            <a href="{{ route('products.show', $product->slug) }}" title="{{ $product->name }}" class="line-clamp-2 min-h-[36px] transition-colors hover:text-brand">
-                {{ \Illuminate\Support\Str::limit($product->name, 36) }}
+    <div class="flex flex-1 flex-col gap-1 p-3.5">
+        @if ($eyebrow)
+            <span class="truncate text-[11px] font-semibold uppercase tracking-wider text-zinc-400">{{ $eyebrow }}</span>
+        @endif
+
+        <h3 class="text-sm font-semibold leading-snug text-sf-text">
+            <a href="{{ route('products.show', $product->slug) }}" title="{{ $product->name }}" class="line-clamp-2 min-h-[2.5rem] transition-colors hover:text-brand">
+                {{ $product->name }}
             </a>
         </h3>
 
-        <div class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 pt-2">
+        <div class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 pt-1.5">
             @if ($discount)
-                <span class="text-[15px] font-bold text-sf-price">{{ $money($discount) }}</span>
-                <span class="text-sm text-red-600 line-through">{{ $money($product->price) }}</span>
+                <span class="text-base font-bold text-sf-price">{{ $money($discount) }}</span>
+                <span class="text-xs text-zinc-400 line-through">{{ $money($product->price) }}</span>
             @else
-                <span class="text-[15px] font-bold text-sf-price">{{ $money($product->price) }}</span>
+                <span class="text-base font-bold text-sf-price">{{ $money($product->price) }}</span>
             @endif
 
             @if (($sold = $product->soldQuantity()) > 0)
@@ -116,9 +123,9 @@
                             @foreach ($values as $value => $available)
                                 @if ($available)
                                     <a href="{{ route('products.show', $product->slug) }}"
-                                        class="shrink-0 rounded-md border border-zinc-300 px-2.5 py-1 text-[13px] font-medium leading-none text-zinc-700 transition hover:border-brand hover:text-brand">{{ $value }}</a>
+                                        class="shrink-0 rounded border border-zinc-200 bg-zinc-50 px-2 py-1 text-xs font-medium leading-none text-zinc-600 transition hover:border-brand hover:bg-brand/5 hover:text-brand">{{ $value }}</a>
                                 @else
-                                    <span class="shrink-0 cursor-not-allowed rounded-md border border-zinc-200 px-2.5 py-1 text-[13px] font-medium leading-none text-zinc-400 line-through opacity-70" title="{{ __('Out of stock') }}">{{ $value }}</span>
+                                    <span class="shrink-0 cursor-not-allowed rounded border border-zinc-100 px-2 py-1 text-xs font-medium leading-none text-zinc-300 line-through" title="{{ __('Out of stock') }}">{{ $value }}</span>
                                 @endif
                             @endforeach
                         </div>
@@ -133,7 +140,7 @@
             </div>
         @endif
 
-        <div class="mt-auto pt-3">
+        <div class="mt-auto border-t border-zinc-100 pt-3">
             <livewire:frontend.add-to-cart-button
                 :product-id="$product->id"
                 :slug="$product->slug"

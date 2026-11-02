@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ \App\Support\Locale::direction() }}">
 <head>
     @include('partials._head')
@@ -30,7 +30,15 @@
 
     $homeCategories = \App\Models\ProductCategory::active()
         ->where('featured', true)
-        ->with(['page', 'parent'])
+        ->with([
+            'page',
+            'parent',
+            'products' => fn ($q) => $q->active()
+                ->with(['categories.page', 'brand', 'tags', 'page'])
+                ->withSoldQuantity()
+                ->orderBy('sort_order')
+                ->limit(8),
+        ])
         ->withCount(['products' => fn ($q) => $q->active()])
         ->orderBy('sort_order')
         ->get()
@@ -175,99 +183,6 @@
         </section>
     </div>
 
-    @if ($homeCategories->isNotEmpty())
-        <section class="mt-8 bg-white py-8 lg:py-10">
-            <div class="mx-auto max-w-7xl px-4 sm:px-6">
-
-                {{-- A horizontal scroller of the same category card used before
-                     (auto-moving, draggable, no arrow buttons). Named "Shop by category" rather than
-                     "Featured categories" so the heading matches what the row
-                     is: a department index, with the featured ones shown here.
-                     It is a real <h2>, which also gives the section an
-                     accessible name. --}}
-                @include('theme-ecommerce::partials._section-heading', [
-                    'title' => __('Shop by category'),
-                    'subtitle' => __('Browse our most popular departments'),
-                ])
-
-                {{-- Drifts sideways on its own (bouncing between the two ends),
-                     pauses while hovered or touched, and can be dragged with the
-                     mouse; touch devices swipe natively. Snap and smooth-scroll
-                     are off on purpose — both fight per-frame scrollLeft changes. --}}
-                <div class="relative mt-2"
-                    x-data="{
-                        paused: false, dragging: false, moved: false,
-                        startX: 0, startLeft: 0, dir: 1, acc: 0, resume: null,
-                        init() {
-                            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-                            const tick = () => {
-                                const t = this.$refs.track;
-                                if (t && !this.paused && !this.dragging && t.scrollWidth > t.clientWidth) {
-                                    this.acc += 0.6 * this.dir;
-                                    const whole = Math.trunc(this.acc);
-                                    if (whole !== 0) { t.scrollLeft += whole; this.acc -= whole; }
-                                    if (t.scrollLeft + t.clientWidth >= t.scrollWidth - 1) this.dir = -1;
-                                    else if (t.scrollLeft <= 0) this.dir = 1;
-                                }
-                                requestAnimationFrame(tick);
-                            };
-                            requestAnimationFrame(tick);
-                        },
-                        down(e) {
-                            if (e.pointerType !== 'mouse' || e.button !== 0) return;
-                            this.dragging = true; this.moved = false;
-                            this.startX = e.clientX; this.startLeft = this.$refs.track.scrollLeft;
-                        },
-                        move(e) {
-                            if (!this.dragging) return;
-                            const dx = e.clientX - this.startX;
-                            if (Math.abs(dx) > 5) this.moved = true;
-                            this.$refs.track.scrollLeft = this.startLeft - dx;
-                        },
-                        up() { this.dragging = false; },
-                        touch(on) {
-                            clearTimeout(this.resume);
-                            if (on) this.paused = true;
-                            else this.resume = setTimeout(() => this.paused = false, 2500);
-                        },
-                    }">
-                    <div x-ref="track"
-                        @mouseenter="paused = true" @mouseleave="paused = false"
-                        @touchstart.passive="touch(true)" @touchend.passive="touch(false)"
-                        @pointerdown="down($event)" @pointermove.window="move($event)" @pointerup.window="up()"
-                        @dragstart.prevent
-                        @click.capture="if (moved) { $event.preventDefault(); $event.stopPropagation(); moved = false; }"
-                        :class="dragging ? 'cursor-grabbing' : 'cursor-grab'"
-                        class="no-scrollbar flex select-none gap-2.5 overflow-x-auto px-1 py-1 sm:gap-3 md:gap-4">
-                        @foreach ($homeCategories as $category)
-                            <a href="{{ route('shop.category', $category->slug) }}"
-                                class="group flex h-30 w-32.5 shrink-0 flex-col items-center justify-center gap-1.5 rounded-card border border-zinc-200/80 bg-white p-2 text-center shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md sm:h-36 sm:w-37.5 sm:p-2.5 md:h-40 md:w-40 lg:h-44 lg:w-43">
-                                @if ($category->icon)
-                                    <img src="{{ $category->icon }}" alt="" loading="lazy" decoding="async" width="80" height="80"
-                                        class="h-14 w-14 object-contain transition duration-200 group-hover:scale-105 sm:h-16 sm:w-16 lg:h-20 lg:w-20">
-                                @else
-                                    <span class="flex h-14 w-14 items-center justify-center rounded-lg bg-zinc-50 text-zinc-500 transition duration-200 group-hover:text-brand sm:h-16 sm:w-16 lg:h-20 lg:w-20">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 sm:h-8 sm:w-8 lg:h-10 lg:w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 7 12 3l9.75 4L12 11 2.25 7Zm0 0v10L12 21l9.75-4V7M12 11v10" />
-                                        </svg>
-                                    </span>
-                                @endif
-                                {{-- Clamped to two lines instead of truncated: the old
-                                     single-line ellipsis cut off names like
-                                     "Home & Kitchen Appliances", which is the name the
-                                     shopper is scanning for. --}}
-                                <span class="line-clamp-2 w-full text-[11px] font-semibold leading-tight text-zinc-700 sm:text-sm">{{ $category->name }}</span>
-                                @if ($category->products_count > 0)
-                                    <span class="rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500">{{ $category->products_count }} {{ __('items') }}</span>
-                                @endif
-                            </a>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-        </section>
-    @endif
-
     @if ($featured->isNotEmpty())
         <section class="mx-auto max-w-7xl px-4 pt-8 sm:px-6">
             @include('theme-ecommerce::partials._section-heading', [
@@ -298,18 +213,87 @@
 
     @if ($newArrivals->isNotEmpty())
         <section class="mx-auto max-w-7xl px-4 pt-10 sm:px-6">
-            @include('theme-ecommerce::partials._section-heading', [
-                'title' => __('New arrivals'),
-                'subtitle' => __('Just added to the store'),
-            ])
-            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-4 xl:grid-cols-5">
-                @foreach ($newArrivals as $product)
-                    @include('theme-ecommerce::partials._product-card', ['product' => $product])
-                @endforeach
+            <div x-data="{
+                    overflow: false,
+                    update() { this.overflow = this.$refs.track.scrollWidth > this.$refs.track.clientWidth + 1; },
+                    slide(direction) {
+                        const track = this.$refs.track;
+                        const card = track.firstElementChild;
+                        if (!card) return;
+                        const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+                        track.scrollBy({ left: (card.getBoundingClientRect().width + gap) * 2 * direction, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+                    },
+                }"
+                x-init="$nextTick(() => { update(); new ResizeObserver(() => update()).observe($refs.track); })">
+                <div class="mb-6 flex items-center justify-between border-b border-zinc-200 pb-4">
+                    <div>
+                        <h2 class="text-xl font-bold tracking-tight text-sf-text md:text-2xl">{{ __('New arrivals') }}</h2>
+                        <p class="mt-1 text-sm text-gray-600 md:text-base">{{ __('Just added to the store') }}</p>
+                    </div>
+                    <div class="flex gap-2" x-cloak x-show="overflow">
+                        <button type="button" @click="slide(-1)" aria-label="{{ __('Previous products') }}"
+                            class="flex h-9 w-9 items-center justify-center rounded-full bg-white text-brand shadow-sm transition hover:bg-brand hover:text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12.79 15.71a1 1 0 0 1-1.42 0l-5-5a1 1 0 0 1 0-1.42l5-5a1 1 0 1 1 1.42 1.42L8.5 10l4.29 4.29a1 1 0 0 1 0 1.42Z" clip-rule="evenodd"/></svg>
+                        </button>
+                        <button type="button" @click="slide(1)" aria-label="{{ __('Next products') }}"
+                            class="flex h-9 w-9 items-center justify-center rounded-full bg-white text-brand shadow-sm transition hover:bg-brand hover:text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.21 4.29a1 1 0 0 1 1.42 0l5 5a1 1 0 0 1 0 1.42l-5 5a1 1 0 1 1-1.42-1.42L11.5 10 7.21 5.71a1 1 0 0 1 0-1.42Z" clip-rule="evenodd"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div x-ref="track" class="no-scrollbar grid grid-flow-col auto-cols-[calc(50%_-_6px)] gap-3 overflow-x-auto overscroll-x-contain scroll-smooth pb-1 sm:auto-cols-[calc(33.333333%_-_8px)] md:auto-cols-[calc(25%_-_12px)] md:gap-4 xl:auto-cols-[calc(20%_-_12.8px)]">
+                    @foreach ($newArrivals as $product)
+                        @include('theme-ecommerce::partials._product-card', ['product' => $product])
+                    @endforeach
+                </div>
             </div>
         </section>
     @endif
 
+    @if ($homeCategories->isNotEmpty())
+        @foreach ($homeCategories as $category)
+            @continue($category->products->isEmpty())
+            <section class="mx-auto w-full min-w-0 max-w-7xl px-4 pt-10 sm:px-6" x-data="{
+                overflow: false,
+                update() { this.overflow = this.$refs.track.scrollWidth > this.$refs.track.clientWidth + 1; },
+                slide(direction) {
+                    const track = this.$refs.track;
+                    const card = track.firstElementChild;
+                    if (!card) return;
+                    const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+                    track.scrollBy({ left: (card.getBoundingClientRect().width + gap) * 2 * direction, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+                },
+            }" x-init="$nextTick(() => { update(); new ResizeObserver(() => update()).observe($refs.track); })">
+                <div class="mb-6 flex items-end justify-between gap-4 border-b border-zinc-200 pb-4">
+                    <div class="min-w-0">
+                        <h2 class="truncate text-xl font-bold tracking-tight text-sf-text md:text-2xl">{{ $category->name }}</h2>
+                        <span class="mt-2 block h-1 w-12 rounded-full bg-brand"></span>
+                    </div>
+                    <div class="flex shrink-0 items-center gap-2">
+                        <div class="flex gap-2" x-cloak x-show="overflow">
+                            <button type="button" @click="slide(-1)" aria-label="{{ __('Previous products') }}"
+                                class="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white text-brand shadow-sm transition hover:border-brand hover:bg-brand hover:text-white">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12.79 15.71a1 1 0 0 1-1.42 0l-5-5a1 1 0 0 1 0-1.42l5-5a1 1 0 1 1 1.42 1.42L8.5 10l4.29 4.29a1 1 0 0 1 0 1.42Z" clip-rule="evenodd"/></svg>
+                            </button>
+                            <button type="button" @click="slide(1)" aria-label="{{ __('Next products') }}"
+                                class="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white text-brand shadow-sm transition hover:border-brand hover:bg-brand hover:text-white">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.21 4.29a1 1 0 0 1 1.42 0l5 5a1 1 0 0 1 0 1.42l-5 5a1 1 0 1 1-1.42-1.42L11.5 10 7.21 5.71a1 1 0 0 1 0-1.42Z" clip-rule="evenodd"/></svg>
+                            </button>
+                        </div>
+                        <a href="{{ route('shop.category', $category->slug) }}" class="inline-flex h-9 items-center gap-1 rounded-full border border-brand/20 bg-white px-4 text-sm font-semibold text-brand transition hover:bg-brand hover:text-white">
+                            {{ __('View all') }}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.21 4.29a1 1 0 0 1 1.42 0l5 5a1 1 0 0 1 0 1.42l-5 5a1 1 0 1 1-1.42-1.42L11.5 10 7.21 5.71a1 1 0 0 1 0-1.42Z" clip-rule="evenodd"/></svg>
+                        </a>
+                    </div>
+                </div>
+                <div x-ref="track" class="no-scrollbar grid w-full min-w-0 grid-flow-col auto-cols-[calc(50%_-_6px)] gap-3 overflow-x-auto overscroll-x-contain scroll-smooth pb-1 sm:auto-cols-[calc(33.333333%_-_8px)] md:auto-cols-[calc(25%_-_12px)] md:gap-4 xl:auto-cols-[calc(20%_-_12.8px)]">
+                    @foreach ($category->products as $product)
+                        @include('theme-ecommerce::partials._product-card', ['product' => $product])
+                    @endforeach
+                </div>
+            </section>
+        @endforeach
+    @endif
     @if ($homeBrands->isNotEmpty())
         <section class="mx-auto max-w-7xl px-4 pt-10 sm:px-6">
             @include('theme-ecommerce::partials._section-heading', [
@@ -318,7 +302,7 @@
             <div class="grid grid-cols-2 gap-3 md:grid-cols-5 md:gap-4">
                 @foreach ($homeBrands as $brand)
                     <a href="{{ route('shop.brand', $brand->slug) }}"
-                        class="flex min-h-[64px] items-center justify-center rounded-card bg-white p-4 shadow-sm transition hover:shadow-md {{ $brand->logo ? 'grayscale hover:grayscale-0' : '' }}">
+                        class="flex min-h-[72px] items-center justify-center rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md {{ $brand->logo ? 'grayscale hover:grayscale-0' : '' }}">
                         @if ($brand->logo)
                             <img src="{{ $brand->logo }}" alt="{{ $brand->name }}" loading="lazy" decoding="async" width="160" height="48" class="max-h-12 w-auto object-contain">
                         @else
@@ -337,7 +321,7 @@
             @include('theme-ecommerce::partials._section-heading', ['title' => $section->name])
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-4">
                 @foreach ($section->localizedCards() as $card)
-                    <div class="group overflow-hidden rounded-card bg-white shadow-sm transition hover:shadow-md">
+                    <div class="group overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md">
                         @if ($card['image'])
                             <div class="relative aspect-[4/3] overflow-hidden bg-zinc-100">
                                 <img src="{{ $card['image'] }}" alt="{{ $card['title'] }}" loading="lazy" decoding="async" width="800" height="600"
