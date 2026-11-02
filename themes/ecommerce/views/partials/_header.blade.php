@@ -154,7 +154,36 @@
         <nav class="hidden border-b border-gray-100 bg-sf-nav shadow-sm md:block">
             {{-- justify-evenly: however many items there are, they share the full row
                  equally, so the bar looks finished with 5 links or 15. --}}
-            <ul class="mx-auto flex max-w-7xl flex-wrap items-center justify-evenly px-4 sm:px-6">
+            <div class="relative mx-auto max-w-7xl" x-data="{
+                    canLeft: false,
+                    canRight: false,
+                    update() {
+                        const t = this.$refs.track;
+                        this.canLeft = t.scrollLeft > 1;
+                        this.canRight = t.scrollLeft + t.clientWidth < t.scrollWidth - 1;
+                    },
+                    slide(direction) {
+                        const t = this.$refs.track;
+                        t.scrollBy({ left: direction * t.clientWidth * 0.6, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+                    },
+                }"
+                x-init="$nextTick(() => { update(); const ro = new ResizeObserver(() => update()); ro.observe($refs.track); ro.observe($refs.track.firstElementChild); })">
+                <div x-cloak x-show="canLeft" x-transition.opacity.duration.200ms
+                    class="pointer-events-none absolute inset-y-0 left-0 bg-gradient-to-r z-20 flex w-14 items-center justify-start ps-2 from-white via-white/95 to-transparent">
+                    <button type="button" @click="slide(-1)" aria-label="{{ __('Scroll menu left') }}"
+                        class="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200 bg-white text-brand shadow-sm transition hover:border-brand hover:bg-brand hover:text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12.79 15.71a1 1 0 0 1-1.42 0l-5-5a1 1 0 0 1 0-1.42l5-5a1 1 0 1 1 1.42 1.42L8.5 10l4.29 4.29a1 1 0 0 1 0 1.42Z" clip-rule="evenodd"/></svg>
+                    </button>
+                </div>
+                <div x-cloak x-show="canRight" x-transition.opacity.duration.200ms
+                    class="pointer-events-none absolute inset-y-0 right-0 bg-gradient-to-l z-20 flex w-14 items-center justify-end pe-2 from-white via-white/95 to-transparent">
+                    <button type="button" @click="slide(1)" aria-label="{{ __('Scroll menu right') }}"
+                        class="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200 bg-white text-brand shadow-sm transition hover:border-brand hover:bg-brand hover:text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.21 4.29a1 1 0 0 1 1.42 0l5 5a1 1 0 0 1 0 1.42l-5 5a1 1 0 1 1-1.42-1.42L11.5 10 7.21 5.71a1 1 0 0 1 0-1.42Z" clip-rule="evenodd"/></svg>
+                    </button>
+                </div>
+                <div x-ref="track" @scroll.passive="update(); $dispatch('nav-scroll')" class="no-scrollbar overflow-x-auto overscroll-x-contain scroll-smooth">
+            <ul class="flex w-max min-w-full flex-nowrap items-center justify-evenly px-4 sm:px-6 [&>li]:shrink-0 [&>li]:whitespace-nowrap">
                 {{-- First in the row: the way into the live sale. --}}
                 @if ($hasLiveFlashDeal)
                     {{-- Playful on purpose: a soft pulsing glow, a light streak sweeping
@@ -205,13 +234,23 @@
                                 {{ $category->name }}
                             </a>
                         @else
-                            <div x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false"
-                                @click.outside="open = false" @keydown.escape.window="open = false" class="relative">
-                                <div class="flex items-center">
+                            {{-- The panel is position:fixed (placed from the anchor's rect) because the
+                                 bar scrolls sideways, and overflow-x clips an absolute child. --}}
+                            <div x-data="{
+                                    open: false, top: 0, left: 0,
+                                    place() {
+                                        const r = this.$refs.anchor.getBoundingClientRect();
+                                        this.top = r.bottom;
+                                        this.left = Math.max(8, Math.min(r.left, window.innerWidth - 264));
+                                    },
+                                }" @mouseenter="place(); open = true" @mouseleave="open = false"
+                                @click.outside="open = false" @keydown.escape.window="open = false"
+                                @nav-scroll.window="open = false" @scroll.window="open = false" class="relative">
+                                <div x-ref="anchor" class="flex items-center">
                                     <a href="{{ route('shop.category', $category->slug) }}"
                                         :class="{ 'text-brand': open }"
                                         class="py-3.5 ps-3 text-[15px] font-semibold text-sf-nav-text transition-colors hover:text-brand">{{ $category->name }}</a>
-                                    <button type="button" @click="open = !open" :aria-expanded="open"
+                                    <button type="button" @click="place(); open = !open" :aria-expanded="open"
                                         aria-label="{{ __('Show :name subcategories', ['name' => $category->name]) }}"
                                         class="cursor-pointer py-3.5 pe-3 ps-1 text-zinc-500 transition-colors hover:text-brand">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -219,8 +258,8 @@
                                         </svg>
                                     </button>
                                 </div>
-                                <div x-show="open" x-cloak x-transition
-                                    class="absolute left-0 top-full z-50 flex w-64 max-h-[min(24rem,60vh)] flex-col rounded-b-lg rounded-tr-lg border border-gray-100 bg-white py-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
+                                <div x-show="open" x-cloak x-transition :style="{ top: top + 'px', left: left + 'px' }"
+                                    class="fixed z-50 flex w-64 max-h-[min(24rem,60vh)] flex-col rounded-b-lg rounded-tr-lg border border-gray-100 bg-white py-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
                                     <div class="min-h-0 overflow-y-auto overscroll-contain">
                                         @foreach ($categoryChildren as $child)
                                             @include('theme-ecommerce::partials._header-category-item', [
@@ -245,6 +284,8 @@
                     </li>
                 @endforeach
             </ul>
+                </div>
+            </div>
         </nav>
     @endif
 
