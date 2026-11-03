@@ -1095,9 +1095,15 @@ body.admin-panel table > thead > tr > th {
     letter-spacing: 0.06em;
     line-height: 1.25;
     padding: 10px 12px;
-    text-align: left;
     text-transform: uppercase;
     border-bottom: 1px solid #e4e4e7;
+}
+
+/* Headers sit left by default, but keep the declaration out of the rule above
+   so per-column utilities like text-center can still override it — otherwise a
+   centered cell would render under a left-aligned header. */
+:where(body.admin-panel table > thead > tr > th) {
+    text-align: left;
 }
 
 body.admin-panel table > tbody > tr > td {

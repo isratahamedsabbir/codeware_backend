@@ -46,49 +46,62 @@
 
     {{-- Filters + table --}}
     <div class="bg-white rounded-[5px] shadow-sm overflow-hidden">
-        <div class="px-6 py-5 space-y-3">
-            <div class="flex items-center justify-between gap-3 flex-wrap">
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <x-per-page-select :options="$this->perPageOptions()" />
-                    <flux:select wire:model.live="statusFilter" class="sm:w-[170px]">
-                        <flux:select.option value="">All statuses</flux:select.option>
-                        @foreach (\App\Models\Order::STATUSES as $status)
-                            <flux:select.option value="{{ $status }}">{{ ucfirst($status) }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
+        <div class="flex items-center gap-3 p-4 flex-wrap">
+            <x-per-page-select :options="$this->perPageOptions()" />
 
-                    <flux:select wire:model.live="paymentStatusFilter" class="sm:w-[170px]">
-                        <flux:select.option value="">All payment statuses</flux:select.option>
-                        @foreach (\App\Models\Order::PAYMENT_STATUSES as $status)
-                            <flux:select.option value="{{ $status }}">{{ ucfirst($status) }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
+            <select wire:model.live="statusFilter"
+                class="px-3 py-2 text-sm border border-zinc-200 rounded-lg outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-white appearance-none pr-8 min-w-[140px] transition-all"
+                style="background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%23aaa' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right 10px center">
+                <option value="">All statuses</option>
+                @foreach (\App\Models\Order::STATUSES as $status)
+                    <option value="{{ $status }}">{{ ucfirst($status) }}</option>
+                @endforeach
+            </select>
 
-                    <flux:select wire:model.live="paymentMethodFilter" class="sm:w-[170px]">
-                        <flux:select.option value="">All payment methods</flux:select.option>
-                        @foreach (\App\Support\PaymentMethods::available() as $key => $label)
-                            <flux:select.option value="{{ $key }}">{{ $label }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
-                </div>
+            <select wire:model.live="paymentStatusFilter"
+                class="px-3 py-2 text-sm border border-zinc-200 rounded-lg outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-white appearance-none pr-8 min-w-[160px] transition-all"
+                style="background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%23aaa' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right 10px center">
+                <option value="">All payment statuses</option>
+                @foreach (\App\Models\Order::PAYMENT_STATUSES as $status)
+                    <option value="{{ $status }}">{{ ucfirst($status) }}</option>
+                @endforeach
+            </select>
 
-                <a href="{{ route('admin.reports.export', $this->filters()) }}"
-                    class="inline-flex items-center gap-2 px-4 h-8 text-sm font-medium rounded-lg border border-zinc-200 text-zinc-600 bg-white hover:bg-zinc-50 transition-colors shrink-0">
-                    <flux:icon.arrow-down-tray class="size-4" />
+            <select wire:model.live="paymentMethodFilter"
+                class="px-3 py-2 text-sm border border-zinc-200 rounded-lg outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-white appearance-none pr-8 min-w-[160px] transition-all"
+                style="background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%23aaa' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right 10px center">
+                <option value="">All payment methods</option>
+                @foreach (\App\Support\PaymentMethods::available() as $key => $label)
+                    <option value="{{ $key }}">{{ $label }}</option>
+                @endforeach
+            </select>
+
+            <div class="ml-auto flex items-center gap-2">
+                <flux:button size="sm" variant="ghost" icon="arrow-down-tray"
+                    href="{{ route('admin.reports.export', $this->filters()) }}">
                     Export CSV
-                </a>
+                </flux:button>
             </div>
+        </div>
 
-            <div class="flex flex-col sm:flex-row gap-3 sm:items-center">
-                <x-date-range-picker :from="$fromDate" :to="$toDate" />
-
-                <flux:button size="sm" variant="ghost" wire:click="resetFilters" class="sm:ml-auto">Reset</flux:button>
-            </div>
+        <div class="flex items-center gap-3 px-4 pb-4 flex-wrap">
+            <x-date-range-picker :from="$fromDate" :to="$toDate" />
+            <flux:button size="sm" variant="ghost" wire:click="resetFilters" class="ml-auto">Reset</flux:button>
         </div>
 
         <div class="overflow-x-auto">
             <div class="border border-zinc-100 rounded-lg">
                 <table class="w-full divide-y divide-gray-200">
+                    <colgroup>
+                        <col style="width:5%">
+                        <col style="width:15%">
+                        <col style="width:18%">
+                        <col class="hidden lg:table-column" style="width:12%">
+                        <col class="hidden lg:table-column" style="width:12%">
+                        <col style="width:11%">
+                        <col style="width:13%">
+                        <col class="hidden lg:table-column" style="width:14%">
+                    </colgroup>
                     <thead>
                         <tr class="bg-zinc-50">
                             <th class="px-2 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider w-8"></th>
@@ -104,21 +117,21 @@
                     <tbody class="divide-y divide-gray-200">
                         @forelse ($orders as $order)
                             <tr class="hover:bg-indigo-50/30 transition-colors">
-                                <td class="px-2 py-3 text-center">
+                                <td class="px-2 py-2 text-center">
                                     <x-admin-row-expand-toggle class="lg:hidden" :expanded="$viewingId === $order->id"
                                         wire:click="{{ $viewingId === $order->id ? 'closeDetails' : 'viewDetails('.$order->id.')' }}" />
                                 </td>
-                                <td class="px-4 py-3 font-mono text-xs text-zinc-700">
+                                <td class="px-4 py-2 font-mono text-xs text-zinc-700">
                                     <a href="{{ route('admin.orders.show', $order->id) }}" wire:navigate class="hover:underline">
                                         <x-truncate :text="$order->order_number" />
                                     </a>
                                 </td>
-                                <td class="px-4 py-3 text-sm text-zinc-800"><x-truncate :text="$order->customer_name" /></td>
-                                <td class="hidden lg:table-cell px-4 py-3 text-sm text-zinc-600">{{ \App\Support\PaymentMethods::label($order->payment_method) }}</td>
-                                <td class="hidden lg:table-cell px-4 py-3 text-sm text-zinc-600">{{ ucfirst($order->payment_status) }}</td>
-                                <td class="px-4 py-3 text-sm text-zinc-600">{{ ucfirst($order->status) }}</td>
-                                <td class="px-4 py-3 text-sm font-medium text-zinc-900 text-right">{{ number_format((float) $order->total, 2) }}</td>
-                                <td class="hidden lg:table-cell px-4 py-3 text-xs text-zinc-500">{{ $order->created_at->toDisplay() }}</td>
+                                <td class="px-4 py-2 text-sm text-zinc-800"><x-truncate :text="$order->customer_name" /></td>
+                                <td class="hidden lg:table-cell px-4 py-2 text-sm text-zinc-600">{{ \App\Support\PaymentMethods::label($order->payment_method) }}</td>
+                                <td class="hidden lg:table-cell px-4 py-2 text-sm text-zinc-600">{{ ucfirst($order->payment_status) }}</td>
+                                <td class="px-4 py-2 text-sm text-zinc-600">{{ ucfirst($order->status) }}</td>
+                                <td class="px-4 py-2 text-sm font-medium text-zinc-900 text-right">{{ number_format((float) $order->total, 2) }}</td>
+                                <td class="hidden lg:table-cell px-4 py-2 text-xs text-zinc-500">{{ $order->created_at->toDisplay() }}</td>
                             </tr>
                             @if ($viewingId === $order->id)
                                 <x-admin-row-details colspan="8">

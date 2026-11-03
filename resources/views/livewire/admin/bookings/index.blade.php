@@ -54,22 +54,33 @@
         <div class="overflow-x-auto">
             <div class="border border-zinc-100 rounded-lg">
                 <table class="w-full divide-y divide-gray-200">
+                    <colgroup>
+                        <col style="width:5%">
+                        <col style="width:18%">
+                        <col style="width:14%">
+                        <col style="width:28%">
+                        <col style="width:10%">
+                        <col style="width:12%">
+                        <col style="width:13%">
+                    </colgroup>
                     <thead>
                         <tr class="bg-zinc-50">
-                            <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider w-8">#</th>
+                            <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">#</th>
                             <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">From</th>
                             <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Service</th>
                             <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Message</th>
                             <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Received</th>
                             <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Status</th>
-                            <th class="px-4 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Actions</th>
+                            <th class="sticky right-0 z-10 bg-zinc-50 border-l border-zinc-100 px-4 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         @forelse ($bookings as $booking)
-                            <tr wire:key="booking-{{ $booking->id }}" class="hover:bg-indigo-50/30 transition-colors">
+                            <tr wire:key="booking-{{ $booking->id }}"
+                                class="group/row hover:bg-indigo-50/30 transition-colors"
+                                @contextmenu.prevent="$el.querySelector('[data-actions-trigger]')?.click()">
 
-                                <td class="px-4 py-3 text-xs text-zinc-500">
+                                <td class="px-4 py-2 text-xs text-zinc-500">
                                     <x-copy-text :text="$booking->id" class="text-xs text-zinc-500">{{ $booking->id }}</x-copy-text>
                                 </td>
 
@@ -77,7 +88,7 @@
                                      than selectable text, because replying is the
                                      only thing anyone does on this row and copying an
                                      address by hand is a step that goes wrong. --}}
-                                <td class="px-4 py-3">
+                                <td class="px-4 py-2">
                                     <div class="text-sm font-medium text-zinc-900 leading-snug">
                                         {{ $booking->full_name }}
                                     </div>
@@ -100,7 +111,7 @@
                                      there and acknowledged when it is not — a
                                      blank cell would read as missing data rather
                                      than as a service that was retired. --}}
-                                <td class="px-4 py-3 text-sm text-zinc-700">
+                                <td class="px-4 py-2 text-sm text-zinc-700">
                                     @if ($booking->service)
                                         <x-truncate :text="$booking->service->name" />
                                     @else
@@ -108,7 +119,7 @@
                                     @endif
                                 </td>
 
-                                <td class="px-4 py-3 text-sm text-zinc-600 max-w-md">
+                                <td class="px-4 py-2 text-sm text-zinc-600 max-w-md">
                                     @if (filled($booking->message))
                                         {{-- Collapsed by default with a toggle: booking
                                              messages are a paragraph or three, so a
@@ -129,11 +140,11 @@
                                     @endif
                                 </td>
 
-                                <td class="px-4 py-3 text-sm text-zinc-500 whitespace-nowrap">
+                                <td class="px-4 py-2 text-sm text-zinc-500 whitespace-nowrap">
                                     {{ $booking->created_at?->diffForHumans() }}
                                 </td>
 
-                                <td class="px-4 py-3">
+                                <td class="px-4 py-2">
                                     @if ($booking->status === \App\Models\Booking::STATUS_NEW)
                                         <button type="button" wire:click="toggleStatus({{ $booking->id }})"
                                             aria-label="Mark as completed"
@@ -151,7 +162,7 @@
                                     @endif
                                 </td>
 
-                                <td class="px-4 py-3">
+                                <td class="sticky right-0 z-10 bg-white group-hover/row:bg-indigo-100 border-l border-zinc-100 px-4 py-2">
                                     <x-admin-row-actions :actions="[
                                         ['wireClick' => 'confirmDelete(' . $booking->id . ')', 'icon' => 'trash', 'label' => 'Delete', 'color' => 'rose-500'],
                                     ]" />

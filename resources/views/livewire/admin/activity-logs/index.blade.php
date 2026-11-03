@@ -48,6 +48,15 @@
     <div class="overflow-x-auto">
         <div class="border border-zinc-100 rounded-lg">
             <table class="w-full divide-y divide-gray-200">
+                <colgroup>
+                    <col style="width:5%">
+                    <col style="width:12%">
+                    <col style="width:15%">
+                    <col style="width:10%">
+                    <col class="hidden lg:table-column" style="width:28%">
+                    <col class="hidden lg:table-column" style="width:18%">
+                    <col class="hidden lg:table-column" style="width:12%">
+                </colgroup>
                 <thead>
                     <tr class="bg-zinc-50">
                         <th class="px-2 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider w-8"></th>
@@ -62,14 +71,14 @@
                 <tbody class="divide-y divide-gray-200">
                     @forelse ($logs as $log)
                         <tr class="hover:bg-indigo-50/30 transition-colors">
-                            <td class="px-2 py-3 text-center">
+                            <td class="px-2 py-2 text-center">
                                 <x-admin-row-expand-toggle class="lg:hidden" :expanded="$viewingLogId === $log->id"
                                     wire:click="{{ $viewingLogId === $log->id ? 'closeLogDetails' : 'viewLog('.$log->id.')' }}" />
                             </td>
-                            <td class="px-4 py-3 text-sm text-zinc-500 whitespace-nowrap">
+                            <td class="px-4 py-2 text-sm text-zinc-500 whitespace-nowrap">
                                 {{ $log->created_at->toDisplay() }}
                             </td>
-                            <td class="px-4 py-3">
+                            <td class="px-4 py-2">
                                 <div class="flex items-center gap-2">
                                     <span class="size-7 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs font-bold shrink-0">
                                         {{ strtoupper(substr($log->user?->name ?? '?', 0, 1)) }}
@@ -77,7 +86,7 @@
                                     <span class="text-sm font-medium text-zinc-800"><x-truncate :text="$log->user?->name ?? 'Unknown'" /></span>
                                 </div>
                             </td>
-                            <td class="px-4 py-3">
+                            <td class="px-4 py-2">
                                 <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium
                                     {{ match ($log->action) {
                                         'login' => 'bg-emerald-50 text-emerald-700',
@@ -91,17 +100,17 @@
                                     {{ ucfirst($log->action) }}
                                 </span>
                             </td>
-                            <td class="hidden lg:table-cell px-4 py-3">
+                            <td class="hidden lg:table-cell px-4 py-2">
                                 <span class="text-sm text-zinc-700"><x-truncate :text="$log->description ?? 'Page viewed'" /></span>
                             </td>
-                            <td class="hidden lg:table-cell px-4 py-3">
+                            <td class="hidden lg:table-cell px-4 py-2">
                                 @if ($log->url)
                                     <span class="font-mono text-xs text-zinc-500 truncate block max-w-[240px]"><x-truncate :text="$log->url" /></span>
                                 @else
                                     <span class="text-zinc-300 text-sm">—</span>
                                 @endif
                             </td>
-                            <td class="hidden lg:table-cell px-4 py-3">
+                            <td class="hidden lg:table-cell px-4 py-2">
                                 <span class="font-mono text-xs text-zinc-600">{{ $log->ip_address ?? '—' }}</span>
                             </td>
                         </tr>

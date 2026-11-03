@@ -22,18 +22,19 @@ it('keeps the correct breadcrumb after a wire:click round trip', function () {
     Livewire::test(ProductsIndex::class)
         ->call('toggleSelect', $product->id)
         ->assertSee('Products')
-        ->assertDontSee('Update');
+        ->assertDontSeeText('Update');
 });
 
-it('hides the row checkboxes until a bulk selection is active', function () {
+it('selects products from the row itself rather than a per-row checkbox', function () {
     $products = Product::factory()->count(2)->create();
 
     $component = Livewire::test(ProductsIndex::class);
 
-    $component->assertDontSeeHtml('type="checkbox"');
+    $component->assertDontSeeHtml('aria-label="Select product"');
 
     $component->call('toggleSelect', $products[0]->id)
-        ->assertSeeHtml('type="checkbox"');
+        ->assertDontSeeHtml('aria-label="Select product"')
+        ->assertSet('selectedIds', [$products[0]->id]);
 });
 
 it('shows the bulk action toolbar only once something is selected', function () {

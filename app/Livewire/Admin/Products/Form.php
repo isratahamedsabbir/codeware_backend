@@ -51,7 +51,7 @@ class Form extends Component
     #[Validate('nullable|string|max:100')]
     public string $sku = '';
 
-    #[Validate('nullable|string|max:80')]
+    #[Validate('nullable|string|max:40')]
     public string $label = '';
 
     /**

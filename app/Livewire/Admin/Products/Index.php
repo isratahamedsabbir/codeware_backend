@@ -292,12 +292,32 @@ class Index extends Component
 
     public function openBulkLabel(): void
     {
-        $this->bulkLabel = '';
+        // Keep whatever was ticked in this modal the last time it was open and
+        // fold in any rows selected in the table since then. Clearing the
+        // selection every time made the admin lose track of the products they
+        // were labelling.
+        $this->bulkProductIds = $this->normaliseIds([
+            ...$this->bulkProductIds,
+            ...$this->selectedIds,
+        ]);
         $this->bulkProductSearch = '';
-        $this->bulkProductIds = $this->selectedIds;
         $this->resetValidation('bulkLabel');
         $this->resetValidation('bulkProductIds');
         $this->dispatch('open-modal', name: 'product-bulk-label');
+    }
+
+    public function updatedBulkProductIds(): void
+    {
+        $this->bulkProductIds = $this->normaliseIds($this->bulkProductIds);
+    }
+
+    public function removeProductLabel(int $productId): void
+    {
+        $product = Product::findOrFail($productId);
+        $product->update(['label' => null]);
+
+        AdminActivity::log('updated', "Product image label removed from Product #{$product->id}");
+        $this->dispatch('notify', message: 'Product image label removed.');
     }
 
     public function bulkUpdateLabel(): void
@@ -307,12 +327,13 @@ class Index extends Component
         }
 
         $this->validate([
-            'bulkLabel' => ['required', 'string', 'max:80'],
+            'bulkLabel' => ['required', 'string', 'max:40'],
             'bulkProductIds' => ['required', 'array', 'min:1'],
             'bulkProductIds.*' => ['integer', 'exists:products,id'],
         ], [], ['bulkLabel' => 'product label']);
 
-        $products = Product::whereIn('id', $this->bulkProductIds)->get();
+        $ids = $this->normaliseIds($this->bulkProductIds);
+        $products = Product::whereIn('id', $ids)->get();
         $label = trim($this->bulkLabel);
 
         foreach ($products as $product) {
@@ -320,13 +341,31 @@ class Index extends Component
         }
 
         $count = $products->count();
-        $this->selectedIds = [];
-        $this->bulkProductIds = [];
-        $this->bulkLabel = '';
+
+        // Keep the modal selection so the admin can reuse the same batch, but
+        // do not change the table's independent row selection.
+        $this->bulkProductIds = $ids;
 
         AdminActivity::log('updated', "Product image label applied to {$count} products");
         $this->dispatch('close-modal', name: 'product-bulk-label');
         $this->dispatch('notify', message: "Label applied to {$count} ".Str::plural('product', $count));
+    }
+
+    /**
+     * Checkbox values arrive as strings; the rest of the component compares
+     * ids strictly, so normalise everything to unique integers.
+     *
+     * @param  array<int, int|string>  $ids
+     * @return array<int, int>
+     */
+    private function normaliseIds(array $ids): array
+    {
+        return collect($ids)
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
     }
 
     public function bulkDelete(): void
@@ -341,6 +380,7 @@ class Index extends Component
 
         $count = $products->count();
         $this->selectedIds = [];
+        $this->bulkProductIds = [];
 
         $this->dispatch('notify', message: "{$count} ".Str::plural('product', $count).' deleted successfully');
         $this->dispatch('close-modal', name: 'product-bulk-delete');
@@ -357,7 +397,7 @@ class Index extends Component
             ->all();
 
         $labelProductOptions = Product::query()
-            ->select(['id', 'name'])
+            ->select(['id', 'name', 'label'])
             ->where(function ($query) use ($labelSearch, $selectedLabelIds, $defaultLabelProductIds) {
                 if ($labelSearch !== '') {
                     if ($selectedLabelIds !== []) {

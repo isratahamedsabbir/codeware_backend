@@ -167,6 +167,15 @@
                                     @endif>
                                     <x-truncate :text="$product->getTranslation('name', 'en', false)" />
                                 </div>
+                                @if (filled($product->label))
+                                    <div class="mt-0.5 leading-none">
+                                        <span class="inline-flex max-w-full items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary"
+                                            title="Image label: {{ $product->label }}">
+                                            <flux:icon.tag class="size-2.5 shrink-0" />
+                                            <span class="truncate">{{ $product->label }}</span>
+                                        </span>
+                                    </div>
+                                @endif
                                 @if ($product->code)
                                     <div class="leading-none">
                                         <x-copy-text :text="$product->code" class="font-mono text-[10.5px] font-medium tracking-wide text-indigo-600 block leading-none">
@@ -409,37 +418,58 @@
     </flux:modal>
 
     {{-- Bulk product image label --}}
-    <flux:modal name="product-bulk-label" class="w-full md:w-[520px]"
+    <flux:modal name="product-bulk-label" class="w-full md:w-[560px]"
         x-on:open-modal.window="if ($event.detail.name === 'product-bulk-label') $flux.modal('product-bulk-label').show()"
         x-on:close-modal.window="if ($event.detail.name === 'product-bulk-label') $flux.modal('product-bulk-label').close()">
-        <div class="space-y-5 p-1">
-            <div class="flex items-start gap-3.5">
-                <div class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100 dark:bg-blue-400/10 dark:text-blue-300 dark:ring-blue-300/20">
-                    <flux:icon.tag class="size-5" />
+        <div class="flex max-h-[85vh] flex-col">
+            <div class="flex items-start gap-3 border-b border-zinc-100 pb-4 dark:border-zinc-800">
+                <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <flux:icon.tag class="size-4.5" />
                 </div>
-                <div class="min-w-0 flex-1 pt-0.5">
+                <div class="min-w-0 flex-1">
                     <flux:heading class="text-base font-semibold tracking-tight">Set product image label</flux:heading>
-                    <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Choose products and add a short badge to their catalog images.</p>
+                    <p class="mt-1 text-sm leading-5 text-zinc-500 dark:text-zinc-400">Select products and apply a short badge to their catalog images.</p>
                 </div>
             </div>
 
-            <div class="space-y-2">
+            <div class="space-y-3 py-4">
                 <div class="flex items-center justify-between gap-3">
-                    <flux:label>Select products</flux:label>
-                    <span class="inline-flex shrink-0 items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-                        <span class="rounded-full bg-zinc-100 px-2 py-0.5 font-semibold text-zinc-600 dark:bg-zinc-700 dark:text-zinc-200">{{ count($bulkProductIds) }} selected</span>
-                        <span>Select one or more</span>
+                    <div>
+                        <flux:label>Select products</flux:label>
+                        <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">Choose one or more products.</p>
+                    </div>
+                    <span class="shrink-0 rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                        {{ count($bulkProductIds) }} selected
                     </span>
                 </div>
-                <flux:input wire:model.live.debounce.250ms="bulkProductSearch" placeholder="Search products by name..." />
-                <div class="max-h-56 overflow-y-auto rounded-xl border border-zinc-200 bg-white shadow-sm divide-y divide-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:divide-zinc-800">
+                <div class="relative">
+                    <flux:icon.magnifying-glass class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
+                    <input type="search" wire:model.live.debounce.250ms="bulkProductSearch"
+                        placeholder="Search products by name..."
+                        class="w-full rounded-lg border border-zinc-200 bg-white py-2 pl-9 pr-3 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-primary focus:ring-2 focus:ring-primary/15 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100" />
+                </div>
+                <div class="max-h-52 overflow-y-auto rounded-lg border border-zinc-200 bg-white divide-y divide-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:divide-zinc-800">
                     @forelse ($labelProductOptions as $labelProduct)
-                        <label wire:key="bulk-label-product-{{ $labelProduct->id }}" class="group flex items-center gap-3 px-3.5 py-2.5 text-sm transition-colors hover:bg-blue-50/70 dark:hover:bg-zinc-800 cursor-pointer">
-                            <input type="checkbox" wire:model.live="bulkProductIds" value="{{ $labelProduct->id }}"
-                                class="size-4 rounded border-zinc-300 text-primary focus:ring-primary/30" />
-                            <span class="min-w-0 flex-1 truncate font-medium text-zinc-700 dark:text-zinc-200">{{ $labelProduct->getTranslation('name', 'en', false) ?: 'Product #'.$labelProduct->id }}</span>
-                            <span class="shrink-0 rounded-md bg-zinc-100 px-2 py-0.5 font-mono text-[11px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">#{{ $labelProduct->id }}</span>
-                        </label>
+                        <div wire:key="bulk-label-product-{{ $labelProduct->id }}"
+                            class="flex min-h-12 items-center gap-3 px-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/70">
+                            <input id="bulk-label-checkbox-{{ $labelProduct->id }}" type="checkbox"
+                                wire:model.live="bulkProductIds" value="{{ $labelProduct->id }}"
+                                class="size-4 shrink-0 rounded border-zinc-300 text-primary focus:ring-primary/30" />
+                            <label for="bulk-label-checkbox-{{ $labelProduct->id }}"
+                                class="min-w-0 flex-1 cursor-pointer truncate py-3 text-sm font-medium text-zinc-700 dark:text-zinc-200">
+                                {{ $labelProduct->getTranslation('name', 'en', false) ?: 'Product #'.$labelProduct->id }}
+                            </label>
+                            @if (filled($labelProduct->label))
+                                <span class="max-w-28 shrink-0 truncate rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800 ring-1 ring-inset ring-amber-200 dark:bg-amber-400/10 dark:text-amber-300 dark:ring-amber-300/20"
+                                    title="Current image label: {{ $labelProduct->label }}">{{ $labelProduct->label }}</span>
+                                <button type="button" wire:click="removeProductLabel({{ $labelProduct->id }})"
+                                    class="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium text-zinc-500 transition hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500/20 dark:text-zinc-400 dark:hover:bg-red-400/10 dark:hover:text-red-300"
+                                    aria-label="Delete image label for {{ $labelProduct->getTranslation('name', 'en', false) ?: 'Product #'.$labelProduct->id }}">
+                                    <flux:icon.trash class="size-3.5" />
+                                    Remove
+                                </button>
+                            @endif
+                        </div>
                     @empty
                         <p class="px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">No matching products found.</p>
                     @endforelse
@@ -447,16 +477,19 @@
                 <flux:error name="bulkProductIds" />
             </div>
 
-            <div class="rounded-xl border border-zinc-200 bg-zinc-50/70 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
+            <div class="rounded-lg border border-zinc-200 p-3.5 dark:border-zinc-700">
                 <flux:field>
-                    <flux:label>Label text</flux:label>
-                    <flux:input wire:model="bulkLabel" maxlength="80" placeholder="e.g. New arrival, Best seller" />
+                    <div class="flex items-center justify-between gap-3">
+                        <flux:label>Label text</flux:label>
+                        <span class="text-xs tabular-nums text-zinc-400">{{ mb_strlen($bulkLabel) }}/40</span>
+                    </div>
+                    <flux:input wire:model.live="bulkLabel" maxlength="40" placeholder="e.g. New arrival, Best seller" />
                     <flux:error name="bulkLabel" />
-                    <p class="mt-1 text-xs text-zinc-400">Up to 80 characters. This replaces any existing image label.</p>
+                    <p class="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">This replaces any existing image label on the selected products.</p>
                 </flux:field>
             </div>
 
-            <div class="flex items-center justify-end gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-700">
+            <div class="mt-4 flex items-center justify-end gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
                 <flux:modal.close>
                     <flux:button size="sm" variant="ghost">Cancel</flux:button>
                 </flux:modal.close>

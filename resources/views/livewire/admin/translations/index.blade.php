@@ -109,7 +109,7 @@
                                 </span>
                             </th>
                         @endforeach
-                        <th class="px-4 py-2.5 text-right text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider w-16">
+                        <th class="sticky right-0 z-10 bg-zinc-50 border-l border-zinc-100 px-4 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider w-16">
                             {{ __('Actions') }}
                         </th>
                     </tr>
@@ -117,10 +117,10 @@
                 <tbody class="divide-y divide-gray-200">
                     @forelse ($rows as $row)
                         @php $cellsForRow = $cells["{$row->group}|{$row->key}"] ?? collect(); @endphp
-                        <tr class="hover:bg-indigo-50/20 transition-colors align-top">
+                        <tr class="group/row hover:bg-indigo-50/20 transition-colors align-top">
 
                             {{-- Key --}}
-                            <td class="px-4 py-3">
+                            <td class="px-4 py-2">
                                 <div class="font-mono text-xs text-zinc-700 break-words leading-relaxed">{{ $row->key }}</div>
                                 @if ($row->group !== '*')
                                     <span class="inline-flex items-center px-1.5 py-0.5 mt-1 rounded text-[10px] font-medium bg-zinc-100 text-zinc-500">
@@ -132,7 +132,7 @@
                             {{-- One editable cell per language --}}
                             @foreach ($locales as $language)
                                 @php $cell = $cellsForRow->get($language->code); @endphp
-                                <td class="px-4 py-3">
+                                <td class="px-4 py-2">
                                     @if ($cell)
                                         <textarea wire:model="values.{{ $cell->id }}" rows="1"
                                             dir="{{ $language->direction }}"
@@ -145,29 +145,15 @@
                             @endforeach
 
                             {{-- Actions --}}
-                            <td class="px-4 py-3">
-                                <div class="flex items-center justify-end">
-                                    <div class="relative group">
-                                        <button wire:click="confirmDelete(@js($row->group), @js($row->key))"
-                                            aria-label="{{ __('Delete key') }}"
-                                            class="inline-flex items-center justify-center w-6 h-6 rounded border transition-all duration-150 border-rose-500 text-rose-500 hover:bg-rose-500 hover:text-white hover:-translate-y-px"
-                                            style="box-shadow:none"
-                                            onmouseover="this.style.boxShadow='0 3px 8px rgba(225,29,72,.35)'"
-                                            onmouseout="this.style.boxShadow='none'">
-                                            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none"
-                                                stroke="currentColor" stroke-width="2">
-                                                <polyline points="3 6 5 6 21 6" />
-                                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                                <path d="M10 11v6" />
-                                                <path d="M14 11v6" />
-                                                <path d="M9 6V4h6v2" />
-                                            </svg>
-                                        </button>
-                                        <span class="pointer-events-none absolute bottom-full right-0 mb-2 px-2 py-1 rounded text-[11px] font-medium bg-rose-500 text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                            {{ __('Delete key') }}
-                                        </span>
-                                    </div>
-                                </div>
+                            <td class="sticky right-0 z-10 bg-white group-hover/row:bg-indigo-100 border-l border-zinc-100 px-4 py-2">
+                                <x-admin-row-actions :actions="[
+                                    [
+                                        'wireClick' => 'confirmDelete(' . \Illuminate\Support\Js::from($row->group) . ', ' . \Illuminate\Support\Js::from($row->key) . ')',
+                                        'icon' => 'trash',
+                                        'label' => __('Delete key'),
+                                        'color' => 'rose-500',
+                                    ],
+                                ]" />
                             </td>
 
                         </tr>

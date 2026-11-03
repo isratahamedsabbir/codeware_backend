@@ -56,11 +56,12 @@
             <table class="w-full divide-y divide-gray-200" style="table-layout:fixed">
                 <colgroup>
                     <col style="width:5%">
-                    <col style="width:14%">
+                    <col style="width:13%">
                     <col style="width:12%">
-                    <col style="width:29%">
-                    <col style="width:10%">
-                    <col class="hidden lg:table-column" style="width:12%">
+                    <col style="width:24%">
+                    <col style="width:8%">
+                    <col class="hidden lg:table-column" style="width:11%">
+                    <col style="width:14%">
                     <col style="width:13%">
                 </colgroup>
                 <thead>
@@ -72,6 +73,7 @@
                         <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Replies</th>
                         <th class="hidden lg:table-cell px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Date</th>
                         <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Status</th>
+                        <th class="sticky right-0 z-10 bg-zinc-50 border-l border-zinc-100 px-4 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -85,6 +87,7 @@
                             };
                         @endphp
                         <tr class="group/row hover:bg-indigo-50/30 transition-colors cursor-default {{ in_array($comment->id, $selectedIds, true) ? 'bg-indigo-50 ring-1 ring-inset ring-indigo-300' : '' }}"
+                            @contextmenu.prevent="$el.querySelector('[data-actions-trigger]')?.click()"
                             @click="if ($event.ctrlKey || $event.metaKey) { $event.preventDefault(); $wire.toggleSelect({{ $comment->id }}) }">
 
                             {{-- Expand toggle, small screens only, where columns are hidden. --}}
@@ -134,9 +137,17 @@
                                 </select>
                             </td>
 
+                            {{-- Actions — sticky so the delete button stays reachable
+                                 while the table scrolls horizontally. --}}
+                            <td class="sticky right-0 z-10 bg-white group-hover/row:bg-indigo-100 border-l border-zinc-100 px-4 py-2">
+                                <x-admin-row-actions :actions="[
+                                    ['wireClick' => 'confirmDelete(' . $comment->id . ')', 'icon' => 'trash', 'label' => 'Delete', 'color' => 'rose-500'],
+                                ]" />
+                            </td>
+
                         </tr>
                         @if ($viewingId === $comment->id)
-                            <x-admin-row-details colspan="7">
+                            <x-admin-row-details colspan="8">
                                 <x-admin-row-details.item label="Author">{{ $comment->user?->email ?? '—' }}</x-admin-row-details.item>
                                 <x-admin-row-details.item label="Full comment">{{ $comment->body }}</x-admin-row-details.item>
                                 <x-admin-row-details.item label="Date">{{ $comment->created_at->toDisplay() }}</x-admin-row-details.item>
@@ -157,7 +168,7 @@
                         @endif
                     @empty
                         <tr>
-                            <td colspan="7" class="px-6 py-16 text-center">
+                            <td colspan="8" class="px-6 py-16 text-center">
                                 <flux:icon.chat-bubble-left-right class="w-10 h-10 text-zinc-200 mx-auto mb-3" />
                                 <p class="text-sm text-zinc-600">No comments found.</p>
                             </td>

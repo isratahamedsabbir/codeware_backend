@@ -420,7 +420,7 @@
                 description="Add a short badge across the product image, such as New arrival or Best seller. Leave blank to show only the usual stock status." :collapsed="false">
                 <flux:field>
                     <flux:label>Label text</flux:label>
-                    <flux:input wire:model="label" maxlength="80" placeholder="e.g. New arrival, Best seller" />
+                    <flux:input wire:model="label" maxlength="40" placeholder="e.g. New arrival, Best seller" />
                     <flux:error name="label" />
                 </flux:field>
             </x-admin-section-card>

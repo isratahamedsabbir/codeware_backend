@@ -101,6 +101,16 @@
     <div class="overflow-x-auto">
         <div class="border border-zinc-100 rounded-lg">
             <table class="w-full divide-y divide-gray-200">
+                <colgroup>
+                    <col style="width:5%">
+                    <col style="width:20%">
+                    <col class="hidden lg:table-column" style="width:10%">
+                    <col style="width:12%">
+                    <col style="width:13%">
+                    <col class="hidden lg:table-column" style="width:12%">
+                    <col class="hidden lg:table-column" style="width:14%">
+                    <col style="width:14%">
+                </colgroup>
                 <thead>
                     <tr class="bg-zinc-50">
                         <th class="px-2 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider w-8"></th>

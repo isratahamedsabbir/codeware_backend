@@ -7,73 +7,93 @@
         <div class="flex items-center gap-3 p-4 flex-wrap">
             <x-per-page-select :options="$this->perPageOptions()" />
             <select wire:model.live="jobFilter"
-                class="px-3 py-2 text-sm border border-zinc-200 rounded-lg outline-none focus:border-indigo-400 bg-white min-w-[160px]">
+                class="px-3 py-2 text-sm border border-zinc-200 rounded-lg outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-white appearance-none pr-8 min-w-[160px] transition-all"
+                style="background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%23aaa' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right 10px center">
                 <option value="">All jobs</option>
                 @foreach ($jobs as $job)
                     <option value="{{ $job->id }}">{{ $job->title }}</option>
                 @endforeach
             </select>
             <select wire:model.live="statusFilter"
-                class="px-3 py-2 text-sm border border-zinc-200 rounded-lg outline-none focus:border-indigo-400 bg-white min-w-[140px]">
+                class="px-3 py-2 text-sm border border-zinc-200 rounded-lg outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-white appearance-none pr-8 min-w-[140px] transition-all"
+                style="background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%23aaa' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right 10px center">
                 <option value="">All statuses</option>
                 @foreach (\App\Models\JobApplication::STATUSES as $status)
                     <option value="{{ $status }}">{{ ucfirst($status) }}</option>
                 @endforeach
             </select>
-            <input wire:model.live.debounce.300ms="search" type="text" placeholder="Search name or email…"
-                class="max-w-xs ml-auto w-full px-3 py-2 text-sm border border-zinc-200 rounded-lg outline-none focus:border-indigo-400" />
+            <div class="relative max-w-xs ml-auto">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input wire:model.live.debounce.300ms="search" type="text" placeholder="Search name or email…"
+                    class="w-full pl-9 pr-3 py-2 text-sm border border-zinc-200 rounded-lg outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all" />
+            </div>
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full divide-y divide-gray-200">
-                <thead>
-                    <tr class="bg-zinc-50">
-                        <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Applicant</th>
-                        <th class="hidden lg:table-cell px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Job</th>
-                        <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Status</th>
-                        <th class="hidden lg:table-cell px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Applied</th>
-                        <th class="px-4 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                    @forelse ($applications as $application)
-                        <tr wire:key="application-{{ $application->id }}" class="hover:bg-indigo-50/30 transition-colors">
-                            <td class="px-4 py-2">
-                                <div class="font-medium text-zinc-900 text-sm">{{ $application->name }}</div>
-                                <div class="text-xs text-zinc-500">{{ $application->email }} · {{ $application->phone }}</div>
-                            </td>
-                            <td class="hidden lg:table-cell px-4 py-2 text-sm text-zinc-600">{{ $application->jobPost?->title ?? '—' }}</td>
-                            <td class="px-4 py-2">
-                                <select wire:change="setStatus({{ $application->id }}, $event.target.value)"
-                                    class="px-2 py-1 text-xs border border-zinc-200 rounded-lg bg-white outline-none focus:border-indigo-400">
-                                    @foreach (\App\Models\JobApplication::STATUSES as $status)
-                                        <option value="{{ $status }}" @selected($application->status === $status)>{{ ucfirst($status) }}</option>
-                                    @endforeach
-                                </select>
-                            </td>
-                            <td class="hidden lg:table-cell px-4 py-2 text-sm text-zinc-500 whitespace-nowrap">{{ $application->created_at->toDisplay() }}</td>
-                            <td class="px-4 py-2">
-                                <x-admin-row-actions :actions="[
-                                    ['wireClick' => 'view(' . $application->id . ')', 'icon' => 'eye', 'label' => 'Details', 'color' => 'indigo-500'],
-                                    ['href' => route('admin.career-applications.resume', $application->id), 'icon' => 'arrow-down-tray', 'label' => 'Download résumé', 'external' => true, 'color' => 'emerald-500'],
-                                    ['wireClick' => 'confirmDelete(' . $application->id . ')', 'icon' => 'trash', 'label' => 'Delete', 'color' => 'rose-500'],
-                                ]" />
-                            </td>
+            <div class="border border-zinc-100 rounded-lg">
+                <table class="w-full divide-y divide-gray-200">
+                    <colgroup>
+                        <col style="width:32%">
+                        <col class="hidden lg:table-column" style="width:22%">
+                        <col style="width:14%">
+                        <col class="hidden lg:table-column" style="width:14%">
+                        <col style="width:18%">
+                    </colgroup>
+                    <thead>
+                        <tr class="bg-zinc-50">
+                            <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Applicant</th>
+                            <th class="hidden lg:table-cell px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Job</th>
+                            <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Status</th>
+                            <th class="hidden lg:table-cell px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Applied</th>
+                            <th class="sticky right-0 z-10 bg-zinc-50 border-l border-zinc-100 px-4 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Actions</th>
                         </tr>
-                        @if ($viewingId === $application->id)
-                            <tr wire:key="application-{{ $application->id }}-details" class="bg-zinc-50">
-                                <td colspan="5" class="px-6 py-4 text-sm text-zinc-700 space-y-1">
-                                    <div><span class="font-semibold">Job:</span> {{ $application->jobPost?->title ?? '—' }}</div>
-                                    <div><span class="font-semibold">Résumé:</span> {{ $application->resume_original_name }}</div>
-                                    <div class="whitespace-pre-line"><span class="font-semibold">Cover letter:</span> {{ $application->cover_letter ?: '—' }}</div>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        @forelse ($applications as $application)
+                            <tr wire:key="application-{{ $application->id }}"
+                                class="group/row hover:bg-indigo-50/30 transition-colors"
+                                @contextmenu.prevent="$el.querySelector('[data-actions-trigger]')?.click()">
+                                <td class="px-4 py-2">
+                                    <div class="font-medium text-zinc-900 text-sm">{{ $application->name }}</div>
+                                    <div class="text-xs text-zinc-500">{{ $application->email }} · {{ $application->phone }}</div>
+                                </td>
+                                <td class="hidden lg:table-cell px-4 py-2 text-sm text-zinc-600">{{ $application->jobPost?->title ?? '—' }}</td>
+                                <td class="px-4 py-2">
+                                    <select wire:change="setStatus({{ $application->id }}, $event.target.value)"
+                                        class="px-2 py-1 text-xs border border-zinc-200 rounded-lg bg-white outline-none focus:border-indigo-400">
+                                        @foreach (\App\Models\JobApplication::STATUSES as $status)
+                                            <option value="{{ $status }}" @selected($application->status === $status)>{{ ucfirst($status) }}</option>
+                                        @endforeach
+                                    </select>
+                                </td>
+                                <td class="hidden lg:table-cell px-4 py-2 text-sm text-zinc-500 whitespace-nowrap">{{ $application->created_at->toDisplay() }}</td>
+                                <td class="sticky right-0 z-10 bg-white group-hover/row:bg-indigo-100 border-l border-zinc-100 px-4 py-2">
+                                    <x-admin-row-actions :actions="[
+                                        ['wireClick' => 'view(' . $application->id . ')', 'icon' => 'eye', 'label' => 'Details', 'color' => 'primary'],
+                                        ['href' => route('admin.career-applications.resume', $application->id), 'icon' => 'arrow-down-tray', 'label' => 'Download résumé', 'external' => true, 'color' => 'emerald-500'],
+                                        ['wireClick' => 'confirmDelete(' . $application->id . ')', 'icon' => 'trash', 'label' => 'Delete', 'color' => 'rose-500'],
+                                    ]" />
                                 </td>
                             </tr>
-                        @endif
-                    @empty
-                        <tr><td colspan="5" class="px-6 py-16 text-center text-sm text-zinc-600">No applications found.</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
+                            @if ($viewingId === $application->id)
+                                <tr wire:key="application-{{ $application->id }}-details" class="bg-zinc-50">
+                                    <td colspan="5" class="px-6 py-4 text-sm text-zinc-700 space-y-1">
+                                        <div><span class="font-semibold">Job:</span> {{ $application->jobPost?->title ?? '—' }}</div>
+                                        <div><span class="font-semibold">Résumé:</span> {{ $application->resume_original_name }}</div>
+                                        <div class="whitespace-pre-line"><span class="font-semibold">Cover letter:</span> {{ $application->cover_letter ?: '—' }}</div>
+                                    </td>
+                                </tr>
+                            @endif
+                        @empty
+                            <tr><td colspan="5" class="px-6 py-16 text-center text-sm text-zinc-600">No applications found.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="px-6 py-3">{{ $applications->links() }}</div>

@@ -1,7 +1,8 @@
 <div>
     @php
         $singular = \Illuminate\Support\Str::singular($crud->name);
-        $selectClass = 'px-3 py-2 text-sm border border-zinc-200 rounded-lg outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-white min-w-[140px] transition-all';
+        $selectClass = 'px-3 py-2 text-sm border border-zinc-200 rounded-lg outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-white appearance-none pr-8 min-w-[140px] transition-all';
+        $selectStyle = "background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%23aaa' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right 10px center";
         $hasFilters = $search !== '' || collect($filters)->filter(fn ($v) => $v !== '' && $v !== null)->isNotEmpty();
     @endphp
 
@@ -32,7 +33,7 @@
             <x-per-page-select :options="$this->perPageOptions()" />
 
             @foreach ($filterable as $f)
-                <select wire:model.live="filters.{{ $f['name'] }}" class="{{ $selectClass }}" wire:key="filter-{{ $f['name'] }}">
+                <select wire:model.live="filters.{{ $f['name'] }}" class="{{ $selectClass }}" style="{{ $selectStyle }}" wire:key="filter-{{ $f['name'] }}">
                     <option value="">All — {{ $f['label'] }}</option>
                     @if ($f['type'] === 'boolean')
                         <option value="1">Yes</option>
@@ -94,6 +95,7 @@
                             @php $selected = in_array($record->id, $selectedIds, true); @endphp
                             <tr wire:key="rec-{{ $record->id }}"
                                 class="group/row hover:bg-indigo-50/30 transition-colors cursor-default {{ $selected ? 'bg-indigo-50 ring-1 ring-inset ring-indigo-300' : '' }}"
+                                @contextmenu.prevent="$el.querySelector('[data-actions-trigger]')?.click()"
                                 @click="if ($event.ctrlKey || $event.metaKey) { $event.preventDefault(); $wire.toggleSelect({{ $record->id }}) }">
                                 <td class="px-2 py-2 text-center text-xs text-zinc-500">
                                     <label class="inline-flex items-center gap-1.5 cursor-pointer">
