@@ -92,6 +92,29 @@
                             </flux:button>
                         </x-admin-section-card>
 
+                        <x-admin-section-card header-border="border-zinc-100" icon="link" title="URL structure"
+                            description="Where each kind of page lives. Leave a prefix empty for a bare address like /my-slug.">
+                            <div class="space-y-4">
+                                @foreach (\App\Support\UrlStructure::TYPES as $type => [$label])
+                                    <flux:field>
+                                        <flux:label>{{ $label }} URL</flux:label>
+                                        <div class="flex items-center gap-2">
+                                            <span class="shrink-0 font-mono text-sm text-zinc-400">/</span>
+                                            <flux:input wire:model.live.debounce.300ms="settings.url_prefix_{{ $type }}" placeholder="(none)" class="font-mono" maxlength="50" />
+                                            <span class="shrink-0 font-mono text-sm text-zinc-400">/slug</span>
+                                        </div>
+                                        <flux:error name="settings.url_prefix_{{ $type }}" />
+                                        <flux:description>
+                                            Example: <span class="font-mono">{{ url(trim(($settings['url_prefix_'.$type] ?? '') === '' ? '' : \App\Support\UrlStructure::normalize((string) $settings['url_prefix_'.$type]).'/', '').'my-'.$type) }}</span>
+                                        </flux:description>
+                                    </flux:field>
+                                @endforeach
+                                <p class="text-xs text-zinc-500">
+                                    Links across the site follow this. Older addresses (<span class="font-mono">/products/…</span>, <span class="font-mono">/blog/…</span>) keep working. Services have no storefront page yet, so that prefix has no effect until a theme adds one.
+                                </p>
+                            </div>
+                        </x-admin-section-card>
+
                         <x-admin-section-card header-border="border-zinc-100" icon="banknotes" title="Currency"
                             description="Set the currency used across the site for product pricing and payments.">
                             <x-slot:titleActions>

@@ -4,13 +4,12 @@ namespace App\Models;
 
 use App\Concerns\CachesContent;
 use App\Concerns\HasCreator;
-use App\Support\Locale;
+use App\Concerns\HasSlug;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Str;
 use Spatie\Translatable\HasTranslations;
 
 /**
@@ -20,7 +19,7 @@ use Spatie\Translatable\HasTranslations;
  */
 class Voucher extends Model
 {
-    use CachesContent, HasCreator, HasFactory, HasTranslations, SoftDeletes;
+    use CachesContent, HasCreator, HasFactory, HasSlug, HasTranslations, SoftDeletes;
 
     public array $translatable = ['name', 'description'];
 
@@ -37,18 +36,6 @@ class Voucher extends Model
             'valid_days' => 'integer',
             'sort_order' => 'integer',
         ];
-    }
-
-    protected static function booted(): void
-    {
-        static::saving(function (Voucher $voucher) {
-            if (empty($voucher->slug)) {
-                $name = is_array($voucher->name)
-                    ? ($voucher->name[Locale::primary()] ?? reset($voucher->name))
-                    : $voucher->name;
-                $voucher->slug = Str::slug($name);
-            }
-        });
     }
 
     public function purchases(): HasMany

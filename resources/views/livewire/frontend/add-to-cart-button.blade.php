@@ -290,7 +290,7 @@
             </div>
         @else
             <a
-                href="{{ $slug ? route('products.show', $slug) : '#' }}"
+                href="{{ $slug ? \App\Support\UrlStructure::url('product', $slug) : '#' }}"
                 class="inline-flex w-full items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-5 py-2.5 text-sm font-semibold text-zinc-700 transition hover:border-brand hover:text-brand"
             >{{ __('Select options') }}</a>
         @endif

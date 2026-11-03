@@ -4,20 +4,18 @@ namespace App\Models;
 
 use App\Concerns\CachesContent;
 use App\Concerns\HasCreator;
-use App\Support\Locale;
+use App\Concerns\HasSlug;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Str;
 use Spatie\Translatable\HasTranslations;
 
 class ProductBrand extends Model
 {
-    use CachesContent, HasCreator, HasFactory, HasTranslations, SoftDeletes;
+    use CachesContent, HasCreator, HasFactory, HasSlug, HasTranslations, SoftDeletes;
 
     // Lives in the unified taxonomy table alongside PostCategory /
     // ProductCategory / Tag — the `kind` column sets this apart from those rows.
@@ -34,32 +32,12 @@ class ProductBrand extends Model
 
     public array $translatable = ['name'];
 
-    protected $fillable = ['kind', 'type_id', 'name', 'logo', 'status', 'sort_order', 'featured'];
+    protected $fillable = ['kind', 'type_id', 'name', 'slug', 'logo', 'status', 'sort_order', 'featured'];
 
     protected $casts = [
         'sort_order' => 'integer',
         'featured' => 'boolean',
     ];
-
-    /**
-     * `slug` is a virtual accessor derived from the primary-locale name —
-     * brands (unlike Products/ProductCategories) have no paired Page to own a
-     * slug, so it's computed on the fly for the storefront's /brand/{slug}
-     * links. Uses the same separator as Slug::make so it round-trips with the
-     * App\Http\Controllers\Themes\ThemeController::resolveBrand() lookup.
-     */
-    protected $appends = ['slug'];
-
-    protected function slug(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => Str::slug(
-                (string) ($this->getTranslation('name', Locale::primary(), false)
-                    ?: $this->getTranslation('name', 'en', false)),
-                '-',
-            ),
-        );
-    }
 
     protected static function booted(): void
     {

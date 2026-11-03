@@ -12,7 +12,6 @@ return new class extends Migration
             $table->id();
             $table->json('name');
             $table->json('description')->nullable();
-            $table->string('slug')->unique();
             $table->decimal('price', 10, 2)->default(0);
             $table->string('featured_image')->nullable();
             $table->string('status', 20)->default('inactive');

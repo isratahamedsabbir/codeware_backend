@@ -4,9 +4,8 @@ namespace App\Models;
 
 use App\Concerns\CachesContent;
 use App\Concerns\HasCreator;
+use App\Concerns\HasSlug;
 use App\Support\CustomCode;
-use App\Support\Locale;
-use App\Support\Slug;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,7 +15,7 @@ use Spatie\Translatable\HasTranslations;
 
 class Page extends Model
 {
-    use CachesContent, HasCreator, HasFactory, HasTranslations;
+    use CachesContent, HasCreator, HasFactory, HasSlug, HasTranslations;
 
     /**
      * The SEO copy is per-locale alongside the content it describes, so a
@@ -49,15 +48,8 @@ class Page extends Model
     protected static function booted(): void
     {
         static::saving(function (Page $page) {
-            if (empty($page->slug)) {
-                $title = is_array($page->title)
-                    ? ($page->title[Locale::primary()] ?? reset($page->title))
-                    : $page->title;
-                $page->slug = Slug::make($title);
-            } else {
-                $page->slug = Slug::lower($page->slug);
-            }
-
+            // The slug (generated from the title when blank, unique across the whole
+            // slugs table) is written by HasSlug once the page is saved.
             $page->collapseEmptySeoTranslations();
         });
 

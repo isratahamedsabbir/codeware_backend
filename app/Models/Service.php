@@ -6,17 +6,16 @@ use App\Concerns\CachesContent;
 use App\Concerns\HasComments;
 use App\Concerns\HasCreator;
 use App\Concerns\HasReviews;
-use App\Support\Locale;
+use App\Concerns\HasSlug;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Str;
 use Spatie\Translatable\HasTranslations;
 
 class Service extends Model
 {
-    use CachesContent, HasComments, HasCreator, HasFactory, HasReviews, HasTranslations, SoftDeletes;
+    use CachesContent, HasComments, HasCreator, HasFactory, HasReviews, HasSlug, HasTranslations, SoftDeletes;
 
     public array $translatable = ['name', 'description'];
 
@@ -30,18 +29,6 @@ class Service extends Model
             'price' => 'decimal:2',
             'sort_order' => 'integer',
         ];
-    }
-
-    protected static function booted(): void
-    {
-        static::saving(function (Service $service) {
-            if (empty($service->slug)) {
-                $name = is_array($service->name)
-                    ? ($service->name[Locale::primary()] ?? reset($service->name))
-                    : $service->name;
-                $service->slug = Str::slug($name);
-            }
-        });
     }
 
     public function scopeActive(Builder $query): Builder

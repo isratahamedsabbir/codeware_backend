@@ -3,19 +3,17 @@
 namespace App\Models;
 
 use App\Concerns\CachesContent;
-use App\Support\Locale;
+use App\Concerns\HasSlug;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
-use Illuminate\Support\Str;
 use Spatie\Translatable\HasTranslations;
 
 class Tag extends Model
 {
-    use CachesContent, HasFactory, HasTranslations;
+    use CachesContent, HasFactory, HasSlug, HasTranslations;
 
     // Lives in the unified taxonomy table alongside PostCategory /
     // ProductCategory / ProductBrand — the `kind` column is what sets this apart
@@ -33,27 +31,7 @@ class Tag extends Model
 
     public array $translatable = ['name'];
 
-    protected $fillable = ['kind', 'type_id', 'name', 'status'];
-
-    /**
-     * `slug` is a virtual accessor derived from the primary-locale name —
-     * tags (unlike Products/ProductCategories) have no paired Page to own a
-     * slug, so it's computed on the fly for the storefront's /tag/{slug}
-     * links. Uses the same separator as Slug::make so it round-trips with the
-     * App\Http\Controllers\Themes\ThemeController::resolveTag() lookup.
-     */
-    protected $appends = ['slug'];
-
-    protected function slug(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => Str::slug(
-                (string) ($this->getTranslation('name', Locale::primary(), false)
-                    ?: $this->getTranslation('name', 'en', false)),
-                '-',
-            ),
-        );
-    }
+    protected $fillable = ['kind', 'type_id', 'name', 'slug', 'status'];
 
     protected static function booted(): void
     {

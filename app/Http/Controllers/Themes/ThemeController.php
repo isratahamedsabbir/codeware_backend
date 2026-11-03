@@ -12,14 +12,12 @@ use App\Models\Tag;
 use App\Models\Type;
 use App\Support\ContentCache;
 use App\Support\Frontend;
-use App\Support\Locale;
+use App\Support\Slug;
 use App\Support\Themes;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 /**
  * What every themed storefront controller shares, whichever theme it belongs to.
@@ -134,31 +132,24 @@ class ThemeController extends Controller
     }
 
     /**
-     * Finds a brand by its URL slug — the slug is computed from the primary
-     * locale name (same separators as Slug::make), since brands have no Page.
+     * Finds a brand by its URL slug, which lives in the shared slugs table.
      */
     protected function resolveBrand(string $slug): ?ProductBrand
     {
-        return ProductBrand::whereIn('type_id', Type::subquery(Type::PRODUCT))->active()->get()
-            ->first(fn (ProductBrand $brand) => $this->taxonomyKey($brand) === Str::slug($slug, '-'));
+        return ProductBrand::whereIn('type_id', Type::subquery(Type::PRODUCT))->active()
+            ->where('slug', Slug::lower($slug))
+            ->first();
     }
 
     /**
-     * Finds a tag by its URL slug — same derivation as resolveBrand().
+     * Finds a tag by its URL slug — same lookup as resolveBrand().
      */
     protected function resolveTag(string $slug): ?Tag
     {
         return Tag::whereIn('type_id', Type::subquery(Type::PRODUCT))
             ->where('status', 'active')
-            ->get()
-            ->first(fn (Tag $tag) => $this->taxonomyKey($tag) === Str::slug($slug, '-'));
-    }
-
-    protected function taxonomyKey(Model $item): string
-    {
-        $name = (string) ($item->getTranslation('name', Locale::primary(), false) ?: $item->getTranslation('name', 'en', false));
-
-        return Str::slug(is_array($name) ? reset($name) : $name, '-');
+            ->where('slug', Slug::lower($slug))
+            ->first();
     }
 
     /**

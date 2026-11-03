@@ -90,8 +90,14 @@ final class SeoResolver
             ?: Setting::translated('seo_og_description')
             ?: $description;
 
+        // A link preview with no image is a bare text card, so the chain never runs
+        // dry: the page's own image, the site-wide share image, the site icon, and
+        // last the bundled default logo.
         $ogImage = self::absoluteImage(
-            self::pageValue($page, 'og_image') ?: Setting::get('seo_og_image')
+            self::pageValue($page, 'og_image')
+                ?: Setting::get('seo_og_image')
+                ?: Setting::get('site_icon')
+                ?: '/default/logo.png'
         );
 
         $twitterImage = self::absoluteImage(

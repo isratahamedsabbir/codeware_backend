@@ -39,7 +39,7 @@
 @endphp
 
 <div class="group relative flex h-full flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)] transition duration-300 hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-[0_10px_24px_-8px_rgba(16,24,40,0.18)]">
-    <a href="{{ route('products.show', $product->slug) }}" class="relative block overflow-hidden bg-zinc-50" aria-label="{{ $product->name }}">
+    <a href="{{ \App\Support\UrlStructure::url('product', $product->slug) }}" class="relative block overflow-hidden bg-zinc-50" aria-label="{{ $product->name }}">
         @if ($product->featured_image)
             <img src="{{ $product->featured_image }}" alt="{{ $product->name }}"
                 loading="lazy" decoding="async" width="380" height="285"
@@ -80,7 +80,7 @@
         @endif
 
         <h3 class="text-sm font-semibold leading-snug text-sf-text">
-            <a href="{{ route('products.show', $product->slug) }}" title="{{ $product->name }}" class="line-clamp-2 min-h-[2.5rem] transition-colors hover:text-brand">
+            <a href="{{ \App\Support\UrlStructure::url('product', $product->slug) }}" title="{{ $product->name }}" class="line-clamp-2 min-h-[2.5rem] transition-colors hover:text-brand">
                 {{ $product->name }}
             </a>
         </h3>
@@ -122,7 +122,7 @@
                         <div x-ref="track" class="no-scrollbar flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto scroll-smooth">
                             @foreach ($values as $value => $available)
                                 @if ($available)
-                                    <a href="{{ route('products.show', $product->slug) }}"
+                                    <a href="{{ \App\Support\UrlStructure::url('product', $product->slug) }}"
                                         class="shrink-0 rounded border border-zinc-200 bg-zinc-50 px-2 py-1 text-xs font-medium leading-none text-zinc-600 transition hover:border-brand hover:bg-brand/5 hover:text-brand">{{ $value }}</a>
                                 @else
                                     <span class="shrink-0 cursor-not-allowed rounded border border-zinc-100 px-2 py-1 text-xs font-medium leading-none text-zinc-300 line-through" title="{{ __('Out of stock') }}">{{ $value }}</span>

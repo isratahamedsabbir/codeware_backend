@@ -807,7 +807,7 @@
                                  requires a page, so it is never null here. Title,
                                  description and featured_image are the Post's own
                                  columns; only the slug is borrowed. --}}
-                            <a data-pf-reveal href="{{ route('blog.post', $post->slug) }}"
+                            <a data-pf-reveal href="{{ \App\Support\UrlStructure::url('post', $post->slug) }}"
                                 class="pf-card pf-card-hover pf-card-rail group flex flex-col rounded-2xl p-6"
                                 style="--pf-reveal-delay: {{ $index * 70 }}ms">
                                 @if (filled($post->featured_image))

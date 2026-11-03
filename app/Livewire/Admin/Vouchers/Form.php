@@ -87,9 +87,7 @@ class Form extends Component
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
         ]));
-        $rules['slug'] = $this->voucherId
-            ? 'required|string|max:255|unique:vouchers,slug,'.$this->voucherId
-            : 'required|string|max:255|unique:vouchers,slug';
+        $rules['slug'] = ['required', 'string', 'max:255', ...Slug::uniqueRules($this->voucherId, Voucher::class)];
 
         $this->validate($rules);
 

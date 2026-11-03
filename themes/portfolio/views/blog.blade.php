@@ -134,7 +134,7 @@
                                 </div>
 
                                 <h2 class="pf-heading mt-2 text-lg font-bold leading-snug">
-                                    <a href="{{ route('blog.post', $post->slug) }}"
+                                    <a href="{{ \App\Support\UrlStructure::url('post', $post->slug) }}"
                                         class="transition-colors after:absolute after:inset-0 after:content-[''] group-hover:text-(--pf-primary)">
                                         {{ $post->title }}
                                     </a>

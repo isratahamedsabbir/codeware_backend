@@ -258,10 +258,10 @@ final class Sitemap
         }
 
         return Post::published()
-            ->with('page:id,post_id,slug,no_index,updated_at')
+            ->with('page:id,post_id,no_index,updated_at')
             ->get()
             ->flatMap(fn (Post $post) => self::child(
-                'blog/'.$post->page?->slug,
+                \App\Support\UrlStructure::path('post', (string) ($post->page?->slug ?? '')),
                 $post->page?->no_index ?? false,
                 self::newest($post->updated_at, $post->page?->updated_at),
                 'post',
@@ -279,10 +279,10 @@ final class Sitemap
         }
 
         return Product::active()
-            ->with('page:id,product_id,slug,no_index,updated_at')
+            ->with('page:id,product_id,no_index,updated_at')
             ->get()
             ->flatMap(fn (Product $product) => self::child(
-                'products/'.$product->page?->slug,
+                \App\Support\UrlStructure::path('product', (string) ($product->page?->slug ?? '')),
                 $product->page?->no_index ?? false,
                 self::newest($product->updated_at, $product->page?->updated_at),
                 'product',
@@ -300,7 +300,7 @@ final class Sitemap
         }
 
         return ProductCategory::where('status', 'active')
-            ->with('page:id,category_id,slug,no_index,updated_at')
+            ->with('page:id,category_id,no_index,updated_at')
             ->get()
             ->flatMap(fn (ProductCategory $category) => self::child(
                 'category/'.$category->page?->slug,
@@ -329,7 +329,7 @@ final class Sitemap
             ->where('type', 'page')
             ->where('slug', '!=', 'home')
             ->where('no_index', false)
-            ->get(['slug', 'updated_at'])
+            ->get(['id', 'updated_at'])
             ->map(fn (Page $page) => self::entry(self::loc($page->slug), $page->updated_at, 'page'))
             ->all();
     }

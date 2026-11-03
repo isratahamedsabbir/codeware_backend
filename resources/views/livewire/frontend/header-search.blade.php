@@ -31,7 +31,7 @@
             <ul class="max-h-80 overflow-y-auto py-1">
                 @foreach ($suggestions as $suggestion)
                     <li>
-                        <a href="{{ route('products.show', $suggestion['slug']) }}"
+                        <a href="{{ \App\Support\UrlStructure::url('product', $suggestion['slug']) }}"
                             @click="open = false"
                             class="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-gray-50">
                             <span class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded bg-zinc-100">

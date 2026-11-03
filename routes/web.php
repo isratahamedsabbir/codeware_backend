@@ -278,3 +278,13 @@ Route::get('/robots.txt', RobotsController::class)->name('robots');
 foreach (Themes::allRouteFiles() as $slug => $file) {
     Route::middleware(['theme', 'referral'])->group($file);
 }
+
+// The bare /{slug} address: any page, product, category, post, brand, tag or job
+// post answers at /its-slug, because every slug is unique across the one `slugs`
+// table. A fallback rather than a `/{slug}` route on purpose: Laravel keys routes
+// by method + URI, so a second `/{slug}` would silently replace the themes' own
+// whitelisted `page` route. A fallback only runs when nothing else matched, so
+// every real route (/login, /cart, /shop) always wins over a record that shares
+// its name. Unnamed, so the 'theme' guard passes it through and the controller
+// checks the active theme itself. See SlugController.
+Route::fallback(\App\Http\Controllers\Themes\SlugController::class)->middleware('referral');

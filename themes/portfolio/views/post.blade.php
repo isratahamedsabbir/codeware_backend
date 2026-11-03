@@ -133,7 +133,7 @@
 
                     <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                         @foreach ($related as $relatedPost)
-                            <a href="{{ route('blog.post', $relatedPost->slug) }}"
+                            <a href="{{ \App\Support\UrlStructure::url('post', $relatedPost->slug) }}"
                                 class="pf-card pf-card-hover pf-card-rail group flex flex-col rounded-2xl p-6">
                                 @if (filled($relatedPost->featured_image))
                                     <img src="{{ $relatedPost->featured_image }}" alt="{{ $relatedPost->title }}" width="400" height="160"

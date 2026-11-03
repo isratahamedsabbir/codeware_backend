@@ -114,7 +114,7 @@ class Checkout extends Component
             'options_label' => Cart::optionsLabel($line['attributes']),
             'product_id' => $line['product_id'],
             'name' => $line['product']->name,
-            'url' => route('products.show', $line['product']->slug),
+            'url' => \App\Support\UrlStructure::url('product', $line['product']->slug),
             'image' => $line['product']->featured_image,
             'unit_price_label' => format_money($line['unit_price']),
             'discount_label' => $line['discount_price'] !== null

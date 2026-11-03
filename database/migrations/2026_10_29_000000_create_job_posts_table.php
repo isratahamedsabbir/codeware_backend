@@ -12,7 +12,6 @@ return new class extends Migration
         Schema::create('job_posts', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->string('slug')->unique();
             $table->string('department')->nullable();
             $table->string('location')->nullable();
             $table->string('employment_type', 30)->default('full-time'); // full-time | part-time | contract | internship

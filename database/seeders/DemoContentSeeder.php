@@ -141,7 +141,7 @@ class DemoContentSeeder extends Seeder
         }
         $products->each(fn (Product $product) => $product->update(['brand_id' => $brands->random()->id]));
 
-        // Services have their own slug column (see Service::booted()) — unlike
+        // A service keeps its slug in the slugs table itself (HasSlug) — unlike
         // Product/Post/PostCategory above, no paired Page is needed.
         Service::factory()->count(6)->published()->create();
 

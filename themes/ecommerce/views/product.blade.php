@@ -285,6 +285,14 @@
                  buying, and this is the row they come back to once they have. --}}
             @include('theme-ecommerce::partials._share')
 
+            {{-- The short description comes before the add-to-cart block, so it is
+                 read before the buy decision rather than below it. --}}
+            @if (filled($product->excerpt))
+                <div class="mt-6 text-zinc-600">
+                    <div class="rich-text leading-relaxed">@richtext($product->excerpt)</div>
+                </div>
+            @endif
+
             {{-- The option picker lives inside the add-to-cart component below, so the
                  *picked* combination is what actually lands in the cart line. --}}
 
@@ -317,12 +325,6 @@
                     :key="'add-to-cart-'.$product->id"
                 />
             </div>
-
-            @if (filled($product->excerpt))
-                <div class="mt-8 border-t border-zinc-100 pt-6 text-zinc-600">
-                    <div class="rich-text leading-relaxed">@richtext($product->excerpt)</div>
-                </div>
-            @endif
 
             {{-- Product details as plain value pills — categories, brand, type,
                  then any tags — no labels in front of them. --}}

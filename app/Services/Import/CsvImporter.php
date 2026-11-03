@@ -5,7 +5,6 @@ namespace App\Services\Import;
 use App\Support\CsvFile;
 use App\Support\Slug;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Throwable;
 
@@ -210,7 +209,7 @@ abstract class CsvImporter
 
     /**
      * Keeps the requested slug, or falls back to the title, and appends -2,
-     * -3... until it no longer collides. Slugs are globally unique on `pages`,
+     * -3... until it no longer collides. Slugs are globally unique in the `slugs` table,
      * so two imported rows with the same title would otherwise fail the whole
      * row on the unique index.
      */
@@ -228,10 +227,7 @@ abstract class CsvImporter
         $slug = $base;
         $suffix = 2;
 
-        while (DB::table('pages')
-            ->where('slug', $slug)
-            ->when($ignorePageId !== null, fn ($query) => $query->where('id', '!=', $ignorePageId))
-            ->exists()) {
+        while (Slug::taken($slug, Page::class, $ignorePageId)) {
             $slug = $base.'-'.$suffix++;
         }
 

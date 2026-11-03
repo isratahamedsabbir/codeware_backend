@@ -120,7 +120,7 @@
             <h2 class="mb-6 text-2xl font-bold text-sf-heading">{{ __('Related posts') }}</h2>
             <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($related as $relatedPost)
-                    <a href="{{ route('blog.post', $relatedPost->slug) }}"
+                    <a href="{{ \App\Support\UrlStructure::url('post', $relatedPost->slug) }}"
                         class="group flex flex-col overflow-hidden rounded-card border border-zinc-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
                         @if ($relatedPost->featured_image)
                             <div class="relative aspect-[16/10] overflow-hidden bg-zinc-100">

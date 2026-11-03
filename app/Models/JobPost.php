@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Concerns\HasSlug;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,7 +15,7 @@ use Illuminate\Support\Str;
  */
 class JobPost extends Model
 {
-    use SoftDeletes;
+    use HasSlug, SoftDeletes;
 
     public const STATUSES = ['draft', 'open', 'closed'];
 
@@ -37,20 +38,6 @@ class JobPost extends Model
             'vacancy' => 'integer',
             'sort_order' => 'integer',
         ];
-    }
-
-    protected static function booted(): void
-    {
-        static::saving(function (JobPost $job) {
-            if (blank($job->slug)) {
-                $base = Str::slug($job->title) ?: 'job';
-                $slug = $base;
-                for ($i = 2; static::withTrashed()->where('slug', $slug)->where('id', '!=', $job->id ?? 0)->exists(); $i++) {
-                    $slug = $base.'-'.$i;
-                }
-                $job->slug = $slug;
-            }
-        });
     }
 
     public function applications(): HasMany

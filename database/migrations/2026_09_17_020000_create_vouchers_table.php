@@ -16,7 +16,6 @@ return new class extends Migration
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->json('name');
             $table->json('description')->nullable();
-            $table->string('slug')->unique();
             $table->decimal('price', 10, 2)->default(0); // what the customer pays
             $table->decimal('value', 10, 2)->default(0); // face value of the issued voucher
             $table->string('currency', 3)->default('BDT');

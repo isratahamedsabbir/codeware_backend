@@ -45,7 +45,7 @@
         <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($posts as $post)
                 <article class="group flex flex-col overflow-hidden rounded-card border border-zinc-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
-                    <a href="{{ route('blog.post', $post->slug) }}" class="flex flex-1 flex-col">
+                    <a href="{{ \App\Support\UrlStructure::url('post', $post->slug) }}" class="flex flex-1 flex-col">
                         <div class="relative aspect-[16/10] overflow-hidden bg-zinc-100">
                             @if ($post->featured_image)
                                 <img src="{{ $post->featured_image }}" alt="{{ $post->title }}" loading="lazy" decoding="async" width="800" height="500"

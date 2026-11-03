@@ -78,9 +78,7 @@ class Form extends Component
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
         ]));
-        $rules['slug'] = $this->serviceId
-            ? 'required|string|max:255|unique:services,slug,'.$this->serviceId
-            : 'required|string|max:255|unique:services,slug';
+        $rules['slug'] = ['required', 'string', 'max:255', ...Slug::uniqueRules($this->serviceId, Service::class)];
 
         $this->validate($rules);
 
