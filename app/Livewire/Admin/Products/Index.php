@@ -313,14 +313,11 @@ class Index extends Component
             'bulkLabelProductIds.*' => ['integer', 'exists:products,id'],
         ], [], ['bulkLabel' => 'product label']);
 
-        $products = Product::whereIn('id', $this->bulkLabelProductIds)->get();
+        $products = Product::query()->whereKey($this->bulkLabelProductIds)->get();
         $label = trim($this->bulkLabel) !== '' ? trim($this->bulkLabel) : null;
 
-        foreach ($products as $product) {
-            $product->update(['label' => $label]);
-        }
-
         $count = $products->count();
+        Product::query()->whereKey($products->modelKeys())->update(['label' => $label]);
         $message = $label === null
             ? "Image label cleared from {$count} ".Str::plural('product', $count)
             : "Image label saved for {$count} ".Str::plural('product', $count);
