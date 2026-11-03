@@ -136,6 +136,25 @@ it('lists only active products on the shop page', function () {
         ->assertDontSee('Hidden Product');
 });
 
+it('shows 12 products per page on the shop page', function () {
+    foreach (range(1, 13) as $number) {
+        storefrontProduct("shop-page-product-{$number}", [
+            'name' => ['en' => "Shop Page Product {$number}", 'bn' => ''],
+            'sort_order' => $number,
+        ]);
+    }
+
+    get('/shop')
+        ->assertOk()
+        ->assertSee('Shop Page Product 1')
+        ->assertSee('Shop Page Product 12')
+        ->assertDontSee('Shop Page Product 13');
+
+    get('/shop?page=2')
+        ->assertOk()
+        ->assertSee('Shop Page Product 13');
+});
+
 it('filters the shop by category', function () {
     $category = ProductCategory::factory()->create(['name' => ['en' => 'Fertilizers', 'bn' => '']]);
     pairPageFor($category, 'product_category', 'fertilizers', $this->admin->id);

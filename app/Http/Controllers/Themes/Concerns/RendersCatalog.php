@@ -76,7 +76,7 @@ trait RendersCatalog
         [$priceMin, $priceMax] = $this->priceBounds();
 
         return $this->view('shop', [
-            'products' => $query->paginate(Setting::perPage())->withQueryString(),
+            'products' => $query->paginate(12)->withQueryString(),
             'categories' => $this->shopCategories(),
             'brands' => $this->shopBrands(),
             'tags' => $this->shopTags(),
