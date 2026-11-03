@@ -19,21 +19,6 @@
         ? round((1 - $discount / (float) $product->price) * 100)
         : null;
 
-    // Every option the visible combinations offer, grouped by attribute
-    // (Size => [250g, 500g], Color => [...]) so the card can hint at the choices.
-    // A value counts as available when at least one combination carrying it has stock
-    // (blank quantity = out of stock, same rule as Product::variationInStock()).
-    $variantOptions = [];
-    foreach ($product->visibleVariations() as $row) {
-        $rowInStock = (int) ($row['quantity'] ?? 0) > 0;
-        foreach (($row['attributes'] ?? []) as $name => $value) {
-            if (filled($value)) {
-                $variantOptions[$name][$value] = ($variantOptions[$name][$value] ?? false) || $rowInStock;
-            }
-        }
-    }
-    $variantOptions = collect($variantOptions)->take(2);
-
     // Small eyebrow above the name: the brand when there is one, else the first category.
     $eyebrow = $product->brand?->name ?: $product->categories->first()?->name;
 @endphp
@@ -99,46 +84,6 @@
                 </span>
             @endif
         </div>
-
-        @if ($variantOptions->isNotEmpty())
-            <div class="mt-1 flex flex-col gap-1.5">
-                @foreach ($variantOptions as $attributeName => $values)
-                    <div class="flex min-w-0 items-center gap-1" title="{{ $attributeName }}"
-                        x-data="{
-                            overflow: false,
-                            update() { this.overflow = this.$refs.track.scrollWidth > this.$refs.track.clientWidth + 1; },
-                            scroll(direction) {
-                                const track = this.$refs.track;
-                                track.scrollBy({ left: direction * Math.max(100, track.clientWidth * 0.75), behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
-                            },
-                        }"
-                        x-init="$nextTick(() => { update(); new ResizeObserver(() => update()).observe($refs.track); })">
-                        <button type="button" x-cloak x-show="overflow" @click="scroll(-1)"
-                            aria-label="{{ __('Scroll :attribute options left', ['attribute' => $attributeName]) }}"
-                            class="shrink-0 rounded-full border border-zinc-200 bg-white p-1 text-zinc-600 shadow-sm transition hover:border-brand hover:text-brand"
-                            title="{{ __('Previous options') }}">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12.79 15.71a1 1 0 0 1-1.42 0l-5-5a1 1 0 0 1 0-1.42l5-5a1 1 0 1 1 1.42 1.42L8.5 10l4.29 4.29a1 1 0 0 1 0 1.42Z" clip-rule="evenodd"/></svg>
-                        </button>
-                        <div x-ref="track" class="no-scrollbar flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto scroll-smooth">
-                            @foreach ($values as $value => $available)
-                                @if ($available)
-                                    <a href="{{ \App\Support\UrlStructure::url('product', $product->slug) }}"
-                                        class="shrink-0 rounded border border-zinc-200 bg-zinc-50 px-2 py-1 text-xs font-medium leading-none text-zinc-600 transition hover:border-brand hover:bg-brand/5 hover:text-brand">{{ $value }}</a>
-                                @else
-                                    <span class="shrink-0 cursor-not-allowed rounded border border-zinc-100 px-2 py-1 text-xs font-medium leading-none text-zinc-300 line-through" title="{{ __('Out of stock') }}">{{ $value }}</span>
-                                @endif
-                            @endforeach
-                        </div>
-                        <button type="button" x-cloak x-show="overflow" @click="scroll(1)"
-                            aria-label="{{ __('Scroll :attribute options right', ['attribute' => $attributeName]) }}"
-                            class="shrink-0 rounded-full border border-zinc-200 bg-white p-1 text-zinc-600 shadow-sm transition hover:border-brand hover:text-brand"
-                            title="{{ __('More options') }}">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.21 4.29a1 1 0 0 1 1.42 0l5 5a1 1 0 0 1 0 1.42l-5 5a1 1 0 1 1-1.42-1.42L11.5 10 7.21 5.71a1 1 0 0 1 0-1.42Z" clip-rule="evenodd"/></svg>
-                        </button>
-                    </div>
-                @endforeach
-            </div>
-        @endif
 
         <div class="mt-auto border-t border-zinc-100 pt-3">
             <livewire:frontend.add-to-cart-button

@@ -14,15 +14,15 @@ use Livewire\Component;
  * account: it lands in the guest session (App\Support\Cart). Every change
  * dispatches `cart-updated` so the header count and cart page stay in sync.
  *
- * Cards for products with options pass `requires-options`, which renders a
- * "Select options" link to the detail page instead of a button — the base
- * product must never be added while a combination exists.
+ * Cards for products with options pass `requires-options`, which renders the
+ * option selector in the card and requires a complete combination before add —
+ * the base product must never be added while a combination exists.
  */
 class AddToCartButton extends Component
 {
     public int $productId;
 
-    /** Detail-page slug for the card "Select options" link (cards pass it in). */
+    /** Optional product slug, retained for callers that provide it. */
     public string $slug = '';
 
     public int $quantity = 1;
