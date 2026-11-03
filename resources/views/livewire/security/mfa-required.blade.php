@@ -20,11 +20,11 @@
 <div class="mfa-screen">
     <style>
         .mfa-screen {
-            display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-            gap: 40px; width: 100%; text-align: left; align-items: start;
+            display: grid; grid-template-columns: minmax(250px, .82fr) minmax(0, 1.18fr);
+            gap: clamp(28px, 4vw, 48px); width: 100%; text-align: left; align-items: start;
         }
-        .mfa-side { display: flex; flex-direction: column; gap: 22px; }
-        .mfa-main { min-width: 0; }
+        .mfa-side { display: flex; flex-direction: column; gap: 24px; padding-top: 2px; }
+        .mfa-main { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
 
         .mfa-eyebrow {
             align-self: flex-start; display: inline-flex; align-items: center; gap: 7px;
@@ -32,10 +32,10 @@
             letter-spacing: .03em; color: #bae6fd; background: rgba(14, 165, 233, .16);
             border: 1px solid rgba(125, 211, 252, .3);
         }
-        .mfa-title { margin: 0; font-size: 28px; line-height: 1.2; font-weight: 700; color: #fff; }
-        .mfa-lead { margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: #cbd5e1; }
+        .mfa-title { margin: 0; font-size: clamp(25px, 2.3vw, 32px); line-height: 1.15; letter-spacing: -.025em; font-weight: 700; color: #fff; }
+        .mfa-lead { margin: 10px 0 0; max-width: 40ch; font-size: 14px; line-height: 1.7; color: #cbd5e1; }
 
-        .mfa-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+        .mfa-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 18px; }
         .mfa-step { display: flex; gap: 12px; align-items: flex-start; }
         .mfa-step__dot {
             flex: none; width: 28px; height: 28px; border-radius: 999px; margin-top: 1px;
@@ -44,8 +44,8 @@
             background: rgba(148, 163, 184, .18); border: 1px solid rgba(148, 163, 184, .35);
         }
         .mfa-step--done .mfa-step__dot { background: #10b981; border-color: #10b981; color: #fff; }
-        .mfa-step__name { margin: 0; font-size: 14px; font-weight: 600; color: #f1f5f9; }
-        .mfa-step__desc { margin: 2px 0 0; font-size: 12.5px; line-height: 1.5; color: #94a3b8; }
+        .mfa-step__name { margin: 0; font-size: 13.5px; font-weight: 650; color: #f1f5f9; }
+        .mfa-step__desc { margin: 3px 0 0; font-size: 12px; line-height: 1.6; color: #a8b6c8; }
 
         .mfa-done {
             margin-top: 20px;
@@ -63,11 +63,14 @@
         .mfa-done__cta:hover { background: #047857; transform: translateY(-1px); }
         .mfa-skip {
             display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-            width: 100%; margin-top: 14px; padding: 11px 18px; border-radius: 10px;
-            border: 1px solid #cbd5e1; background: #fff; color: #334155;
-            font-size: 14px; font-weight: 600; cursor: pointer;
+            width: 100%; min-height: 48px; padding: 12px 18px; border-radius: 12px;
+            border: 1px solid rgba(191, 219, 254, .35); background: rgba(15, 35, 58, .42);
+            color: #eaf4ff; font-size: 13px; font-weight: 600; cursor: pointer;
+            transition: background .18s ease, border-color .18s ease, transform .18s ease;
         }
-        .mfa-skip:hover { background: #f1f5f9; }
+        .mfa-skip:hover { background: rgba(30, 123, 196, .24); border-color: rgba(191, 219, 254, .65); transform: translateY(-1px); }
+        .mfa-skip:focus-visible { outline: 3px solid rgba(125, 211, 252, .75); outline-offset: 3px; }
+        .mfa-skip-note { margin: -8px 0 0; text-align: center; color: #a8b6c8; font-size: 11.5px; line-height: 1.5; }
 
         .mfa-foot {
             display: flex; flex-direction: column; gap: 8px; padding-top: 18px;
@@ -78,15 +81,21 @@
             font-size: 13px; font-weight: 500; color: #cbd5e1; text-decoration: underline;
         }
         .mfa-foot__out:hover { color: #fff; }
-        .mfa-foot__help { margin: 0; font-size: 12px; line-height: 1.5; color: #94a3b8; }
+        .mfa-foot__help { margin: 0; max-width: 42ch; font-size: 12px; line-height: 1.6; color: #a8b6c8; }
 
         /* The steps on the left already say what is required, so the panel's own
            warning is redundant here. */
         .mfa-main .mfa-required-callout { display: none; }
 
         @media (max-width: 860px) {
-            .mfa-screen { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+            .mfa-screen { grid-template-columns: minmax(0, 1fr); gap: 30px; }
+            .mfa-side { gap: 20px; }
             .mfa-title { font-size: 24px; }
+        }
+        @media (max-width: 480px) {
+            .mfa-screen { gap: 24px; }
+            .mfa-steps { gap: 14px; }
+            .mfa-foot { padding-top: 15px; }
         }
     </style>
 
@@ -165,10 +174,11 @@
                 </a>
             </div>
         @elseif ($skipAllowed)
-            <button type="button" wire:click="skip" class="mfa-skip">
+            <button type="button" wire:click="skip" wire:loading.attr="disabled" class="mfa-skip">
                 {{ __('Skip for now and continue to dashboard') }}
                 <flux:icon.arrow-right class="size-4" />
             </button>
+            <p class="mfa-skip-note">{{ __('You can set this up later. This reminder will appear again the next time you sign in.') }}</p>
         @endif
     </main>
 </div>

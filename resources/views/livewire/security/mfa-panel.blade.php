@@ -44,7 +44,7 @@
                     </span>
                     <div class="min-w-0">
                         <h3 id="mfa-confirm-title" class="text-base font-semibold">{{ __('Confirm your password') }}</h3>
-                        <p class="mt-0.5 text-sm text-zinc-500">{{ __('Needed before a second factor can be added or removed.') }}</p>
+                        <p class="mt-0.5 text-sm text-zinc-500 dark:text-zinc-300">{{ __('Needed before a second factor can be added or removed.') }}</p>
                     </div>
                 </div>
 
@@ -82,7 +82,7 @@
                                     <span class="size-1.5 rounded-full bg-green-500"></span>{{ __('On') }}
                                 </span>
                             @else
-                                <span class="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-600">
+                                <span class="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
                                     <span class="size-1.5 rounded-full bg-zinc-400"></span>{{ __('Off') }}
                                 </span>
                             @endif
@@ -119,7 +119,7 @@
                         </div>
 
                         <div class="text-center">
-                            <p class="text-xs text-zinc-500">
+                            <p class="text-xs text-zinc-500 dark:text-zinc-300">
                                 {{ __('Scan this with your authenticator app, or enter the key by hand:') }}
                             </p>
                             <code class="mt-1.5 inline-block select-all rounded bg-zinc-100 px-2 py-1 font-mono text-xs dark:bg-zinc-800">
@@ -222,7 +222,7 @@
                         @endif
                     </div>
                 @else
-                    <p class="text-sm text-zinc-500">
+                    <p class="text-sm text-zinc-500 dark:text-zinc-300">
                         {{ __('Off. Turn it on to be asked for a 6-digit code from an authenticator app at every sign-in.') }}
                     </p>
                 @endif
@@ -245,7 +245,7 @@
                                     <span class="size-1.5 rounded-full bg-green-500"></span>{{ __('On') }}
                                 </span>
                             @else
-                                <span class="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-600">
+                                <span class="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
                                     <span class="size-1.5 rounded-full bg-zinc-400"></span>{{ __('Off') }}
                                 </span>
                             @endif
@@ -262,7 +262,7 @@
                 <div class="space-y-4 px-5 py-5 text-sm">
 
                 @unless ($passkeysEnabled)
-                    <p class="text-sm text-zinc-500">
+                    <p class="text-sm text-zinc-500 dark:text-zinc-300">
                         {{ __('None registered. A passkey is a key stored in your device or password manager, used to approve a sign-in.') }}
                     </p>
                 @else
@@ -274,7 +274,7 @@
                                     <p class="truncate text-sm font-medium text-zinc-800 dark:text-zinc-100">
                                         {{ $passkey['name'] }}
                                     </p>
-                                    <p class="text-xs text-zinc-400">
+                                    <p class="text-xs text-zinc-400 dark:text-zinc-400">
                                         {{ $passkey['last_used_at']
                                             ? __('Last used :date', ['date' => $passkey['last_used_at']])
                                             : __('Never used') }}
@@ -287,7 +287,7 @@
                                 </button>
                             </li>
                         @empty
-                            <li class="py-2.5 text-sm text-zinc-500">{{ __('None registered.') }}</li>
+                            <li class="py-2.5 text-sm text-zinc-500 dark:text-zinc-300">{{ __('None registered.') }}</li>
                         @endforelse
                     </ul>
                 @endunless
@@ -347,7 +347,7 @@
                                 <span x-show="busy">{{ __('Waiting for your device…') }}</span>
                             </flux:button>
                             <button type="button" x-on:click="$wire.addingPasskey = false"
-                                class="text-xs text-zinc-500 hover:text-zinc-700 cursor-pointer">
+                                class="text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-300 dark:hover:text-white cursor-pointer">
                                 Cancel
                             </button>
                         </div>
@@ -373,7 +373,7 @@
                                 <span class="size-1.5 rounded-full bg-green-500"></span>{{ __('On') }}
                             </span>
                         @else
-                            <span class="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-600">
+                            <span class="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
                                 <span class="size-1.5 rounded-full bg-zinc-400"></span>{{ __('Off') }}
                             </span>
                         @endif
@@ -397,7 +397,7 @@
                 @if ($emailOtpPending)
                     <form wire:submit="confirmEmailOtp" wire:key="email-otp-verify"
                         class="mx-auto max-w-xs space-y-4 text-center">
-                        <p class="text-xs text-zinc-500">
+                        <p class="text-xs text-zinc-500 dark:text-zinc-300">
                             {{ __('We emailed a 6-digit code to :email. Enter it to turn this on.', ['email' => auth()->user()?->email]) }}
                         </p>
                         <div class="flex justify-center">
@@ -424,7 +424,7 @@
                     </p>
                 @else
                     <flux:error name="emailCode" />
-                    <p class="text-sm text-zinc-500">
+                    <p class="text-sm text-zinc-500 dark:text-zinc-300">
                         {{ __('Off. Turn it on to confirm sign-ins with a code sent to your email address.') }}
                     </p>
                 @endif
