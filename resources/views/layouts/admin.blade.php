@@ -344,6 +344,20 @@
 
         </nav>
 
+        <div class="shrink-0 border-t border-gray-100 px-2 py-2 dark:border-zinc-700">
+            <form method="POST" action="{{ route('admin.logout') }}">
+                @csrf
+                <button type="submit"
+                    class="admin-nav-item admin-nav-item--top-level w-full cursor-pointer text-left text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-400/10"
+                    title="{{ __('Log out') }}">
+                    <span class="admin-nav-item-icon">
+                        <flux:icon.arrow-right-start-on-rectangle class="size-4.5" />
+                    </span>
+                    <span>{{ __('Log out') }}</span>
+                </button>
+            </form>
+        </div>
+
     </flux:sidebar>
 
     {{-- Main content --}}

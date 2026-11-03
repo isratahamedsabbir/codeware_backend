@@ -15,6 +15,8 @@ test('admin layout renders header and footer', function () {
     $response->assertSee('All rights reserved');
     $response->assertSee('v1.0.0');
     $response->assertSee('My Profile');
+    $response->assertSee('action="'.route('admin.logout').'"', false);
+    $response->assertSee('Log out');
 });
 
 test('admin subpage renders breadcrumb section', function () {
