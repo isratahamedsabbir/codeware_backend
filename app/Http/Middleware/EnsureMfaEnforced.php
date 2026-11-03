@@ -63,6 +63,18 @@ class EnsureMfaEnforced
             return $next($request);
         }
 
+        // Skipping is a per-login choice. Logout invalidates the session, so a
+        // user with no configured factor is prompted again at their next login.
+        $audience = match ($request->getHost()) {
+            config('app.vendor_host') => Mfa::AUDIENCE_VENDOR,
+            config('app.delivery_host') => Mfa::AUDIENCE_DELIVERY,
+            default => Mfa::AUDIENCE_ADMIN,
+        };
+
+        if ((string) $request->session()->get('mfa.enrolment_skipped.'.$audience) === (string) $user->getAuthIdentifier()) {
+            return $next($request);
+        }
+
         // The profile screen hosts the panel, so it is allowed through rather
         // than exempted by name above: it is the one page a user lands on
         // deliberately to fix this, and it is reached as a guest-protected

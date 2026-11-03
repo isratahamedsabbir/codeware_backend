@@ -23,6 +23,36 @@ use Livewire\Component;
  */
 class MfaRequired extends Component
 {
+    /** Let the user defer setup for this login only. Logout invalidates session. */
+    public function skip(): mixed
+    {
+        $user = Auth::user();
+
+        abort_unless($user && Mfa::needsEnrolmentFor($user), 403);
+
+        session()->put('mfa.enrolment_skipped.'.$this->audience(), $user->getAuthIdentifier());
+
+        return redirect()->route($this->dashboardRoute());
+    }
+
+    private function audience(): string
+    {
+        return match (request()->getHost()) {
+            config('app.vendor_host') => Mfa::AUDIENCE_VENDOR,
+            config('app.delivery_host') => Mfa::AUDIENCE_DELIVERY,
+            default => Mfa::AUDIENCE_ADMIN,
+        };
+    }
+
+    private function dashboardRoute(): string
+    {
+        return match ($this->audience()) {
+            Mfa::AUDIENCE_VENDOR => 'vendor.dashboard',
+            Mfa::AUDIENCE_DELIVERY => 'delivery.dashboard',
+            default => 'admin.dashboard',
+        };
+    }
+
     /**
      * The panel announces every change to a factor. Re-rendering is all this
      * needs to do: it is what makes the "Continue" button appear the moment a
@@ -48,6 +78,7 @@ class MfaRequired extends Component
             'hasFactor' => $user && Mfa::hasFactorFor($user),
             'continueUrl' => route($dashboard),
             'logoutRoute' => route($logout),
+            'skipAllowed' => $user && Mfa::needsEnrolmentFor($user),
             // Why the panel below is on screen at all, so the help line can say
             // "another administrator" to an admin and "your administrator" to a
             // vendor — there is nothing to point at on a portal where the person

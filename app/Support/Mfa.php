@@ -224,14 +224,10 @@ final class Mfa
      */
     public static function needsEnrolmentFor(User $user): bool
     {
-        // Never, by design: a role with 2FA switched on makes the second factor
-        // available (the Profile section appears) and challenges whoever has set
-        // one up, but it does not trap an account that has not. Nobody is held
-        // on the enrolment screen the moment an admin flips the switch.
-        // The one exception: the admin role, once security.require_admin_mfa is on
-        // (the production default). An admin account is a path to code execution
-        // (plugin/theme install, File Manager), so it cannot sit at a password.
-        return self::adminMustHaveFactor($user) && ! self::hasFactorFor($user);
+        // Every role with MFA enabled follows the same enrolment flow, on its
+        // own portal. Users can defer setup for the current login, then see the
+        // prompt again after logging in next time.
+        return self::isRequiredFor($user) && ! self::hasFactorFor($user);
     }
 
     /**

@@ -61,6 +61,13 @@
             transition: background .15s, transform .15s;
         }
         .mfa-done__cta:hover { background: #047857; transform: translateY(-1px); }
+        .mfa-skip {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; margin-top: 14px; padding: 11px 18px; border-radius: 10px;
+            border: 1px solid #cbd5e1; background: #fff; color: #334155;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+        }
+        .mfa-skip:hover { background: #f1f5f9; }
 
         .mfa-foot {
             display: flex; flex-direction: column; gap: 8px; padding-top: 18px;
@@ -157,6 +164,11 @@
                     <flux:icon.arrow-right class="size-4" />
                 </a>
             </div>
+        @elseif ($skipAllowed)
+            <button type="button" wire:click="skip" class="mfa-skip">
+                {{ __('Skip for now and continue to dashboard') }}
+                <flux:icon.arrow-right class="size-4" />
+            </button>
         @endif
     </main>
 </div>
