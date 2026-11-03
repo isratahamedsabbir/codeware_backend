@@ -31,10 +31,8 @@ class Index extends Component
 
     public string $bulkLabel = '';
 
-    public string $bulkProductSearch = '';
-
     /** @var array<int, int|string> */
-    public array $bulkProductIds = [];
+    public array $bulkLabelProductIds = [];
 
     public ?int $deletingId = null;
 
@@ -292,80 +290,44 @@ class Index extends Component
 
     public function openBulkLabel(): void
     {
-        // Keep whatever was ticked in this modal the last time it was open and
-        // fold in any rows selected in the table since then. Clearing the
-        // selection every time made the admin lose track of the products they
-        // were labelling.
-        $this->bulkProductIds = $this->normaliseIds([
-            ...$this->bulkProductIds,
-            ...$this->selectedIds,
-        ]);
-        $this->bulkProductSearch = '';
+        $this->bulkLabelProductIds = array_values(array_unique(array_map('intval', $this->selectedIds)));
+
+        if ($this->bulkLabelProductIds === []) {
+            return;
+        }
+
+        $this->bulkLabel = '';
         $this->resetValidation('bulkLabel');
-        $this->resetValidation('bulkProductIds');
         $this->dispatch('open-modal', name: 'product-bulk-label');
-    }
-
-    public function updatedBulkProductIds(): void
-    {
-        $this->bulkProductIds = $this->normaliseIds($this->bulkProductIds);
-    }
-
-    public function removeProductLabel(int $productId): void
-    {
-        $product = Product::findOrFail($productId);
-        $product->update(['label' => null]);
-
-        AdminActivity::log('updated', "Product image label removed from Product #{$product->id}");
-        $this->dispatch('notify', message: 'Product image label removed.');
     }
 
     public function bulkUpdateLabel(): void
     {
-        if ($this->bulkProductIds === []) {
+        if ($this->bulkLabelProductIds === []) {
             return;
         }
 
         $this->validate([
-            'bulkLabel' => ['required', 'string', 'max:40'],
-            'bulkProductIds' => ['required', 'array', 'min:1'],
-            'bulkProductIds.*' => ['integer', 'exists:products,id'],
+            'bulkLabel' => ['nullable', 'string', 'max:40'],
+            'bulkLabelProductIds' => ['required', 'array', 'min:1'],
+            'bulkLabelProductIds.*' => ['integer', 'exists:products,id'],
         ], [], ['bulkLabel' => 'product label']);
 
-        $ids = $this->normaliseIds($this->bulkProductIds);
-        $products = Product::whereIn('id', $ids)->get();
-        $label = trim($this->bulkLabel);
+        $products = Product::whereIn('id', $this->bulkLabelProductIds)->get();
+        $label = trim($this->bulkLabel) !== '' ? trim($this->bulkLabel) : null;
 
         foreach ($products as $product) {
             $product->update(['label' => $label]);
         }
 
         $count = $products->count();
+        $message = $label === null
+            ? "Image label cleared from {$count} ".Str::plural('product', $count)
+            : "Image label saved for {$count} ".Str::plural('product', $count);
 
-        // Keep the modal selection so the admin can reuse the same batch, but
-        // do not change the table's independent row selection.
-        $this->bulkProductIds = $ids;
-
-        AdminActivity::log('updated', "Product image label applied to {$count} products");
+        AdminActivity::log('updated', $message);
         $this->dispatch('close-modal', name: 'product-bulk-label');
-        $this->dispatch('notify', message: "Label applied to {$count} ".Str::plural('product', $count));
-    }
-
-    /**
-     * Checkbox values arrive as strings; the rest of the component compares
-     * ids strictly, so normalise everything to unique integers.
-     *
-     * @param  array<int, int|string>  $ids
-     * @return array<int, int>
-     */
-    private function normaliseIds(array $ids): array
-    {
-        return collect($ids)
-            ->map(fn ($id) => (int) $id)
-            ->filter()
-            ->unique()
-            ->values()
-            ->all();
+        $this->dispatch('notify', message: $message);
     }
 
     public function bulkDelete(): void
@@ -380,7 +342,6 @@ class Index extends Component
 
         $count = $products->count();
         $this->selectedIds = [];
-        $this->bulkProductIds = [];
 
         $this->dispatch('notify', message: "{$count} ".Str::plural('product', $count).' deleted successfully');
         $this->dispatch('close-modal', name: 'product-bulk-delete');
@@ -388,43 +349,7 @@ class Index extends Component
 
     public function render()
     {
-        $labelSearch = trim($this->bulkProductSearch);
-        $selectedLabelIds = $this->bulkProductIds;
-        $defaultLabelProductIds = Product::query()
-            ->orderBy('id')
-            ->limit(100)
-            ->pluck('id')
-            ->all();
-
-        $labelProductOptions = Product::query()
-            ->select(['id', 'name', 'label'])
-            ->where(function ($query) use ($labelSearch, $selectedLabelIds, $defaultLabelProductIds) {
-                if ($labelSearch !== '') {
-                    if ($selectedLabelIds !== []) {
-                        $query->whereIn('id', $selectedLabelIds)->orWhere(function ($query) use ($labelSearch) {
-                            $term = '%'.$labelSearch.'%';
-                            $query->where('name->en', 'like', $term)
-                                ->orWhere('name->bn', 'like', $term);
-                        });
-                    } else {
-                        $term = '%'.$labelSearch.'%';
-                        $query->where('name->en', 'like', $term)
-                            ->orWhere('name->bn', 'like', $term);
-                    }
-                } else {
-                    $query->whereIn('id', $defaultLabelProductIds);
-
-                    if ($selectedLabelIds !== []) {
-                        $query->orWhereIn('id', $selectedLabelIds);
-                    }
-                }
-            })
-            ->orderBy('id')
-            ->when($labelSearch !== '', fn ($query) => $query->limit(100))
-            ->get();
-
         return view('livewire.admin.products.index', [
-            'labelProductOptions' => $labelProductOptions,
             'products' => Product::query()
                 ->with(['categories', 'page', 'creator'])
                 ->when($this->search, fn ($q) => $q

@@ -1,7 +1,7 @@
 <?php
 
-use App\Livewire\Admin\Products\Index as ProductsIndex;
 use App\Livewire\Admin\Products\Form as ProductForm;
+use App\Livewire\Admin\Products\Index as ProductsIndex;
 use App\Models\Product;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
@@ -13,33 +13,81 @@ beforeEach(function () {
     $this->actingAs($this->admin);
 });
 
-it('applies an image label while keeping modal products separate from table selection', function () {
+it('applies an image label to the products selected in the table', function () {
     $first = Product::factory()->create();
     $second = Product::factory()->create();
 
     Livewire::test(ProductsIndex::class)
+        ->call('toggleSelect', $first->id)
+        ->call('toggleSelect', $second->id)
         ->call('openBulkLabel')
-        ->set('bulkProductIds', [(string) $first->id, (string) $second->id])
+        ->assertSet('bulkLabelProductIds', [$first->id, $second->id])
         ->set('bulkLabel', 'Best seller')
         ->call('bulkUpdateLabel')
-        ->assertSet('bulkProductIds', [$first->id, $second->id])
-        ->assertSet('selectedIds', [])
-        ->assertDispatched('close-modal', name: 'product-bulk-label');
+        ->assertSet('selectedIds', [$first->id, $second->id])
+        ->assertDispatched('close-modal', name: 'product-bulk-label')
+        ->assertDispatched('notify', message: 'Image label saved for 2 products');
 
     expect($first->refresh()->label)->toBe('Best seller')
         ->and($second->refresh()->label)->toBe('Best seller');
 });
 
-it('rejects bulk image labels longer than 40 characters', function () {
-    $product = Product::factory()->create();
+it('saves labels to the products selected when the modal was opened', function () {
+    $selectedProduct = Product::factory()->create();
+    $otherProduct = Product::factory()->create();
 
     Livewire::test(ProductsIndex::class)
-        ->set('bulkProductIds', [$product->id])
+        ->set('selectedIds', [$selectedProduct->id])
+        ->call('openBulkLabel')
+        ->set('selectedIds', [$otherProduct->id])
+        ->set('bulkLabel', 'Featured')
+        ->call('bulkUpdateLabel')
+        ->assertSet('bulkLabelProductIds', [$selectedProduct->id]);
+
+    expect($selectedProduct->refresh()->label)->toBe('Featured')
+        ->and($otherProduct->refresh()->label)->toBeNull();
+});
+
+it('clears selected product labels when the label field is left blank', function () {
+    $first = Product::factory()->create(['label' => 'Clearance']);
+    $second = Product::factory()->create(['label' => 'New arrival']);
+
+    Livewire::test(ProductsIndex::class)
+        ->set('selectedIds', [$first->id, $second->id])
+        ->call('openBulkLabel')
+        ->assertSet('bulkLabelProductIds', [$first->id, $second->id])
+        ->set('bulkLabel', '')
+        ->call('bulkUpdateLabel')
+        ->assertDispatched('close-modal', name: 'product-bulk-label')
+        ->assertDispatched('notify', message: 'Image label cleared from 2 products');
+
+    expect($first->refresh()->label)->toBeNull()
+        ->and($second->refresh()->label)->toBeNull();
+});
+
+it('rejects bulk image labels longer than 40 characters', function () {
+    $product = Product::factory()->create(['label' => 'Existing label']);
+
+    Livewire::test(ProductsIndex::class)
+        ->set('selectedIds', [$product->id])
+        ->call('openBulkLabel')
         ->set('bulkLabel', str_repeat('a', 41))
         ->call('bulkUpdateLabel')
         ->assertHasErrors(['bulkLabel' => 'max']);
 
-    expect($product->refresh()->label)->toBeNull();
+    expect($product->refresh()->label)->toBe('Existing label');
+});
+
+it('opens the image label modal only when table rows are selected', function () {
+    $product = Product::factory()->create();
+
+    Livewire::test(ProductsIndex::class)
+        ->assertDontSee('Set image label (1)')
+        ->call('toggleSelect', $product->id)
+        ->assertSee('Set image label (1)')
+        ->call('openBulkLabel')
+        ->assertDispatched('open-modal', name: 'product-bulk-label')
+        ->assertSee('Leave blank and save to remove the existing label.');
 });
 
 it('rejects product image labels longer than 40 characters in the product form', function () {
@@ -51,59 +99,4 @@ it('rejects product image labels longer than 40 characters in the product form',
         ->assertHasErrors(['label' => 'max']);
 
     expect(Product::whereJsonContains('name->en', 'Long Label Product')->exists())->toBeFalse();
-});
-
-it('keeps previous selections when the label modal is reopened', function () {
-    $product = Product::factory()->create();
-
-    Livewire::test(ProductsIndex::class)
-        ->set('bulkProductIds', [$product->id])
-        ->call('openBulkLabel')
-        ->assertSet('bulkProductIds', [$product->id])
-        ->assertSet('selectedIds', [])
-        ->assertSee('1 selected');
-});
-
-it('folds products selected in the table into the modal selection', function () {
-    $product = Product::factory()->create();
-
-    Livewire::test(ProductsIndex::class)
-        ->call('toggleSelect', $product->id)
-        ->call('openBulkLabel')
-        ->assertSet('bulkProductIds', [$product->id]);
-});
-
-it('keeps modal checkbox selection separate from the table selection', function () {
-    $product = Product::factory()->create();
-
-    Livewire::test(ProductsIndex::class)
-        ->set('bulkProductIds', [(string) $product->id])
-        ->assertSet('selectedIds', []);
-});
-
-it('shows the current image label beside each product in the label modal', function () {
-    Product::factory()->create([
-        'name' => ['en' => 'Labeled product', 'bn' => ''],
-        'label' => 'New arrival',
-    ]);
-
-    Livewire::test(ProductsIndex::class)
-        ->call('openBulkLabel')
-        ->assertSee('Labeled product')
-        ->assertSee('New arrival')
-        ->assertSee('Delete');
-});
-
-it('removes only the image label when deleting it from the label modal', function () {
-    $product = Product::factory()->create(['label' => 'Clearance']);
-
-    Livewire::test(ProductsIndex::class)
-        ->set('bulkProductIds', [$product->id])
-        ->call('removeProductLabel', $product->id)
-        ->assertSet('bulkProductIds', [$product->id])
-        ->assertSet('selectedIds', [])
-        ->assertDispatched('notify', message: 'Product image label removed.');
-
-    expect($product->refresh()->label)->toBeNull()
-        ->and($product->exists)->toBeTrue();
 });
