@@ -51,6 +51,9 @@ class Form extends Component
     #[Validate('nullable|string|max:100')]
     public string $sku = '';
 
+    #[Validate('nullable|string|max:80')]
+    public string $label = '';
+
     /**
      * null = not yet checked, true = available (green), false = taken (red).
      */
@@ -209,6 +212,7 @@ class Form extends Component
             $this->brand_id = $product->brand_id !== null ? (string) $product->brand_id : '';
             $this->vendor_id = $product->vendor_id !== null ? (string) $product->vendor_id : '';
             $this->sku = $product->sku ?? '';
+            $this->label = $product->label ?? '';
             $this->product_type = $product->product_type;
             $this->price = (string) $product->price;
             $this->discount_price = $product->discount_price !== null ? (string) $product->discount_price : '';
@@ -936,6 +940,7 @@ class Form extends Component
             'brand_id' => $this->brand_id !== '' ? (int) $this->brand_id : null,
             'vendor_id' => $this->vendor_id !== '' ? (int) $this->vendor_id : null,
             'sku' => $this->sku !== '' ? $this->sku : null,
+            'label' => trim($this->label) !== '' ? trim($this->label) : null,
             'product_type' => $this->product_type,
             'price' => $this->price,
             'discount_price' => $this->discount_price !== '' && $this->discount_id !== '' ? $this->discount_price : null,

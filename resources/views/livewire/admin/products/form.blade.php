@@ -416,6 +416,15 @@
                     :picker-id="$featuredImagePickerId" mimes="jpg,jpeg,png,webp,avif" only-images dropzone />
             </x-admin-section-card>
 
+            <x-admin-section-card variant="postbox" persist-key="product-card-label" title="Product Image Label"
+                description="Add a short badge across the product image, such as New arrival or Best seller. Leave blank to show only the usual stock status." :collapsed="false">
+                <flux:field>
+                    <flux:label>Label text</flux:label>
+                    <flux:input wire:model="label" maxlength="80" placeholder="e.g. New arrival, Best seller" />
+                    <flux:error name="label" />
+                </flux:field>
+            </x-admin-section-card>
+
             {{-- Categories --}}
             <x-admin-section-card variant="postbox" persist-key="product-categories" title="Categories"
                 description="A product can belong to more than one category." :collapsed="false">

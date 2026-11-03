@@ -14,6 +14,7 @@
 
     $isUpcoming = $product->is_upcoming;
     $inStock = $product->inStock();
+    $hasVariations = $product->hasVisibleVariations();
     $discount = $product->effectiveDiscount();
     $discountPercent = $discount && (float) $product->price > 0
         ? round((1 - $discount / (float) $product->price) * 100)
@@ -47,7 +48,11 @@
             </span>
         @endif
 
-        @if (! $inStock && ! $isUpcoming)
+        @if (filled($product->label))
+            <span class="absolute inset-x-0 bottom-0 bg-brand/90 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
+                {{ $product->label }}
+            </span>
+        @elseif (! $inStock && ! $isUpcoming)
             <span class="absolute inset-x-0 bottom-0 bg-zinc-900/75 py-1 text-center text-[11px] font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
                 {{ __('Out of stock') }}
             </span>
@@ -85,14 +90,26 @@
             @endif
         </div>
 
+        @unless ($hasVariations)
+            <div class="mt-2 flex min-h-[4.25rem] items-center gap-2.5 text-xs">
+                <span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
+                    <flux:icon.check class="size-4" />
+                </span>
+                <div class="min-w-0">
+                    <p class="font-semibold text-zinc-700">{{ __('Standard item') }}</p>
+                    <p class="mt-0.5 text-zinc-500">{{ __('No options to select') }}</p>
+                </div>
+            </div>
+        @endunless
+
         <div class="mt-auto border-t border-zinc-100 pt-3">
             <livewire:frontend.add-to-cart-button
                 :product-id="$product->id"
                 :slug="$product->slug"
                 :in-stock="$inStock"
                 :is-upcoming="$isUpcoming"
-                :requires-options="$product->hasVisibleVariations()"
-                :has-variations="$product->hasVisibleVariations()"
+                :requires-options="$hasVariations"
+                :has-variations="$hasVariations"
                 :key="'add-to-cart-'.$product->id"
             />
         </div>

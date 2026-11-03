@@ -82,7 +82,6 @@
         <div class="border border-zinc-100 rounded-lg">
             <table class="w-full divide-y divide-gray-200">
                 <colgroup>
-                    <col style="width:3%">
                     <col class="hidden lg:table-column" style="width:5%">
                     <col style="width:22%">
                     <col style="width:12%">
@@ -94,7 +93,6 @@
                 </colgroup>
                 <thead>
                     <tr class="bg-zinc-50">
-                        <th class="px-2 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider w-8"></th>
                         <th class="hidden lg:table-cell px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">#</th>
                         <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Name</th>
                         <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Type</th>
@@ -115,14 +113,6 @@
                             @contextmenu.prevent="$el.querySelector('[data-actions-trigger]')?.click()"
                             @click="if ($event.ctrlKey || $event.metaKey) { $event.preventDefault(); $wire.toggleSelect({{ $category->id }}) }">
 
-                            {{-- Expand toggle, small screens only, where columns are hidden. --}}
-                            <td class="px-1 py-2 text-center">
-                                <div class="flex items-center justify-center gap-1" @click.stop>
-                                    <x-admin-row-expand-toggle class="lg:hidden" :expanded="$viewingId === $category->id"
-                                        wire:click="{{ $viewingId === $category->id ? 'closeDetails' : 'viewDetails('.$category->id.')' }}" />
-                                </div>
-                            </td>
-
                             {{-- ID --}}
                             <td class="hidden lg:table-cell px-4 py-2">
                                 <x-copy-text :text="$category->id" class="font-mono text-sm text-zinc-500">{{ $category->id }}</x-copy-text>
@@ -130,6 +120,8 @@
 
                             {{-- Name + slug (slug below, click to copy) --}}
                             <td class="px-4 py-2" style="padding-left: {{ 16 + ($category->depth * 24) }}px">
+                                <x-admin-row-expand-toggle class="lg:hidden mr-1" :expanded="$viewingId === $category->id"
+                                    wire:click="{{ $viewingId === $category->id ? 'closeDetails' : 'viewDetails('.$category->id.')' }}" />
                                 <div class="font-medium text-zinc-900 text-sm leading-snug flex items-center gap-1.5"
                                     @if ($category->getTranslation('name', 'bn', false))
                                         title="{{ $category->getTranslation('name', 'en', false) }} — {{ $category->getTranslation('name', 'bn', false) }}"

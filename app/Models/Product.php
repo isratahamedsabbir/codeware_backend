@@ -68,7 +68,7 @@ class Product extends Model
 
     protected $fillable = [
         'name', 'description', 'excerpt', 'specifications',
-        'brand_id', 'vendor_id', 'created_by', 'code', 'sku', 'variations',
+        'brand_id', 'vendor_id', 'created_by', 'code', 'sku', 'label', 'variations',
         'featured_image', 'status', 'product_type', 'price', 'discount_price', 'quantity', 'charge_shipping', 'is_featured',
         'is_upcoming', 'sort_order', 'warranty_months', 'landing_page',
     ];

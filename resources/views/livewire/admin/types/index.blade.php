@@ -51,8 +51,7 @@
                 <table class="w-full divide-y divide-gray-200" style="table-layout:fixed">
                     <colgroup>
                         <col style="width:6%">
-                        <col style="width:7%">
-                        <col style="width:26%">
+                        <col style="width:32%">
                         <col style="width:10%">
                         <col style="width:20%">
                         <col style="width:12%">
@@ -61,7 +60,6 @@
                     <thead>
                         <tr class="bg-zinc-50">
                             <th class="px-2 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider w-8">#</th>
-                            <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Order</th>
                             <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Name</th>
                             <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Slug</th>
                             <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Used by</th>
@@ -79,8 +77,6 @@
                                 <td class="px-2 py-2 text-center text-xs text-zinc-500">
                                     <x-copy-text :text="$type->id" class="text-xs text-zinc-500">{{ $type->id }}</x-copy-text>
                                 </td>
-
-                                <td class="px-4 py-2 text-sm text-zinc-500">{{ $type->sort_order }}</td>
 
                                 <td class="px-4 py-2">
                                     <div class="font-medium text-zinc-900 text-sm leading-snug">

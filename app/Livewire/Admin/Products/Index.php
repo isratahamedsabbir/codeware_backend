@@ -29,6 +29,13 @@ class Index extends Component
 
     public string $statusFilter = '';
 
+    public string $bulkLabel = '';
+
+    public string $bulkProductSearch = '';
+
+    /** @var array<int, int|string> */
+    public array $bulkProductIds = [];
+
     public ?int $deletingId = null;
 
     public ?int $viewingId = null;
@@ -283,6 +290,45 @@ class Index extends Component
         $this->dispatch('open-modal', name: 'product-bulk-delete');
     }
 
+    public function openBulkLabel(): void
+    {
+        $this->bulkLabel = '';
+        $this->bulkProductSearch = '';
+        $this->bulkProductIds = $this->selectedIds;
+        $this->resetValidation('bulkLabel');
+        $this->resetValidation('bulkProductIds');
+        $this->dispatch('open-modal', name: 'product-bulk-label');
+    }
+
+    public function bulkUpdateLabel(): void
+    {
+        if ($this->bulkProductIds === []) {
+            return;
+        }
+
+        $this->validate([
+            'bulkLabel' => ['required', 'string', 'max:80'],
+            'bulkProductIds' => ['required', 'array', 'min:1'],
+            'bulkProductIds.*' => ['integer', 'exists:products,id'],
+        ], [], ['bulkLabel' => 'product label']);
+
+        $products = Product::whereIn('id', $this->bulkProductIds)->get();
+        $label = trim($this->bulkLabel);
+
+        foreach ($products as $product) {
+            $product->update(['label' => $label]);
+        }
+
+        $count = $products->count();
+        $this->selectedIds = [];
+        $this->bulkProductIds = [];
+        $this->bulkLabel = '';
+
+        AdminActivity::log('updated', "Product image label applied to {$count} products");
+        $this->dispatch('close-modal', name: 'product-bulk-label');
+        $this->dispatch('notify', message: "Label applied to {$count} ".Str::plural('product', $count));
+    }
+
     public function bulkDelete(): void
     {
         $products = Product::with('page')->whereIn('id', $this->selectedIds)->get();
@@ -302,7 +348,43 @@ class Index extends Component
 
     public function render()
     {
+        $labelSearch = trim($this->bulkProductSearch);
+        $selectedLabelIds = $this->bulkProductIds;
+        $defaultLabelProductIds = Product::query()
+            ->orderBy('id')
+            ->limit(100)
+            ->pluck('id')
+            ->all();
+
+        $labelProductOptions = Product::query()
+            ->select(['id', 'name'])
+            ->where(function ($query) use ($labelSearch, $selectedLabelIds, $defaultLabelProductIds) {
+                if ($labelSearch !== '') {
+                    if ($selectedLabelIds !== []) {
+                        $query->whereIn('id', $selectedLabelIds)->orWhere(function ($query) use ($labelSearch) {
+                            $term = '%'.$labelSearch.'%';
+                            $query->where('name->en', 'like', $term)
+                                ->orWhere('name->bn', 'like', $term);
+                        });
+                    } else {
+                        $term = '%'.$labelSearch.'%';
+                        $query->where('name->en', 'like', $term)
+                            ->orWhere('name->bn', 'like', $term);
+                    }
+                } else {
+                    $query->whereIn('id', $defaultLabelProductIds);
+
+                    if ($selectedLabelIds !== []) {
+                        $query->orWhereIn('id', $selectedLabelIds);
+                    }
+                }
+            })
+            ->orderBy('id')
+            ->when($labelSearch !== '', fn ($query) => $query->limit(100))
+            ->get();
+
         return view('livewire.admin.products.index', [
+            'labelProductOptions' => $labelProductOptions,
             'products' => Product::query()
                 ->with(['categories', 'page', 'creator'])
                 ->when($this->search, fn ($q) => $q

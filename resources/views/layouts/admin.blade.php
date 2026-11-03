@@ -171,10 +171,20 @@
                  the stored setting. */
             --font-sans: {!! \App\Support\AdminFont::stackFor($adminFont) !!};
         }
+
+        /* Row expand controls are useful on narrow screens, but their first
+           column is empty on desktop. Collapse that spacer in every admin list. */
+        @media (min-width: 1024px) {
+            body.admin-panel table:has(> tbody > tr > td:first-child button[aria-expanded]) > colgroup > col:first-child,
+            body.admin-panel table:has(> tbody > tr > td:first-child button[aria-expanded]) > thead > tr > th:first-child,
+            body.admin-panel table:has(> tbody > tr > td:first-child button[aria-expanded]) > tbody > tr > td:first-child {
+                display: none;
+            }
+        }
     </style>
 </head>
 
-<body class="min-h-screen bg-slate-50 antialiased font-sans">
+<body class="admin-panel min-h-screen bg-slate-50 antialiased font-sans">
 
     <script>
         @if (session('success'))

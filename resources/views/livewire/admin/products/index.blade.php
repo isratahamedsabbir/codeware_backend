@@ -34,6 +34,9 @@
                  look this button had when it lived in @push('page-header-actions')
                  (see resources/css/app.css). --}}
             <div class="page-header-actions flex items-center gap-2 shrink-0">
+                <flux:button variant="ghost" size="sm" icon="tag" wire:click="openBulkLabel">
+                    Set image label{{ count($selectedIds) > 0 ? ' ('.count($selectedIds).')' : '' }}
+                </flux:button>
                 @can('access-admin-system')
                     <flux:button variant="ghost" size="sm" icon="megaphone"
                         x-on:click="$dispatch('open-modal', { name: 'landing-page-settings' })">
@@ -109,7 +112,6 @@
         <div class="border border-zinc-100 rounded-lg">
             <table class="w-full divide-y divide-gray-200">
                 <colgroup>
-                    <col style="width:4%">
                     <col class="hidden lg:table-column" style="width:4%">
                     <col style="width:14%">
                     <col class="hidden lg:table-column" style="width:9%">
@@ -124,7 +126,6 @@
                 </colgroup>
                 <thead>
                     <tr class="bg-zinc-50">
-                        <th class="px-2 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider w-8"></th>
                         <th class="hidden lg:table-cell px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">#</th>
                         <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Name</th>
                         <th class="hidden lg:table-cell px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Category</th>
@@ -151,18 +152,6 @@
                             @contextmenu.prevent="$el.querySelector('[data-actions-trigger]')?.click()"
                             @click="if ($event.ctrlKey || $event.metaKey) { $event.preventDefault(); $wire.toggleSelect({{ $product->id }}) }">
 
-                            {{-- Selection checkbox (bulk mode) and small-screen expand toggle. --}}
-                            <td class="px-1 py-2 text-center">
-                                <div class="flex items-center justify-center gap-1" @click.stop>
-                                    @if ($bulkActive)
-                                        <input type="checkbox" wire:click="toggleSelect({{ $product->id }})" @checked($isSelected)
-                                            aria-label="Select product" class="w-4 h-4 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
-                                    @endif
-                                    <x-admin-row-expand-toggle class="lg:hidden" :expanded="$viewingId === $product->id"
-                                        wire:click="{{ $viewingId === $product->id ? 'closeDetails' : 'viewDetails('.$product->id.')' }}" />
-                                </div>
-                            </td>
-
                             {{-- ID --}}
                             <td class="hidden lg:table-cell px-4 py-2">
                                 <x-copy-text :text="$product->id" class="font-mono text-sm text-zinc-500">{{ $product->id }}</x-copy-text>
@@ -170,6 +159,8 @@
 
                             {{-- Name + unique code + slug (code and slug below the name, click to copy) --}}
                             <td class="px-4 py-[5px]">
+                                <x-admin-row-expand-toggle class="lg:hidden mr-1" :expanded="$viewingId === $product->id"
+                                    wire:click="{{ $viewingId === $product->id ? 'closeDetails' : 'viewDetails('.$product->id.')' }}" />
                                 <div class="font-medium text-zinc-900 text-[12.5px] leading-[1.15]"
                                     @if ($product->getTranslation('name', 'bn', false))
                                         title="{{ $product->getTranslation('name', 'en', false) }} — {{ $product->getTranslation('name', 'bn', false) }}"
@@ -413,6 +404,67 @@
                 <flux:modal.close>
                     <flux:button size="sm" variant="ghost">Cancel</flux:button>
                 </flux:modal.close>
+            </div>
+        </div>
+    </flux:modal>
+
+    {{-- Bulk product image label --}}
+    <flux:modal name="product-bulk-label" class="w-full md:w-[520px]"
+        x-on:open-modal.window="if ($event.detail.name === 'product-bulk-label') $flux.modal('product-bulk-label').show()"
+        x-on:close-modal.window="if ($event.detail.name === 'product-bulk-label') $flux.modal('product-bulk-label').close()">
+        <div class="space-y-5 p-1">
+            <div class="flex items-start gap-3.5">
+                <div class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100 dark:bg-blue-400/10 dark:text-blue-300 dark:ring-blue-300/20">
+                    <flux:icon.tag class="size-5" />
+                </div>
+                <div class="min-w-0 flex-1 pt-0.5">
+                    <flux:heading class="text-base font-semibold tracking-tight">Set product image label</flux:heading>
+                    <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Choose products and add a short badge to their catalog images.</p>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <div class="flex items-center justify-between gap-3">
+                    <flux:label>Select products</flux:label>
+                    <span class="inline-flex shrink-0 items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                        <span class="rounded-full bg-zinc-100 px-2 py-0.5 font-semibold text-zinc-600 dark:bg-zinc-700 dark:text-zinc-200">{{ count($bulkProductIds) }} selected</span>
+                        <span>Select one or more</span>
+                    </span>
+                </div>
+                <flux:input wire:model.live.debounce.250ms="bulkProductSearch" placeholder="Search products by name..." />
+                <div class="max-h-56 overflow-y-auto rounded-xl border border-zinc-200 bg-white shadow-sm divide-y divide-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:divide-zinc-800">
+                    @forelse ($labelProductOptions as $labelProduct)
+                        <label wire:key="bulk-label-product-{{ $labelProduct->id }}" class="group flex items-center gap-3 px-3.5 py-2.5 text-sm transition-colors hover:bg-blue-50/70 dark:hover:bg-zinc-800 cursor-pointer">
+                            <input type="checkbox" wire:model.live="bulkProductIds" value="{{ $labelProduct->id }}"
+                                class="size-4 rounded border-zinc-300 text-primary focus:ring-primary/30" />
+                            <span class="min-w-0 flex-1 truncate font-medium text-zinc-700 dark:text-zinc-200">{{ $labelProduct->getTranslation('name', 'en', false) ?: 'Product #'.$labelProduct->id }}</span>
+                            <span class="shrink-0 rounded-md bg-zinc-100 px-2 py-0.5 font-mono text-[11px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">#{{ $labelProduct->id }}</span>
+                        </label>
+                    @empty
+                        <p class="px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">No matching products found.</p>
+                    @endforelse
+                </div>
+                <flux:error name="bulkProductIds" />
+            </div>
+
+            <div class="rounded-xl border border-zinc-200 bg-zinc-50/70 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
+                <flux:field>
+                    <flux:label>Label text</flux:label>
+                    <flux:input wire:model="bulkLabel" maxlength="80" placeholder="e.g. New arrival, Best seller" />
+                    <flux:error name="bulkLabel" />
+                    <p class="mt-1 text-xs text-zinc-400">Up to 80 characters. This replaces any existing image label.</p>
+                </flux:field>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-700">
+                <flux:modal.close>
+                    <flux:button size="sm" variant="ghost">Cancel</flux:button>
+                </flux:modal.close>
+                <button wire:click="bulkUpdateLabel" @disabled(count($bulkProductIds) === 0)
+                    class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50">
+                    Apply label
+                    <flux:icon.arrow-right class="size-4" />
+                </button>
             </div>
         </div>
     </flux:modal>
