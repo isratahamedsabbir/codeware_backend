@@ -184,16 +184,17 @@
 
                 {{-- Options popup on the card: pick a combination and add it
                     straight to the cart without leaving the grid. --}}
-                <div
-                    x-show="pickerOpen"
-                    x-cloak
-                    x-transition.opacity
-                    @cart-item-added.window="pickerOpen = false"
-                    @keydown.escape.window="pickerOpen = false"
-                    role="dialog"
-                    aria-modal="true"
-                    class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4"
-                >
+                <template x-teleport="body">
+                    <div
+                        x-show="pickerOpen"
+                        x-cloak
+                        x-transition.opacity
+                        @variant-added.window="pickerOpen = false"
+                        @keydown.escape.window="pickerOpen = false"
+                        role="dialog"
+                        aria-modal="true"
+                        class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4"
+                    >
                     <div
                         class="relative w-full max-w-md rounded-t-card bg-white p-6 shadow-2xl sm:rounded-card"
                         @click.outside="pickerOpen = false"
@@ -286,7 +287,8 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                    </div>
+                </template>
             </div>
         @else
             <a

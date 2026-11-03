@@ -62,8 +62,17 @@
     :style="panelHeight ? `height: ${panelHeight}; max-height: ${panelHeight}` : ''"
 >
     {{-- Conversation list --}}
-    <div class="w-full md:w-[320px] shrink-0 min-h-0 bg-white rounded-[5px] border border-zinc-100 shadow-sm flex-col overflow-hidden {{ $this->activeConversation ? 'hidden md:flex' : 'flex' }}">
-        <div class="p-3 border-b border-zinc-100 relative">
+    <div class="w-full md:w-[340px] shrink-0 min-h-0 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-700 shadow-sm flex-col overflow-hidden {{ $this->activeConversation ? 'hidden md:flex' : 'flex' }}">
+        <div class="px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+            <div class="mb-3 flex items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Inbox') }}</h2>
+                    <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">{{ trans_choice(':count conversation|:count conversations', $this->conversations->count(), ['count' => $this->conversations->count()]) }}</p>
+                </div>
+                <span class="flex size-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300">
+                    <flux:icon.chat-bubble-left-right class="size-4" />
+                </span>
+            </div>
             <flux:input
                 wire:model.live.debounce.300ms="userSearch"
                 placeholder="Start a chat — search by name or email"
@@ -71,18 +80,18 @@
             />
 
             @if ($this->searchResults->isNotEmpty())
-                <div class="absolute left-3 right-3 top-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg z-20 max-h-72 overflow-y-auto">
+                <div class="absolute left-3 right-3 top-full mt-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-xl z-20 max-h-72 overflow-y-auto">
                     @foreach ($this->searchResults as $user)
                         <button
                             type="button"
                             wire:click="startConversationWith({{ $user->id }})"
                             wire:key="search-result-{{ $user->id }}"
-                            class="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-zinc-50 text-start transition-colors"
+                            class="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-start transition-colors"
                         >
                             <flux:avatar size="sm" :name="$user->name" :initials="$user->initials()" />
                             <div class="min-w-0">
-                                <div class="text-sm font-medium text-zinc-800 truncate">{{ $user->name }}</div>
-                                <div class="text-xs text-zinc-500 truncate">{{ $user->email }}</div>
+                                <div class="text-sm font-medium text-zinc-800 dark:text-zinc-100 truncate">{{ $user->name }}</div>
+                                <div class="text-xs text-zinc-500 dark:text-zinc-400 truncate">{{ $user->email }}</div>
                             </div>
                         </button>
                     @endforeach
@@ -97,18 +106,18 @@
                     type="button"
                     wire:click="openConversation({{ $conversation->id }})"
                     wire:key="conversation-{{ $conversation->id }}"
-                    class="w-full flex items-center gap-2.5 px-3 py-3 border-b border-zinc-50 hover:bg-zinc-50 text-start transition-colors {{ $conversation->id === $this->conversationId ? 'bg-indigo-50/60' : '' }}"
+                    class="w-full flex items-center gap-3 px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/70 text-start transition-colors {{ $conversation->id === $this->conversationId ? 'bg-indigo-50/70 dark:bg-indigo-500/10' : '' }}"
                 >
                     <flux:avatar :name="$other->name" :initials="$other->initials()" />
                     <div class="min-w-0 flex-1">
                         <div class="flex items-center justify-between gap-2">
-                            <div class="text-sm font-medium text-zinc-800 truncate">{{ $other->name }}</div>
+                            <div class="text-sm font-semibold text-zinc-800 dark:text-zinc-100 truncate">{{ $other->name }}</div>
                             @if ($conversation->latestMessage)
                                 <div class="text-[11px] text-zinc-400 shrink-0">{{ $conversation->latestMessage->created_at->diffForHumans(null, true) }}</div>
                             @endif
                         </div>
                         <div class="flex items-center justify-between gap-2 mt-0.5">
-                            <div class="text-xs text-zinc-500 truncate">
+                            <div class="text-xs text-zinc-500 dark:text-zinc-400 truncate">
                                 {{ $conversation->latestMessage->body ?? __('No messages yet') }}
                             </div>
                             @if ($conversation->unread_count > 0)
@@ -118,23 +127,30 @@
                     </div>
                 </button>
             @empty
-                <div class="px-4 py-10 text-center text-sm text-zinc-500">
-                    {{ __('No conversations yet. Search above to start one.') }}
+                <div class="px-5 py-12 text-center">
+                    <span class="mx-auto flex size-11 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-300">
+                        <flux:icon.chat-bubble-left-right class="size-5" />
+                    </span>
+                    <p class="mt-3 text-sm font-medium text-zinc-800 dark:text-zinc-100">{{ __('Your inbox is clear') }}</p>
+                    <p class="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">{{ __('Search for a customer above to start a conversation.') }}</p>
                 </div>
             @endforelse
         </div>
     </div>
 
     {{-- Thread --}}
-    <div class="flex-1 min-h-0 bg-white rounded-[5px] border border-zinc-100 shadow-sm flex-col overflow-hidden {{ $this->activeConversation ? 'flex' : 'hidden md:flex' }}">
+    <div class="flex-1 min-h-0 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-700 shadow-sm flex-col overflow-hidden {{ $this->activeConversation ? 'flex' : 'hidden md:flex' }}">
         @if ($this->activeConversation)
             @php $other = $this->activeConversation->otherUser(auth()->user()); @endphp
-            <div class="px-4 py-3 border-b border-zinc-100 flex items-center gap-2.5 shrink-0">
-                <button type="button" wire:click="closeConversation" class="md:hidden -ml-1 p-1 rounded text-zinc-500 hover:bg-zinc-100 shrink-0" aria-label="{{ __('Back to conversations') }}">
+            <div class="px-5 py-3.5 border-b border-zinc-100 dark:border-zinc-800 flex items-center gap-3 shrink-0">
+                <button type="button" wire:click="closeConversation" class="md:hidden -ml-2 p-2 rounded-lg text-zinc-500 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 shrink-0" aria-label="{{ __('Back to conversations') }}">
                     <flux:icon.chevron-left class="size-5" />
                 </button>
                 <flux:avatar size="sm" :name="$other->name" :initials="$other->initials()" />
-                <div class="text-sm font-semibold text-zinc-800">{{ $other->name }}</div>
+                <div class="min-w-0">
+                    <div class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">{{ $other->name }}</div>
+                    <div class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400 truncate">{{ $other->email }}</div>
+                </div>
             </div>
 
             <div
@@ -144,12 +160,12 @@
                     scrollToBottom();
                     new MutationObserver(() => $nextTick(scrollToBottom)).observe($refs.messageList, { childList: true });
                 "
-                class="flex-1 min-h-0 overflow-y-auto chat-scroll px-4 py-4 flex flex-col space-y-3"
+                class="flex-1 min-h-0 overflow-y-auto chat-scroll px-5 py-5 flex flex-col space-y-3 bg-zinc-50/70 dark:bg-zinc-950/30"
             >
                 @forelse ($this->threadMessages as $message)
                     @php $isMine = $message->sender_id === auth()->id(); @endphp
                     <div wire:key="message-{{ $message->id }}" class="flex {{ $isMine ? 'justify-end' : 'justify-start' }}">
-                        <div class="max-w-[70%] rounded-2xl px-3.5 py-2 text-sm {{ $isMine ? 'bg-secondary text-white rounded-br-sm' : 'bg-zinc-100 text-zinc-800 rounded-bl-sm' }}">
+                        <div class="max-w-[min(78%,42rem)] rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm {{ $isMine ? 'bg-secondary text-white rounded-br-md' : 'bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 rounded-bl-md' }}">
                             <div class="whitespace-pre-wrap wrap-break-word">{{ $message->body }}</div>
                             <div class="text-[10px] mt-1 {{ $isMine ? 'text-white/70' : 'text-zinc-400' }}">
                                 {{ $message->created_at->toDisplay('g:i A') }}
@@ -163,7 +179,7 @@
                 @endforelse
             </div>
 
-            <form wire:submit="sendMessage" class="p-3 border-t border-zinc-100 flex items-end gap-2 shrink-0">
+            <form wire:submit="sendMessage" class="p-4 md:px-5 border-t border-zinc-100 dark:border-zinc-800 flex items-end gap-3 shrink-0 bg-white dark:bg-zinc-900">
                 <div class="flex-1">
                     <flux:textarea
                         wire:model="messageBody"
@@ -173,13 +189,19 @@
                     />
                     <flux:error name="messageBody" />
                 </div>
-                <flux:button size="sm" type="submit" variant="primary" icon="paper-airplane">
+                <flux:button size="sm" type="submit" variant="primary" icon="paper-airplane" class="mb-0.5">
                     {{ __('Send') }}
                 </flux:button>
             </form>
         @else
-            <div class="flex-1 flex items-center justify-center text-sm text-zinc-400">
-                {{ __('Select a conversation or search for someone to start chatting.') }}
+            <div class="flex-1 flex items-center justify-center px-6 py-12 text-center">
+                <div class="max-w-sm">
+                    <span class="mx-auto flex size-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300">
+                        <flux:icon.chat-bubble-left-right class="size-6" />
+                    </span>
+                    <h3 class="mt-4 text-base font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Your conversations, all in one place') }}</h3>
+                    <p class="mt-1.5 text-sm leading-6 text-zinc-500 dark:text-zinc-400">{{ __('Choose a conversation from your inbox, or search for a customer to start a new one.') }}</p>
+                </div>
             </div>
         @endif
     </div>
