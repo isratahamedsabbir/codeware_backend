@@ -96,7 +96,7 @@
             </button>
         </div>
 
-        <aside id="shop-filters" class="lg:sticky lg:top-24 lg:self-start" :class="filtersOpen ? 'block' : 'hidden lg:block'">
+        <aside id="shop-filters" class="lg:sticky lg:top-32 lg:self-start" :class="filtersOpen ? 'block' : 'hidden lg:block'">
             <div class="overflow-hidden rounded-card border border-zinc-200 bg-white shadow-sm">
                 {{-- Panel header --}}
                 <div class="flex items-center justify-between border-b border-zinc-100 bg-zinc-50/60 px-5 py-4">
