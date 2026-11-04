@@ -17,7 +17,8 @@ class Index extends Component
 
     public function mount(): void
     {
-        $this->links = SocialLink::orderBy('sort_order')->get()
+        $this->links = SocialLink::whereNotIn('platform', ['google_play', 'app_store'])
+            ->orderBy('sort_order')->get()
             ->map(fn (SocialLink $link) => [
                 'id' => $link->id,
                 'platform' => $link->platform,

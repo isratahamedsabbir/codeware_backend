@@ -41,6 +41,7 @@ class MenuItem extends Model
         'admin.env',
         'admin.seo',
         'admin.social',
+        'admin.mobile-apps',
         'admin.payment-gateways',
         'admin.features',
         'admin.email-templates',

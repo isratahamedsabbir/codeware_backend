@@ -95,6 +95,7 @@ class AdminMenuSeeder extends Seeder
             ['Developer Guide', 'book-open', 'admin.developer-guide'],
             ['Global SEO', 'magnifying-glass', 'admin.seo'],
             ['Social Links', 'share', 'admin.social'],
+            ['Mobile Apps', 'device-phone-mobile', 'admin.mobile-apps'],
             ['Payment Gateways', 'credit-card', 'admin.payment-gateways'],
             ['Features', 'adjustments-horizontal', 'admin.features'],
             ['Media Library', 'photo', 'admin.media-library'],

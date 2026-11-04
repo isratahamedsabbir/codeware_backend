@@ -4,6 +4,8 @@
     $contactAddress = \App\Models\Setting::get('contact_address');
     $contactPhone = \App\Models\Setting::get('contact_phone');
     $contactEmail = \App\Models\Setting::get('contact_email');
+    $googlePlayUrl = \App\Models\SocialLink::url('google_play');
+    $appStoreUrl = \App\Models\SocialLink::url('app_store');
 
     $quickLinks = \App\Support\Frontend::quickLinks();
 
@@ -70,6 +72,43 @@
                             @endif
                         </a>
                     @endforeach
+                </div>
+            @endif
+            @if ($googlePlayUrl || $appStoreUrl)
+                <div class="mt-5">
+                    <h3 class="mb-2.5 text-xs font-semibold uppercase tracking-wider text-sf-footer-text/70">{{ __('Mobile Apps') }}</h3>
+                    <div class="flex flex-wrap gap-2">
+                        @if ($googlePlayUrl)
+                            <a href="{{ $googlePlayUrl }}" target="_blank" rel="noopener noreferrer"
+                                aria-label="{{ __('Get it on Google Play') }}"
+                                class="inline-flex h-11 min-w-[145px] items-center gap-2 rounded-md border border-white/50 bg-[#111] px-3 text-white transition hover:border-white hover:bg-black">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="size-6 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path fill="#34A853" d="M3.5 2.7c-.4.2-.6.6-.6 1.2v16.2c0 .6.2 1 .6 1.2l9.1-9.3L3.5 2.7Z"/>
+                                    <path fill="#4285F4" d="m3.5 2.7 11.1 6.1-2 3.2-9.1-9.3Z"/>
+                                    <path fill="#FBBC04" d="m3.5 21.3 11.1-6.1-2-3.2-9.1 9.3Z"/>
+                                    <path fill="#EA4335" d="m14.6 8.8 4.9 2.7c.9.5.9 1.4 0 1.9l-4.9 2.7-2-3.2 2-4.1Z"/>
+                                </svg>
+                                <span class="leading-none">
+                                    <span class="block text-[8px] uppercase tracking-wide text-white/80">{{ __('Get it on') }}</span>
+                                    <span class="mt-0.5 block text-[15px] font-semibold tracking-tight">Google Play</span>
+                                </span>
+                            </a>
+                        @endif
+
+                        @if ($appStoreUrl)
+                            <a href="{{ $appStoreUrl }}" target="_blank" rel="noopener noreferrer"
+                                aria-label="{{ __('Download on the App Store') }}"
+                                class="inline-flex h-11 min-w-[145px] items-center gap-2 rounded-md border border-white/50 bg-[#111] px-3 text-white transition hover:border-white hover:bg-black">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="size-6 shrink-0 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M16.6 12.8c0-2 1.6-3 1.7-3.1a3.7 3.7 0 0 0-2.9-1.6c-1.2-.1-2.3.7-2.9.7s-1.5-.7-2.5-.7a3.9 3.9 0 0 0-3.3 2c-1.4 2.4-.4 6 1 8 .7 1 1.4 2 2.4 2s1.3-.6 2.5-.6 1.5.6 2.5.6 1.7-.9 2.3-1.9a8.4 8.4 0 0 0 1-2.1 3.3 3.3 0 0 1-1.8-3.3ZM14.7 6.9a3.6 3.6 0 0 0 .8-2.6 3.7 3.7 0 0 0-2.4 1.2 3.4 3.4 0 0 0-.8 2.5 3.1 3.1 0 0 0 2.4-1.1Z"/>
+                                </svg>
+                                <span class="leading-none">
+                                    <span class="block text-[8px] text-white/80">{{ __('Download on the') }}</span>
+                                    <span class="mt-0.5 block text-[15px] font-semibold tracking-tight">App Store</span>
+                                </span>
+                            </a>
+                        @endif
+                    </div>
                 </div>
             @endif
         </div>
