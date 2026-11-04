@@ -348,19 +348,32 @@ it('renders a tag landing page by slug derived from its name', function () {
 });
 
 it('shows featured products and categories on the ecommerce homepage', function () {
-    $category = ProductCategory::factory()->create(['name' => ['en' => 'Seeds', 'bn' => '']]);
+    $category = ProductCategory::factory()->create(['name' => ['en' => 'Seeds', 'bn' => ''], 'featured' => true]);
     pairPageFor($category, 'product_category', 'seeds', $this->admin->id);
 
-    $featured = storefrontProduct('featured-item', ['name' => ['en' => 'Featured Item', 'bn' => ''], 'is_featured' => true]);
+    $brand = ProductBrand::factory()->create(['name' => ['en' => 'Acme', 'bn' => '']]);
+    $featured = storefrontProduct('featured-item', [
+        'name' => ['en' => 'Featured Item', 'bn' => ''],
+        'is_featured' => true,
+        'brand_id' => $brand->id,
+    ]);
     $featured->categories()->attach($category);
 
     Product::factory()->draft()->create(['name' => ['en' => 'Hidden Draft', 'bn' => '']]);
 
-    get('/')
-        ->assertOk()
-        ->assertSee('Featured Item')
-        ->assertSee('Seeds')
-        ->assertDontSee('Hidden Draft');
+    $main = (string) str(get('/')->assertOk()->getContent())->after('<main');
+
+    expect($main)
+        ->toContain('Featured products')
+        ->toContain('New arrivals')
+        ->not->toContain('Shop by brand')
+        ->toContain('Acme')
+        ->toContain('Seeds')
+        ->toContain('Featured Item')
+        ->not->toContain('Hidden Draft')
+        ->and(strpos($main, 'Featured products'))->toBeLessThan(strpos($main, 'New arrivals'))
+        ->and(strpos($main, 'New arrivals'))->toBeLessThan(strpos($main, '/shop?brand=acme'))
+        ->and(strpos($main, '/shop?brand=acme'))->toBeLessThan(strpos($main, '/shop?category=seeds'));
 });
 
 it('shows brands without a logo on the ecommerce homepage', function () {
@@ -369,7 +382,7 @@ it('shows brands without a logo on the ecommerce homepage', function () {
 
     get('/')
         ->assertOk()
-        ->assertSee('Shop by brand')
+        ->assertDontSee('Shop by brand')
         ->assertSee('Acme Supplies')
         ->assertSee('/shop?brand=acme-supplies');
 });
