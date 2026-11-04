@@ -187,7 +187,7 @@
                     </button>
                 </div>
                 <div x-ref="track" @scroll.passive="update(); $dispatch('nav-scroll')" class="no-scrollbar overflow-x-auto overscroll-x-contain scroll-smooth">
-            <ul class="flex w-max min-w-full flex-nowrap items-center justify-evenly px-4 sm:px-6 [&>li]:shrink-0 [&>li]:whitespace-nowrap">
+            <ul class="flex w-max min-w-full flex-nowrap items-center justify-between px-4 sm:px-6 [&>li]:shrink-0 [&>li]:whitespace-nowrap">
                 {{-- First in the row: the way into the live sale. --}}
                 @if ($hasLiveFlashDeal)
                     {{-- Playful on purpose: a soft pulsing glow, a light streak sweeping

@@ -27,8 +27,8 @@
     @foreach ($sections as $section)
         @continue(blank($section->localizedCards()))
 
-        <section id="{{ $section->name }}" class="px-4 pb-8 pt-0 sm:px-6 lg:pb-10">
-            <div class="mx-auto max-w-7xl">
+        <section id="{{ $section->name }}" class="pb-8 pt-0 lg:pb-10">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6">
                 <h2 class="mb-8 text-left text-2xl font-bold text-sf-heading">{{ $section->name }}</h2>
 
                 @if ($page->slug === 'faq')
