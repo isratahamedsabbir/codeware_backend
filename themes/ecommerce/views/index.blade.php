@@ -187,7 +187,6 @@
         <section class="mx-auto max-w-7xl px-4 pt-8 sm:px-6">
             @include('theme-ecommerce::partials._section-heading', [
                 'title' => __('Featured products'),
-                'subtitle' => __('Hand-picked products for you'),
             ])
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-4 xl:grid-cols-5">
                 @foreach ($featured as $product)
@@ -201,7 +200,6 @@
         <section class="mx-auto max-w-7xl px-4 pt-10 sm:px-6">
             @include('theme-ecommerce::partials._section-heading', [
                 'title' => __('Best sellers'),
-                'subtitle' => __('Most loved by our customers'),
             ])
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-4 xl:grid-cols-5">
                 @foreach ($bestSellers as $product)
@@ -225,11 +223,8 @@
                     },
                 }"
                 x-init="$nextTick(() => { update(); new ResizeObserver(() => update()).observe($refs.track); })">
-                <div class="mb-6 flex items-center justify-between border-b border-zinc-200 pb-4">
-                    <div>
-                        <h2 class="text-xl font-bold tracking-tight text-sf-text md:text-2xl">{{ __('New arrivals') }}</h2>
-                        <p class="mt-1 text-sm text-gray-600 md:text-base">{{ __('Just added to the store') }}</p>
-                    </div>
+                <div class="mb-4 flex items-center justify-between">
+                    <h2 class="text-xl font-bold tracking-tight text-sf-text md:text-2xl">{{ __('New arrivals') }}</h2>
                     <div class="flex gap-2" x-cloak x-show="overflow">
                         <button type="button" @click="slide(-1)" aria-label="{{ __('Previous products') }}"
                             class="flex h-9 w-9 items-center justify-center rounded-full bg-white text-brand shadow-sm transition hover:bg-brand hover:text-white">
@@ -264,10 +259,13 @@
                     track.scrollBy({ left: (card.getBoundingClientRect().width + gap) * 2 * direction, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
                 },
             }" x-init="$nextTick(() => { update(); new ResizeObserver(() => update()).observe($refs.track); })">
-                <div class="mb-6 flex items-end justify-between gap-4 border-b border-zinc-200 pb-4">
-                    <div class="min-w-0">
-                        <h2 class="truncate text-xl font-bold tracking-tight text-sf-text md:text-2xl">{{ $category->name }}</h2>
-                        <span class="mt-2 block h-1 w-12 rounded-full bg-brand"></span>
+                <div class="mb-4 flex items-end justify-between gap-4">
+                    <div class="flex min-w-0 items-center gap-3">
+                        <h2 class="truncate text-xl font-bold tracking-tight text-sf-text capitalize md:text-2xl">{{ $category->name }}</h2>
+                        <a href="{{ route('shop', ['category' => $category->slug]) }}" class="inline-flex h-8 shrink-0 items-center gap-1 rounded-full border border-brand/20 bg-white px-3 text-xs font-semibold text-brand transition hover:bg-brand hover:text-white">
+                            {{ __('View all') }}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.21 4.29a1 1 0 0 1 1.42 0l5 5a1 1 0 0 1 0 1.42l-5 5a1 1 0 1 1-1.42-1.42L11.5 10 7.21 5.71a1 1 0 0 1 0-1.42Z" clip-rule="evenodd"/></svg>
+                        </a>
                     </div>
                     <div class="flex shrink-0 items-center gap-2">
                         <div class="flex gap-2" x-cloak x-show="overflow">
@@ -280,10 +278,6 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.21 4.29a1 1 0 0 1 1.42 0l5 5a1 1 0 0 1 0 1.42l-5 5a1 1 0 1 1-1.42-1.42L11.5 10 7.21 5.71a1 1 0 0 1 0-1.42Z" clip-rule="evenodd"/></svg>
                             </button>
                         </div>
-                        <a href="{{ route('shop', ['category' => $category->slug]) }}" class="inline-flex h-9 items-center gap-1 rounded-full border border-brand/20 bg-white px-4 text-sm font-semibold text-brand transition hover:bg-brand hover:text-white">
-                            {{ __('View all') }}
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.21 4.29a1 1 0 0 1 1.42 0l5 5a1 1 0 0 1 0 1.42l-5 5a1 1 0 1 1-1.42-1.42L11.5 10 7.21 5.71a1 1 0 0 1 0-1.42Z" clip-rule="evenodd"/></svg>
-                        </a>
                     </div>
                 </div>
                 <div x-ref="track" class="no-scrollbar grid w-full min-w-0 grid-flow-col auto-cols-[calc(50%_-_6px)] gap-3 overflow-x-auto overscroll-x-contain scroll-smooth pb-1 sm:auto-cols-[calc(33.333333%_-_8px)] md:auto-cols-[calc(25%_-_12px)] md:gap-4 xl:auto-cols-[calc(20%_-_12.8px)]">
@@ -298,7 +292,6 @@
         <section class="mx-auto max-w-7xl px-4 pt-8 sm:px-6">
             @include('theme-ecommerce::partials._section-heading', [
                 'title' => __('Shop by brand'),
-                'subtitle' => __('Browse products by your favorite brands.'),
             ])
             <style>
                 .home-brand-marquee {
