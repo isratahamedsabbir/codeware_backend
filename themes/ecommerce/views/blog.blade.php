@@ -63,20 +63,17 @@
                                 @endif
                             </div>
                             <h2 class="text-lg font-bold text-sf-heading group-hover:text-brand">{{ $post->title }}</h2>
-                            @if (filled($post->description))
-                                @php
-                                    $postDescriptionHtml = (string) (is_array($post->description) ? ($post->description[app()->getLocale()] ?? reset($post->description)) : $post->description);
-                                    $postDescriptionText = trim(html_entity_decode(strip_tags($postDescriptionHtml)));
-                                @endphp
-                                @if ($postDescriptionText !== '')
-                                    <div class="rich-text mt-2 text-sm leading-relaxed text-zinc-500">
-                                        @if (\Illuminate\Support\Str::length($postDescriptionText) <= 1000)
-                                            @richtext($postDescriptionHtml)
-                                        @else
-                                            <p>{{ \Illuminate\Support\Str::limit($postDescriptionText, 1000) }}</p>
-                                        @endif
-                                    </div>
-                                @endif
+                            @php
+                                $postShortDescription = $post->getTranslation('short_description', app()->getLocale(), false);
+                                $postLegacyDescription = is_array($post->description)
+                                    ? ($post->description[app()->getLocale()] ?? $post->description['en'] ?? reset($post->description))
+                                    : $post->description;
+                                $postDescriptionText = trim(html_entity_decode(strip_tags((string) ($postShortDescription ?: $postLegacyDescription))));
+                            @endphp
+                            @if ($postDescriptionText !== '')
+                                <p class="mt-2 line-clamp-3 text-sm leading-relaxed text-zinc-500">
+                                    {{ \Illuminate\Support\Str::limit($postDescriptionText, 180) }}
+                                </p>
                             @endif
                             @if ($post->user?->name)
                                 <p class="mt-3 inline-flex items-center gap-1.5 text-xs text-zinc-500">

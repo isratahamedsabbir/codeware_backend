@@ -63,6 +63,7 @@ class PostController extends Controller
             'id' => $post->id,
             'slug' => $post->slug,
             'title' => $post->getTranslation('title', $locale, useFallbackLocale: true),
+            'short_description' => $post->getTranslation('short_description', $locale, useFallbackLocale: true),
             'description' => $post->getTranslation('description', $locale, useFallbackLocale: true),
             'featured_image' => $post->featured_image,
             // 'reading_time' => $post->reading_time,
