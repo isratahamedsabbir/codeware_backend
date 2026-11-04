@@ -34,7 +34,7 @@
 @endphp
 
 <footer class="bg-sf-footer text-sf-footer-text">
-    <div @class(['bg-page-bg pb-6', 'pt-16' => ! ($flushTop ?? false)])>
+    <div @class(['bg-page-bg pb-6', 'pt-10' => ! ($flushTop ?? false)])>
         @include('theme-ecommerce::partials._service-benefits')
     </div>
 
