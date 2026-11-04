@@ -17,6 +17,7 @@ test('admin layout renders header and footer', function () {
     $response->assertSee('My Profile');
     $response->assertSee('action="'.route('admin.logout').'"', false);
     $response->assertSee('Log out');
+    $response->assertSee('admin-sidebar-logout-button', false);
 });
 
 test('admin subpage renders breadcrumb section', function () {
@@ -28,6 +29,17 @@ test('admin subpage renders breadcrumb section', function () {
     $response->assertOk();
     $response->assertSee('Access Control');
     $response->assertSee('Users');
+});
+
+test('URL structure examples use the configured app URL', function () {
+    Role::findOrCreate('admin', 'web');
+    $user = User::factory()->admin()->create();
+    $this->actingAs($user);
+
+    $response = $this->get(route('admin.settings'));
+
+    $response->assertOk();
+    $response->assertSee(rtrim((string) config('app.url'), '/').'/products/my-product');
 });
 
 test('payment gateways page renders gateway credentials', function () {

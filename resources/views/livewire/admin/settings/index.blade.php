@@ -93,25 +93,56 @@
                         </x-admin-section-card>
 
                         <x-admin-section-card header-border="border-zinc-100" icon="link" title="URL structure"
-                            description="Where each kind of page lives. Leave a prefix empty for a bare address like /my-slug.">
-                            <div class="space-y-4">
+                            description="Choose a clean, memorable address for each type of page.">
+                            <div class="space-y-3">
                                 @foreach (\App\Support\UrlStructure::TYPES as $type => [$label])
-                                    <flux:field>
-                                        <flux:label>{{ $label }} URL</flux:label>
-                                        <div class="flex items-center gap-2">
-                                            <span class="shrink-0 font-mono text-sm text-zinc-400">/</span>
-                                            <flux:input wire:model.live.debounce.300ms="settings.url_prefix_{{ $type }}" placeholder="(none)" class="font-mono" maxlength="50" />
-                                            <span class="shrink-0 font-mono text-sm text-zinc-400">/slug</span>
+                                    @php
+                                        $urlPrefix = \App\Support\UrlStructure::normalize((string) ($settings['url_prefix_'.$type] ?? ''));
+                                        $urlExample = rtrim((string) config('app.url'), '/').'/'.($urlPrefix === '' ? '' : $urlPrefix.'/').'my-'.$type;
+                                        $urlIcon = ['product' => 'cube', 'post' => 'document-text', 'service' => 'briefcase'][$type] ?? 'link';
+                                        $urlIconColor = [
+                                            'product' => 'bg-violet-500/10 text-violet-600 dark:text-violet-400',
+                                            'post' => 'bg-sky-500/10 text-sky-600 dark:text-sky-400',
+                                            'service' => 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+                                        ][$type] ?? 'bg-primary/10 text-primary';
+                                    @endphp
+                                    <div class="rounded-xl border border-zinc-200 bg-zinc-50/70 p-4 transition-colors hover:border-primary/30 hover:bg-white dark:border-zinc-700 dark:bg-zinc-800/40 dark:hover:bg-zinc-800">
+                                        <div class="flex items-center gap-3">
+                                            <span class="flex size-9 shrink-0 items-center justify-center rounded-lg {{ $urlIconColor }}">
+                                                <flux:icon :name="$urlIcon" variant="mini" class="size-4.5" />
+                                            </span>
+                                            <div class="min-w-0">
+                                                <flux:label>{{ $label }} URL</flux:label>
+                                                <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                                                    {{ $type === 'post' ? 'For articles and news' : ($type === 'product' ? 'For your product pages' : 'For service pages') }}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <flux:error name="settings.url_prefix_{{ $type }}" />
-                                        <flux:description>
-                                            Example: <span class="font-mono">{{ url(trim(($settings['url_prefix_'.$type] ?? '') === '' ? '' : \App\Support\UrlStructure::normalize((string) $settings['url_prefix_'.$type]).'/', '').'my-'.$type) }}</span>
-                                        </flux:description>
-                                    </flux:field>
+
+                                        <flux:field class="mt-3">
+                                            <div class="flex min-w-0 items-center gap-2">
+                                                <span class="shrink-0 rounded-md bg-white px-2 py-2 font-mono text-xs text-zinc-500 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:text-zinc-400 dark:ring-zinc-700">/</span>
+                                                <flux:input wire:model.live.debounce.300ms="settings.url_prefix_{{ $type }}" placeholder="No prefix" aria-label="{{ $label }} URL prefix" class="min-w-0 font-mono" maxlength="50" />
+                                                <span class="shrink-0 whitespace-nowrap font-mono text-xs text-zinc-500 dark:text-zinc-400">/slug</span>
+                                            </div>
+                                            <flux:error name="settings.url_prefix_{{ $type }}" />
+                                        </flux:field>
+
+                                        <div class="mt-3 flex min-w-0 items-start gap-2 border-t border-zinc-200/80 pt-3 text-xs dark:border-zinc-700">
+                                            <flux:icon.arrow-turn-down-right variant="mini" class="mt-0.5 size-3.5 shrink-0 text-zinc-400" />
+                                            <span class="shrink-0 font-medium text-zinc-500 dark:text-zinc-400">Preview</span>
+                                            <span class="min-w-0 break-all font-mono text-zinc-700 dark:text-zinc-300">{{ $urlExample }}</span>
+                                        </div>
+                                    </div>
                                 @endforeach
-                                <p class="text-xs text-zinc-500">
-                                    Links across the site follow this. Older addresses (<span class="font-mono">/products/…</span>, <span class="font-mono">/blog/…</span>) keep working. Services have no storefront page yet, so that prefix has no effect until a theme adds one.
-                                </p>
+
+                                <div class="flex gap-2 rounded-lg bg-blue-50 px-3.5 py-3 text-xs leading-relaxed text-blue-800 dark:bg-blue-950/30 dark:text-blue-200">
+                                    <flux:icon.information-circle variant="mini" class="mt-0.5 size-4 shrink-0" />
+                                    <p>
+                                        Leave a prefix empty to use a short <span class="font-mono">/slug</span> address. Site links will use these settings; older <span class="font-mono">/products/…</span> and <span class="font-mono">/blog/…</span> links will keep working.
+                                        Service URLs take effect when the active theme supports service pages.
+                                    </p>
+                                </div>
                             </div>
                         </x-admin-section-card>
 

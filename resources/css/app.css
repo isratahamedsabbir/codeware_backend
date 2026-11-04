@@ -272,6 +272,64 @@
     background: none !important;
 }
 
+.admin-sidebar-logout {
+    border-color: var(--color-sidebar-border);
+    padding: 0.15rem 0.25rem;
+}
+
+.admin-sidebar-logout-button {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    width: 100%;
+    min-height: 2rem;
+    padding: 0.15rem 0.4rem;
+    border: 1px solid color-mix(in srgb, #dc2626 12%, transparent);
+    border-radius: 0.75rem;
+    background: color-mix(in srgb, #fff 80%, #fef2f2);
+    color: #b91c1c;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.admin-sidebar-logout-button:hover {
+    border-color: color-mix(in srgb, #dc2626 24%, transparent);
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.admin-sidebar-logout-button:focus-visible {
+    outline: 2px solid color-mix(in srgb, #dc2626 45%, transparent);
+    outline-offset: 2px;
+}
+
+.admin-sidebar-logout-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    flex-shrink: 0;
+    border-radius: 0.625rem;
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.admin-sidebar-logout-copy {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.admin-sidebar-logout-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1rem;
+}
+
 /* ── Group Labels ── */
 
 .admin-nav-group-label {
@@ -402,6 +460,21 @@
 }
 
 .admin-sidebar[data-flux-sidebar-collapsed-desktop] .admin-nav-item>span:not(.admin-nav-item-icon) {
+    display: none;
+}
+
+.admin-sidebar[data-flux-sidebar-collapsed-desktop] .admin-sidebar-logout {
+    padding-right: 0;
+    padding-left: 0;
+}
+
+.admin-sidebar[data-flux-sidebar-collapsed-desktop] .admin-sidebar-logout-button {
+    justify-content: center;
+    padding-right: 0.35rem;
+    padding-left: 0.35rem;
+}
+
+.admin-sidebar[data-flux-sidebar-collapsed-desktop] .admin-sidebar-logout-copy {
     display: none;
 }
 
@@ -824,6 +897,23 @@ html.dark .admin-sidebar .admin-nav-group-label {
 
 html.dark .admin-sidebar .nav-group-items {
     border-left-color: rgba(71, 85, 105, 0.5);
+}
+
+html.dark .admin-sidebar-logout-button {
+    border-color: color-mix(in srgb, #f87171 20%, transparent);
+    background: color-mix(in srgb, #7f1d1d 18%, var(--color-sidebar-bg));
+    color: #fca5a5;
+}
+
+html.dark .admin-sidebar-logout-button:hover {
+    border-color: color-mix(in srgb, #f87171 35%, transparent);
+    background: color-mix(in srgb, #7f1d1d 30%, var(--color-sidebar-bg));
+    color: #fecaca;
+}
+
+html.dark .admin-sidebar-logout-icon {
+    background: color-mix(in srgb, #7f1d1d 45%, var(--color-sidebar-bg));
+    color: #fca5a5;
 }
 
 html.dark .admin-sidebar-search-input {
