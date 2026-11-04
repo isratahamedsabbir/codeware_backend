@@ -9,15 +9,6 @@
 
 @include('theme-ecommerce::partials._header')
 
-<section class="bg-gradient-to-br from-brand to-brand/80 text-white">
-    <div class="mx-auto max-w-5xl px-4 py-14 text-center sm:px-6 sm:py-20">
-        <span class="inline-block rounded-full bg-white/15 px-4 py-1 text-xs font-semibold uppercase tracking-widest">{{ __('We are hiring') }}</span>
-        <h1 class="mt-4 text-3xl font-extrabold sm:text-5xl">{{ __('Build your career with us') }}</h1>
-        <p class="mx-auto mt-4 max-w-2xl text-base text-white/80">{{ __('Join a team that values curiosity, ownership and growth. Explore our open positions and apply in minutes.') }}</p>
-        <p class="mt-6 text-sm font-semibold text-white/90">{{ $totalOpen === 0 ? __('No open positions') : $totalOpen.' '.__('open positions') }}</p>
-    </div>
-</section>
-
 <main class="mx-auto max-w-5xl px-4 py-10 sm:px-6">
     @if ($departments->count() > 1)
         <nav aria-label="{{ __('Departments') }}" class="mb-8 flex flex-wrap items-center justify-center gap-2">

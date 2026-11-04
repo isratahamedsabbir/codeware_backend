@@ -20,11 +20,6 @@
     @include('theme-ecommerce::partials._breadcrumbs', ['crumbs' => $crumbs])
 
     <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6">
-        <div class="mb-6">
-            <h1 class="text-center text-lg font-bold uppercase tracking-wide text-sf-text md:text-2xl">⚡ {{ __('Flash Deals') }}</h1>
-            <p class="mt-1 text-center text-sm text-gray-600">{{ __('Limited-time prices — grab them before the clock runs out.') }}</p>
-        </div>
-
         @forelse ($deals as $deal)
             <section class="mb-10">
                 <div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-card bg-white px-4 py-3 shadow-sm">

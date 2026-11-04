@@ -20,11 +20,6 @@
 @include('theme-ecommerce::partials._breadcrumbs', ['crumbs' => $crumbs])
 
 <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-    <header class="mb-8 text-center">
-        <h1 class="text-3xl font-extrabold text-sf-heading sm:text-4xl">{{ __('Our Blog') }}</h1>
-        <p class="mx-auto mt-2 max-w-xl text-sm text-zinc-500">{{ __('Guides, news and updates from the team.') }}</p>
-    </header>
-
     @if ($categories->isNotEmpty())
         <nav aria-label="{{ __('Blog categories') }}" class="mb-8 flex flex-wrap items-center justify-center gap-2">
             <a href="{{ route('blog') }}"
