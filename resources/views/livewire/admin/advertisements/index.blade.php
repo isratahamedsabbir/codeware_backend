@@ -67,7 +67,7 @@
                             @click="if ($event.ctrlKey || $event.metaKey) { $event.preventDefault(); $wire.toggleSelect({{ $ad->id }}) }">
 
                             {{-- Code --}}
-                            <td class="px-2 py-2 text-center">
+                            <td class="px-2 py-2 text-left">
                                 <x-copy-text :text="$ad->code" class="text-[11px] font-mono text-zinc-500">{{ $ad->code }}</x-copy-text>
                             </td>
 

@@ -20,12 +20,7 @@
 <main>
     @include('theme-ecommerce::partials._breadcrumbs', ['crumbs' => $crumbs])
 
-    <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6">
-        <div class="mb-6">
-            <h1 class="text-lg font-bold uppercase tracking-wide text-sf-text md:text-2xl">{{ __('Profile') }}</h1>
-            <p class="mt-1 text-sm text-gray-600">{{ __('Update your name, email, and password.') }}</p>
-        </div>
-
+    <div class="mx-auto max-w-7xl px-4 pb-6 pt-0 sm:px-6">
         <div class="flex flex-col gap-6 md:flex-row">
             @include('theme-ecommerce::account.partials._account-nav')
 

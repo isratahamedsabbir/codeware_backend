@@ -24,28 +24,7 @@
 
 @include('theme-ecommerce::partials._breadcrumbs', ['crumbs' => $crumbs])
 
-<main class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-    <header class="mb-8">
-        <h1 class="text-3xl font-extrabold text-sf-heading sm:text-4xl">{{ $category->name }}</h1>
-        @if (filled($category->icon))
-            <img src="{{ $category->icon }}" alt="" class="mt-3 h-12 w-12 rounded-xl object-contain">
-        @endif
-        @php
-            // `description` is a JSON column with no translatable cast, so it can arrive as a raw
-            // string like '{"en":null}' — decode it, then pick the locale, and hide it when empty.
-            $categoryDescription = $category->description;
-            if (is_string($categoryDescription) && str_starts_with(ltrim($categoryDescription), '{')) {
-                $categoryDescription = json_decode($categoryDescription, true) ?? $categoryDescription;
-            }
-            if (is_array($categoryDescription)) {
-                $categoryDescription = $categoryDescription[app()->getLocale()] ?? $categoryDescription['en'] ?? collect($categoryDescription)->filter()->first();
-            }
-        @endphp
-        @if (filled($categoryDescription))
-            <p class="mt-3 max-w-2xl text-zinc-600">{{ $categoryDescription }}</p>
-        @endif
-    </header>
-
+<main class="mx-auto max-w-7xl px-4 pb-8 pt-0 sm:px-6">
     @if ($children->isNotEmpty())
         <div class="mb-8 flex flex-wrap gap-3">
             @foreach ($children as $child)

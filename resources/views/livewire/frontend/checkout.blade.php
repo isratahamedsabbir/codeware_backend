@@ -1,8 +1,4 @@
-<main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-12">
-    <x-storefront.page-header :title="__('Checkout')" :subtitle="__('Fill in your details to place the order.')">
-        <x-storefront.checkout-steps :current="2" />
-    </x-storefront.page-header>
-
+<main class="mx-auto max-w-7xl px-4 pb-8 pt-0 sm:px-6 lg:pb-12">
     @if ($count === 0)
         <x-storefront.empty-state icon="bag"
             :title="__('Your cart is empty')"

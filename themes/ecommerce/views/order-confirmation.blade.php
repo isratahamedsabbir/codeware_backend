@@ -20,10 +20,8 @@
     ];
 @endphp
 
-<main class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:py-12">
+<main class="mx-auto max-w-6xl px-4 pb-8 pt-0 sm:px-6 lg:pb-12">
     {{-- Progress: every step of the purchase flow is done. --}}
-    <x-storefront.checkout-steps :current="4" class="mb-8 justify-center" />
-
     {{-- Success hero --}}
     <section class="relative overflow-hidden rounded-card border border-zinc-200 bg-white shadow-sm">
         <div class="absolute inset-x-0 top-0 h-1.5 bg-linear-to-r from-emerald-500 via-brand to-emerald-500"></div>

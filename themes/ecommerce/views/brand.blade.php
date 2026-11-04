@@ -20,19 +20,7 @@
 
 @include('theme-ecommerce::partials._breadcrumbs', ['crumbs' => $crumbs])
 
-<main class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-    <header class="mb-8 flex flex-wrap items-center gap-4">
-        <h1 class="text-3xl font-extrabold text-sf-heading sm:text-4xl">{{ $brand->name }}</h1>
-        <a href="{{ route('shop', ['brand' => $brand->slug]) }}"
-            class="rounded-full bg-brand px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90">
-            {{ __('View all') }} →
-        </a>
-    </header>
-
-    @if (filled($brand->description))
-        <p class="mb-8 max-w-2xl text-zinc-600">{{ $brand->description }}</p>
-    @endif
-
+<main class="mx-auto max-w-7xl px-4 pb-8 pt-0 sm:px-6">
     <section>
         <div class="mb-6 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
             <div>

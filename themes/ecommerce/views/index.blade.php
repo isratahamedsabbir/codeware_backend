@@ -295,18 +295,19 @@
         @endforeach
     @endif
     @if ($homeBrands->isNotEmpty())
-        <section class="mx-auto max-w-7xl px-4 pt-10 sm:px-6">
+        <section class="mx-auto max-w-7xl px-4 pt-8 sm:px-6">
             @include('theme-ecommerce::partials._section-heading', [
                 'title' => __('Shop by brand'),
+                'subtitle' => __('Browse products by your favorite brands.'),
             ])
-            <div class="grid grid-cols-2 gap-3 md:grid-cols-5 md:gap-4">
+            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4">
                 @foreach ($homeBrands as $brand)
                     <a href="{{ route('shop', ['brand' => $brand->slug]) }}"
-                        class="flex min-h-[72px] items-center justify-center rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md {{ $brand->logo ? 'grayscale hover:grayscale-0' : '' }}">
+                        class="group flex min-h-[68px] items-center justify-center rounded-xl border border-zinc-200/80 bg-white px-4 py-3 shadow-[0_2px_8px_-5px_rgba(15,23,42,0.18)] transition duration-200 hover:-translate-y-0.5 hover:border-brand/35 hover:shadow-md">
                         @if ($brand->logo)
-                            <img src="{{ $brand->logo }}" alt="{{ $brand->name }}" loading="lazy" decoding="async" width="160" height="48" class="max-h-12 w-auto object-contain">
+                            <img src="{{ $brand->logo }}" alt="{{ $brand->name }}" loading="lazy" decoding="async" width="160" height="48" class="max-h-10 w-auto object-contain grayscale transition duration-200 group-hover:grayscale-0">
                         @else
-                            <span class="text-center text-sm font-bold uppercase tracking-wide text-zinc-700">{{ $brand->name }}</span>
+                            <span class="text-sm font-semibold uppercase tracking-wide text-zinc-700 transition group-hover:text-brand">{{ $brand->name }}</span>
                         @endif
                     </a>
                 @endforeach

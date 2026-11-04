@@ -70,12 +70,7 @@
     ],
 ])
 
-<main class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-    <div class="mb-6">
-        <h1 class="text-2xl font-extrabold tracking-tight text-sf-heading md:text-3xl">{{ __('Shop') }}</h1>
-        <p class="mt-1 text-sm text-zinc-500">{{ __('Browse our full collection and narrow it down with the filters.') }}</p>
-    </div>
-
+<main class="mx-auto max-w-7xl px-4 pb-8 pt-0 sm:px-6">
     <div class="grid gap-6 lg:grid-cols-[17.5rem_1fr]" x-data="{ filtersOpen: false }">
         {{-- Mobile filter toggle --}}
         <div class="lg:hidden">
@@ -101,7 +96,7 @@
             </button>
         </div>
 
-        <aside id="shop-filters" class="lg:sticky lg:top-24 lg:self-start" :class="filtersOpen ? 'block' : 'hidden lg:block'">
+        <aside id="shop-filters" class="lg:sticky lg:top-32 lg:self-start" :class="filtersOpen ? 'block' : 'hidden lg:block'">
             <div class="overflow-hidden rounded-card border border-zinc-200 bg-white shadow-sm">
                 {{-- Panel header --}}
                 <div class="flex items-center justify-between border-b border-zinc-100 bg-zinc-50/60 px-5 py-4">

@@ -48,8 +48,8 @@
         <div class="border border-zinc-100 rounded-lg">
             <table class="w-full divide-y divide-gray-200">
                 <colgroup>
-                    <col style="width:5%">
-                    <col style="width:5%">
+                    <col class="lg:hidden" style="width:5%">
+                    <col class="lg:hidden" style="width:5%">
                     <col class="hidden lg:table-column" style="width:5%">
                     <col style="width:20%">
                     <col style="width:26%">
@@ -58,9 +58,9 @@
                 </colgroup>
                 <thead>
                     <tr class="bg-zinc-50">
-                        <th class="px-2 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider w-8"></th>
-                        <th class="px-2 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider w-8"></th>
-                        <th class="hidden lg:table-cell px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">#</th>
+                        <th class="lg:hidden px-2 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider w-8"></th>
+                        <th class="lg:hidden px-2 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider w-8"></th>
+                        <th class="hidden lg:table-cell px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider admin-id-column">#</th>
                         <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Name</th>
                         <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Content</th>
                         <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Status</th>
@@ -72,13 +72,13 @@
                         <tr wire:key="cms-{{ $cms->id }}" class="cursor-grab active:cursor-grabbing group/row hover:bg-indigo-50/30 transition-colors" data-cms-id="{{ $cms->id }}" @contextmenu.prevent="$el.querySelector('[data-actions-trigger]')?.click()">
 
                             {{-- Expand toggle (small screens only, where columns are hidden) --}}
-                            <td class="px-2 py-2 text-center">
+                            <td class="lg:hidden px-2 py-2 text-center">
                                 <x-admin-row-expand-toggle class="lg:hidden" :expanded="$viewingId === $cms->id"
                                     wire:click="{{ $viewingId === $cms->id ? 'closeDetails' : 'viewDetails('.$cms->id.')' }}" />
                             </td>
 
                             {{-- Drag handle column kept empty: the whole row drags --}}
-                            <td class="px-2 py-2"></td>
+                            <td class="lg:hidden px-2 py-2"></td>
 
                             {{-- ID --}}
                             <td class="hidden lg:table-cell px-4 py-2">

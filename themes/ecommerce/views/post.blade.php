@@ -19,7 +19,7 @@
 
 @include('theme-ecommerce::partials._breadcrumbs', ['crumbs' => $crumbs])
 
-<main class="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+<main class="mx-auto max-w-4xl px-4 pb-8 pt-0 sm:px-6">
     <article>
         @if ($post->category?->page && $post->category->status === 'active')
             <a href="{{ route('blog', ['category' => $post->category->slug]) }}"
@@ -29,6 +29,11 @@
         @endif
 
         <h1 class="mt-2 text-3xl font-extrabold tracking-tight text-sf-heading sm:text-4xl">{{ $post->title }}</h1>
+        @if (filled($post->getTranslation('short_description', app()->getLocale())))
+            <p class="mt-3 max-w-3xl text-base leading-relaxed text-zinc-600">
+                {{ $post->getTranslation('short_description', app()->getLocale()) }}
+            </p>
+        @endif
 
         <div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-zinc-500">
             @if ($post->user?->name)

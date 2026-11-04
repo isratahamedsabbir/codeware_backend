@@ -111,6 +111,8 @@ Route::middleware('feature:orders')->group(function () {
 // Customer account — orders are matched to the user by user_id first, then by
 // their email, so an order placed before this account existed still shows up
 // here for the customer who later registers with the same address.
+Route::get('/account/delete', [AccountController::class, 'deleteAccount'])->name('account.delete');
+
 Route::middleware(['auth'])->group(function () {
     Route::get('/account', [AccountController::class, 'dashboard'])->name('account.dashboard');
     Route::get('/account/orders', [AccountController::class, 'orders'])->name('account.orders');

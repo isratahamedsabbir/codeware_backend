@@ -72,4 +72,11 @@ trait RendersAccount
             'currentSlug' => 'account',
         ]);
     }
+
+    public function deleteAccount()
+    {
+        return $this->view('account.delete', [
+            'currentSlug' => 'account',
+        ]);
+    }
 }

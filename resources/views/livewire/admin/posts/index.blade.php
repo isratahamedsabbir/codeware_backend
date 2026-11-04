@@ -88,7 +88,7 @@
         <div class="border border-zinc-100 rounded-lg">
             <table class="w-full divide-y divide-gray-200">
                 <colgroup>
-                    <col style="width:5%">
+                    <col class="lg:hidden" style="width:5%">
                     <col class="hidden lg:table-column" style="width:5%">
                     <col style="width:26%">
                     <col class="hidden lg:table-column" style="width:16%">
@@ -97,8 +97,8 @@
                 </colgroup>
                 <thead>
                     <tr class="bg-zinc-50">
-                        <th class="px-2 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider w-8"></th>
-                        <th class="hidden lg:table-cell px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">#</th>
+                        <th class="lg:hidden px-2 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider w-8"></th>
+                        <th class="hidden lg:table-cell px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider admin-id-column">#</th>
                         <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Title</th>
                         <th class="hidden lg:table-cell px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Category</th>
                         <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Status</th>
@@ -117,7 +117,7 @@
                             @click="if ($event.ctrlKey || $event.metaKey) { $event.preventDefault(); $wire.toggleSelect({{ $post->id }}) }">
 
                             {{-- Selection checkbox (bulk mode) and small-screen expand toggle. --}}
-                            <td class="px-1 py-2 text-center">
+                            <td class="lg:hidden px-1 py-2 text-center">
                                 <div class="flex items-center justify-center gap-1" @click.stop>
                                     @if ($bulkActive)
                                         <input type="checkbox" wire:click="toggleSelect({{ $post->id }})" @checked($isSelected)

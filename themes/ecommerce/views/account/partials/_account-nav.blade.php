@@ -15,6 +15,11 @@
             'href' => route('account.profile'),
             'active' => request()->routeIs('account.profile'),
         ],
+        [
+            'label' => __('Delete account'),
+            'href' => route('account.delete'),
+            'active' => request()->routeIs('account.delete'),
+        ],
     ];
 @endphp
 

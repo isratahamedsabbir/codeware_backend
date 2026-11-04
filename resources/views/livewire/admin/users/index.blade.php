@@ -37,7 +37,7 @@
         <div class="border border-zinc-100 rounded-lg">
             <table class="w-full divide-y divide-gray-200">
                 <colgroup>
-                    <col style="width:5%">
+                    <col class="lg:hidden" style="width:5%">
                     <col class="hidden lg:table-column" style="width:5%">
                     <col style="width:28%">
                     <col style="width:16%">
@@ -46,8 +46,8 @@
                 </colgroup>
                 <thead>
                     <tr class="bg-zinc-50">
-                        <th class="px-2 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider w-8"></th>
-                        <th class="hidden lg:table-cell px-2 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider w-8">#</th>
+                        <th class="lg:hidden px-2 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider w-8"></th>
+                        <th class="hidden lg:table-cell px-2 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider w-8 admin-id-column">#</th>
                         <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">User</th>
                         <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Roles</th>
                         <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Status</th>
@@ -59,7 +59,7 @@
                         <tr wire:key="user-{{ $user->id }}" class="group/row hover:bg-indigo-50/30 transition-colors" @contextmenu.prevent="$el.querySelector('[data-actions-trigger]')?.click()">
 
                             {{-- Expand toggle (small screens only, where columns are hidden) --}}
-                            <td class="px-2 py-2 text-center">
+                            <td class="lg:hidden px-2 py-2 text-center">
                                 <x-admin-row-expand-toggle class="lg:hidden" :expanded="$viewingId === $user->id"
                                     wire:click="{{ $viewingId === $user->id ? 'closeDetails' : 'viewDetails('.$user->id.')' }}" />
                             </td>

@@ -19,14 +19,7 @@
 
 @include('theme-ecommerce::partials._breadcrumbs', ['crumbs' => $crumbs])
 
-<main class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-    <header class="mb-8">
-        <h1 class="text-3xl font-extrabold text-sf-heading sm:text-4xl">
-            <span class="text-brand">#</span>{{ $tag->name }}
-        </h1>
-        <p class="mt-1 text-sm text-zinc-500">{{ __('Products labeled with this tag') }}</p>
-    </header>
-
+<main class="mx-auto max-w-7xl px-4 pb-8 pt-0 sm:px-6">
     <section>
         <div class="mb-6 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
             <div>

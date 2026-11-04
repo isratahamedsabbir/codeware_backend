@@ -21,10 +21,10 @@ class Post extends Model
 {
     use CachesContent, HasComments, HasFactory, HasReviews, HasTranslations, SanitizesRichText, SoftDeletes;
 
-    public array $translatable = ['title', 'description', 'content'];
+    public array $translatable = ['title', 'short_description', 'description', 'content'];
 
     protected $fillable = [
-        'user_id', 'category_id', 'title', 'description',
+        'user_id', 'category_id', 'title', 'short_description', 'description',
         'content', 'featured_image', 'status', 'published_at',
         'reading_time', 'views',
     ];

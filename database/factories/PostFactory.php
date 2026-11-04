@@ -16,6 +16,10 @@ class PostFactory extends Factory
             'user_id' => User::factory(),
             'category_id' => null,
             'title' => ['en' => $title, 'bn' => $title],
+            'short_description' => [
+                'en' => fake()->sentence(18),
+                'bn' => fake()->sentence(18),
+            ],
             'content' => ['en' => $puckContent, 'bn' => $puckContent],
             'featured_image' => null,
             'status' => 'inactive',

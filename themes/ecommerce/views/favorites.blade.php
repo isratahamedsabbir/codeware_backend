@@ -19,12 +19,7 @@
 <main>
     @include('theme-ecommerce::partials._breadcrumbs', ['crumbs' => $crumbs])
 
-    <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6">
-        <div class="mb-6">
-            <h1 class="text-center text-lg font-bold uppercase tracking-wide text-sf-text md:text-2xl">{{ __('My favorites') }}</h1>
-            <p class="mt-1 text-center text-sm text-gray-600">{{ __('Products you saved, ready when you are.') }}</p>
-        </div>
-
+    <div class="mx-auto max-w-7xl px-4 pb-6 pt-0 sm:px-6">
         @if ($products->isEmpty())
             <div class="rounded-card border border-dashed border-zinc-300 bg-white px-6 py-16 text-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">

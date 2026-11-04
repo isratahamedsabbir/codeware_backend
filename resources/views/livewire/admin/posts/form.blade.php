@@ -78,11 +78,19 @@
         {{-- Additional Data: Description — rich editor --}}
         @if (\App\Support\Features::settingAvailable('additional_data_posts_enabled') && \App\Models\Setting::postAdditionalDataEnabled())
             <x-admin-section-card variant="postbox" persist-key="post-additional-data" title="Additional Data"
-                description="Rich-text description shown in blog listings and as a fallback — the full post body is built separately in the page builder."
+                description="Short summary for blog listings, plus optional rich-text content for the post page. The full post body is built separately in the page builder."
                 :collapsed="true">
                 <x-admin-locale-tabs>
                     @foreach (\App\Support\Locale::translatable() as $language)
                         <x-admin-locale-panel :code="$language->code" class="space-y-3">
+                            <flux:field>
+                                <flux:label :badge="$language->code">Short description</flux:label>
+                                <flux:textarea wire:model="short_description.{{ $language->code }}" rows="3"
+                                    maxlength="300"
+                                    placeholder="{{ $language->code === $this->primaryLocale ? 'A short summary for blog cards (up to 300 characters)' : 'Short description ('.($language->native_name ?: $language->name).')' }}" />
+                                <flux:description>Shown as the post summary in the blog list and below the title on the post page. Up to 300 characters.</flux:description>
+                                @if ($language->code === $this->primaryLocale)<flux:error name="short_description.{{ $language->code }}" />@endif
+                            </flux:field>
                             <flux:field>
                                 <flux:label :badge="$language->code">Description</flux:label>
                                 <livewire:jodit-text-editor wire:model="description.{{ $language->code }}"

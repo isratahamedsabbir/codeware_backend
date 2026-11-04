@@ -176,6 +176,7 @@ Route::middleware(['auth', 'admin', 'activity-log', 'mfa'])->group(function () {
         Route::get('/theme-settings', App\Livewire\Admin\ThemeSettings\Index::class)->name('theme-settings');
         Route::get('/seo', App\Livewire\Admin\Seo\Index::class)->name('seo');
         Route::get('/social', App\Livewire\Admin\Social\Index::class)->name('social');
+        Route::get('/mobile-apps', App\Livewire\Admin\MobileApps\Index::class)->name('mobile-apps');
         Route::get('/payment-gateways', App\Livewire\Admin\PaymentGateways\Index::class)->name('payment-gateways');
         Route::get('/features', App\Livewire\Admin\Features\Index::class)->name('features');
 
