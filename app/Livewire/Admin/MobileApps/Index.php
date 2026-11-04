@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Admin\MobileApps;
 
-use App\Models\SocialLink;
+use App\Models\MobileApp;
 use App\Support\AdminActivity;
 use Livewire\Component;
 
@@ -14,8 +14,8 @@ class Index extends Component
 
     public function mount(): void
     {
-        $this->googlePlayUrl = SocialLink::where('platform', 'google_play')->value('url') ?? '';
-        $this->appStoreUrl = SocialLink::where('platform', 'app_store')->value('url') ?? '';
+        $this->googlePlayUrl = MobileApp::where('platform', 'google_play')->value('url') ?? '';
+        $this->appStoreUrl = MobileApp::where('platform', 'app_store')->value('url') ?? '';
     }
 
     public function save(): void
@@ -25,16 +25,15 @@ class Index extends Component
             'appStoreUrl' => ['nullable', 'url', 'max:2048'],
         ]);
 
-        SocialLink::updateOrCreate(
+        MobileApp::updateOrCreate(
             ['platform' => 'google_play'],
-            ['label' => 'Google Play', 'url' => filled($this->googlePlayUrl) ? trim($this->googlePlayUrl) : null, 'sort_order' => 1000],
+            ['url' => filled($this->googlePlayUrl) ? trim($this->googlePlayUrl) : null],
         );
-        SocialLink::updateOrCreate(
+        MobileApp::updateOrCreate(
             ['platform' => 'app_store'],
-            ['label' => 'App Store', 'url' => filled($this->appStoreUrl) ? trim($this->appStoreUrl) : null, 'sort_order' => 1001],
+            ['url' => filled($this->appStoreUrl) ? trim($this->appStoreUrl) : null],
         );
 
-        SocialLink::flushCache();
         AdminActivity::log('updated', 'Mobile app download links updated');
 
         $this->mount();

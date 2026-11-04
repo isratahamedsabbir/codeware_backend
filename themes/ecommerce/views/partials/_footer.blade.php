@@ -4,8 +4,8 @@
     $contactAddress = \App\Models\Setting::get('contact_address');
     $contactPhone = \App\Models\Setting::get('contact_phone');
     $contactEmail = \App\Models\Setting::get('contact_email');
-    $googlePlayUrl = \App\Models\SocialLink::url('google_play');
-    $appStoreUrl = \App\Models\SocialLink::url('app_store');
+    $googlePlayUrl = \App\Models\MobileApp::url('google_play');
+    $appStoreUrl = \App\Models\MobileApp::url('app_store');
 
     $quickLinks = \App\Support\Frontend::quickLinks();
 

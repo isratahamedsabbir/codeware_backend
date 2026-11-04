@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Models\MobileApp;
 use App\Models\Setting;
 use App\Models\SocialLink;
 use App\Support\Locale;
@@ -16,7 +17,7 @@ class SettingsController extends Controller
      * Every public setting the frontend needs, grouped the same way the admin
      * panel presents them (General/Images/Pagination/Localization/Currency on
      * the Settings screen, Theme colors, Constant, plus the separate Global
-     * SEO and Social Links admin sections) rather than one flat key=>value map.
+     * SEO, Social Links and Mobile Apps admin sections) rather than one flat key=>value map.
      *
      * The per-language settings (the global SEO copy) come back as the string
      * for `?locale=`, not as the stored `{code: value}` map: a consumer
@@ -27,7 +28,7 @@ class SettingsController extends Controller
     {
         $locale = $this->resolveLocale($request);
 
-        $data = Cache::remember('settings:public:'.$locale.':v'.Setting::cacheVersion(), null, function () use ($locale) {
+        $data = Cache::remember('settings:public:'.$locale.':v'.Setting::cacheVersion().':m'.MobileApp::cacheVersion(), null, function () use ($locale) {
             // Response key => DB group, one key per published group. 'theme' is
             // the public name for the admin's 'colors' group; 'custom_code' for
             // 'custom-code'.
@@ -67,6 +68,7 @@ class SettingsController extends Controller
             // and a Collection in there comes back from the database cache driver
             // as a broken __PHP_Incomplete_Class (see SocialLink::urlsCached()).
             $data['social_links'] = SocialLink::urlsCached()->all();
+            $data['mobile_apps'] = MobileApp::urlsCached()->all();
 
             return $data;
         });
