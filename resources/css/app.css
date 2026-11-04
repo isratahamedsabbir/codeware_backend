@@ -1099,6 +1099,21 @@ body.admin-panel table > thead > tr > th {
     border-bottom: 1px solid #e4e4e7;
 }
 
+/* Keep the record ID column compact and aligned on every admin list. Some
+   tables have a row-expand control before it, so account for both positions. */
+body.admin-panel table:has(th.admin-id-column:nth-child(1)) col:nth-child(1),
+body.admin-panel table:has(th.admin-id-column:nth-child(2)) col:nth-child(2) {
+    width: 76px !important;
+}
+
+body.admin-panel table:has(th.admin-id-column:nth-child(1)) tr > :nth-child(1),
+body.admin-panel table:has(th.admin-id-column:nth-child(2)) tr > :nth-child(2) {
+    width: 76px !important;
+    min-width: 76px;
+    max-width: 76px;
+    text-align: left !important;
+}
+
 /* Headers sit left by default, but keep the declaration out of the rule above
    so per-column utilities like text-center can still override it — otherwise a
    centered cell would render under a left-aligned header. */
