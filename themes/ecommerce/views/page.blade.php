@@ -52,27 +52,47 @@
                         </div>
                     </div>
                 @else
-                <h2 class="mb-8 text-left text-2xl font-bold text-sf-heading">{{ $section->name }}</h2>
-                <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                    @foreach ($section->localizedCards() as $card)
-                        <div class="group overflow-hidden rounded-card border border-zinc-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+                <div class="mb-5 flex items-center gap-3">
+                    <span class="h-7 w-1 rounded-full bg-brand" aria-hidden="true"></span>
+                    <h2 class="text-left text-xl font-bold tracking-tight text-sf-heading md:text-2xl">{{ $section->name }}</h2>
+                </div>
+                @php($sectionCards = $section->localizedCards())
+                @if ($page->slug === 'about' && preg_match('/^[\d,]+\+?$/', (string) ($sectionCards[0]['title'] ?? '')) !== 1)
+                    <p class="max-w-5xl text-[15px] leading-7 text-zinc-600">
+                        @foreach ($sectionCards as $card)
+                            @if ($card['title'])
+                                <span class="font-semibold text-sf-heading">{{ $card['title'] }}:</span>
+                            @endif
+                            {{ $card['description'] }}@unless ($loop->last) <span class="mx-1 text-brand/50" aria-hidden="true">•</span> @endunless
+                        @endforeach
+                    </p>
+                @else
+                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    @foreach ($sectionCards as $card)
+                        @php($isAboutMetric = $page->slug === 'about' && preg_match('/^[\d,]+\+?$/', (string) ($card['title'] ?? '')) === 1)
+                        <div @class([
+                            'group overflow-hidden rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-md',
+                            'min-h-32' => $isAboutMetric,
+                        ])>
                             @if ($card['image'])
-                                <div class="relative aspect-square overflow-hidden bg-zinc-100">
+                                <div class="relative -mx-5 -mt-5 mb-4 aspect-square overflow-hidden bg-zinc-100">
                                     <img src="{{ $card['image'] }}" alt="{{ $card['title'] }}"
                                         class="h-full w-full object-cover transition duration-300 group-hover:scale-105">
                                 </div>
                             @endif
-                            <div class="p-4">
-                                @if ($card['title'])
-                                    <h3 class="font-semibold text-sf-heading">{{ $card['title'] }}</h3>
-                                @endif
-                                @if ($card['description'])
-                                    <p class="mt-1.5 text-sm text-zinc-500">{{ $card['description'] }}</p>
-                                @endif
-                            </div>
+                            @if ($card['title'])
+                                <h3 @class([
+                                    'font-semibold text-sf-heading',
+                                    'text-3xl font-extrabold tracking-tight text-brand' => $isAboutMetric,
+                                ])>{{ $card['title'] }}</h3>
+                            @endif
+                            @if ($card['description'])
+                                <p class="mt-2 text-sm leading-6 text-zinc-600">{{ $card['description'] }}</p>
+                            @endif
                         </div>
                     @endforeach
                 </div>
+                @endif
                 @endif
             </div>
         </section>
