@@ -29,23 +29,30 @@
 
         <section id="{{ $section->name }}" class="pb-8 pt-0 lg:pb-10">
             <div class="mx-auto max-w-7xl px-4 sm:px-6">
-                <h2 class="mb-8 text-left text-2xl font-bold text-sf-heading">{{ $section->name }}</h2>
-
                 @if ($page->slug === 'faq')
-                    <div class="mx-auto max-w-3xl space-y-3">
-                        @foreach ($section->localizedCards() as $card)
-                            <details class="group rounded-card border border-zinc-100 bg-white shadow-sm">
-                                <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-medium text-sf-heading [&::-webkit-details-marker]:hidden">
-                                    {{ $card['title'] }}
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0 text-zinc-400 transition group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" />
-                                    </svg>
-                                </summary>
-                                <div class="px-5 pb-5 leading-relaxed text-zinc-600">{{ $card['description'] }}</div>
-                            </details>
-                        @endforeach
+                    <div class="grid gap-6 lg:grid-cols-[minmax(15rem,0.8fr)_minmax(0,1.5fr)] lg:gap-12">
+                        <div class="lg:pt-1">
+                            <h2 class="text-xl font-bold tracking-tight text-sf-heading md:text-2xl">{{ $section->name }}</h2>
+                            <p class="mt-2 max-w-sm text-sm leading-6 text-zinc-500">{{ __('Find answers to common questions. Can’t find what you need?') }}
+                                <a href="{{ url('/contact-us') }}" class="font-medium text-brand underline decoration-brand/30 underline-offset-2 hover:decoration-brand">{{ __('Contact us') }}</a>.
+                            </p>
+                        </div>
+                        <div class="divide-y divide-zinc-200 border-y border-zinc-200">
+                            @foreach ($section->localizedCards() as $card)
+                                <details class="group">
+                                    <summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-sm font-semibold text-sf-heading [&::-webkit-details-marker]:hidden">
+                                        <span>{{ $card['title'] }}</span>
+                                        <span class="flex size-5 shrink-0 items-center justify-center rounded-full border border-zinc-300 text-base font-normal leading-none text-zinc-500 transition group-open:border-brand group-open:text-brand" aria-hidden="true">
+                                            <span class="group-open:hidden">+</span><span class="hidden group-open:inline">−</span>
+                                        </span>
+                                    </summary>
+                                    <div class="pb-4 pr-9 text-sm leading-6 text-zinc-600">{{ $card['description'] }}</div>
+                                </details>
+                            @endforeach
+                        </div>
                     </div>
                 @else
+                <h2 class="mb-8 text-left text-2xl font-bold text-sf-heading">{{ $section->name }}</h2>
                 <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     @foreach ($section->localizedCards() as $card)
                         <div class="group overflow-hidden rounded-card border border-zinc-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
