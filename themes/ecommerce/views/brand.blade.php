@@ -20,7 +20,7 @@
 
 @include('theme-ecommerce::partials._breadcrumbs', ['crumbs' => $crumbs])
 
-<main class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+<main class="mx-auto max-w-7xl px-4 pb-8 pt-0 sm:px-6">
     <section>
         <div class="mb-6 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
             <div>

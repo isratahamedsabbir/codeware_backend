@@ -19,7 +19,7 @@
 
 @include('theme-ecommerce::partials._breadcrumbs', ['crumbs' => $crumbs])
 
-<main class="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+<main class="mx-auto max-w-4xl px-4 pb-8 pt-0 sm:px-6">
     <article>
         @if ($post->category?->page && $post->category->status === 'active')
             <a href="{{ route('blog', ['category' => $post->category->slug]) }}"

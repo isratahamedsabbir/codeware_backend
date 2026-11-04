@@ -70,7 +70,7 @@
     ],
 ])
 
-<main class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+<main class="mx-auto max-w-7xl px-4 pb-8 pt-0 sm:px-6">
     <div class="grid gap-6 lg:grid-cols-[17.5rem_1fr]" x-data="{ filtersOpen: false }">
         {{-- Mobile filter toggle --}}
         <div class="lg:hidden">

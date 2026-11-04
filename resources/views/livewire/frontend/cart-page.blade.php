@@ -1,4 +1,4 @@
-<main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-12">
+<main class="mx-auto max-w-7xl px-4 pb-8 pt-0 sm:px-6 lg:pb-12">
     @if ($count === 0)
         <x-storefront.empty-state icon="cart"
             :title="__('Your cart is empty')"

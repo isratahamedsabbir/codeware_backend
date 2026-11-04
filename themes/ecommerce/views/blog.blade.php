@@ -19,7 +19,7 @@
 
 @include('theme-ecommerce::partials._breadcrumbs', ['crumbs' => $crumbs])
 
-<main class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+<main class="mx-auto max-w-7xl px-4 pb-8 pt-0 sm:px-6">
     @if ($categories->isNotEmpty())
         <nav aria-label="{{ __('Blog categories') }}" class="mb-8 flex flex-wrap items-center justify-center gap-2">
             <a href="{{ route('blog') }}"

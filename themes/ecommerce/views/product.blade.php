@@ -53,7 +53,7 @@
 
 @include('theme-ecommerce::partials._breadcrumbs', ['crumbs' => $crumbs])
 
-<main class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+<main class="mx-auto max-w-7xl px-4 pb-8 pt-0 sm:px-6">
     <div class="grid gap-8 md:grid-cols-2 lg:gap-10">
         <div class="space-y-4">
             @if ($galleryImages)

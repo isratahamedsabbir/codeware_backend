@@ -52,12 +52,7 @@
 <style>[data-contact-page] .contact-form-submit { color: var(--color-sf-button-text); }</style>
 
 <div class="bg-page-bg" data-contact-page>
-    <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-14">
-        <div class="mb-8 max-w-2xl">
-            <h1 class="text-3xl font-extrabold tracking-tight text-sf-heading md:text-4xl">{{ $page->getTranslation('title', 'en', false) }}</h1>
-            <p class="mt-2 text-base text-zinc-500">{{ __('Questions about an order or a product? Send us a message and our team will get back to you.') }}</p>
-        </div>
-
+    <div class="mx-auto max-w-7xl px-4 pb-10 pt-0 sm:px-6 lg:pb-10 lg:pt-0">
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-[22rem_1fr] lg:items-start">
             {{-- Contact details --}}
             @if ($details !== [] || $socials->isNotEmpty())

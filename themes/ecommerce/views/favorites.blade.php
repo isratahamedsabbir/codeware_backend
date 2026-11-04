@@ -19,7 +19,7 @@
 <main>
     @include('theme-ecommerce::partials._breadcrumbs', ['crumbs' => $crumbs])
 
-    <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+    <div class="mx-auto max-w-7xl px-4 pb-6 pt-0 sm:px-6">
         @if ($products->isEmpty())
             <div class="rounded-card border border-dashed border-zinc-300 bg-white px-6 py-16 text-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">

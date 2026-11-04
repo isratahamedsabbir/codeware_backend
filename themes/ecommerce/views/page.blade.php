@@ -5,7 +5,7 @@
     @include('partials._seo-meta')
     @include('partials._custom-code-head')
 </head>
-<body class="bg-white font-storefront text-sf-text antialiased">
+<body class="bg-page-bg font-storefront text-sf-text antialiased">
 
 @include('theme-ecommerce::partials._header')
 
@@ -22,18 +22,14 @@
     @if ($block === 'frontend.contact-form')
         {{-- Contact gets its own layout: details beside the form. --}}
         @include('theme-ecommerce::partials._contact-page')
-    @else
-        <section class="mx-auto max-w-3xl px-6 py-12 text-center">
-            <h1 class="text-4xl font-extrabold text-sf-heading">{{ $page->getTranslation('title', 'en', false) }}</h1>
-        </section>
     @endif
 
     @foreach ($sections as $section)
         @continue(blank($section->localizedCards()))
 
-        <section id="{{ $section->name }}" class="border-t border-zinc-100 px-6 py-16">
+        <section id="{{ $section->name }}" class="px-4 pb-8 pt-0 sm:px-6 lg:pb-10">
             <div class="mx-auto max-w-7xl">
-                <h2 class="mb-8 text-center text-2xl font-bold text-sf-heading">{{ $section->name }}</h2>
+                <h2 class="mb-8 text-left text-2xl font-bold text-sf-heading">{{ $section->name }}</h2>
 
                 @if ($page->slug === 'faq')
                     <div class="mx-auto max-w-3xl space-y-3">

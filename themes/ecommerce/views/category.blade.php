@@ -24,7 +24,7 @@
 
 @include('theme-ecommerce::partials._breadcrumbs', ['crumbs' => $crumbs])
 
-<main class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+<main class="mx-auto max-w-7xl px-4 pb-8 pt-0 sm:px-6">
     @if ($children->isNotEmpty())
         <div class="mb-8 flex flex-wrap gap-3">
             @foreach ($children as $child)

@@ -19,7 +19,7 @@
 <main>
     @include('theme-ecommerce::partials._breadcrumbs', ['crumbs' => $crumbs])
 
-    <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+    <div class="mx-auto max-w-7xl px-4 pb-6 pt-0 sm:px-6">
         @forelse ($deals as $deal)
             <section class="mb-10">
                 <div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-card bg-white px-4 py-3 shadow-sm">

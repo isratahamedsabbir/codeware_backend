@@ -20,7 +20,7 @@
     ];
 @endphp
 
-<main class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:py-12">
+<main class="mx-auto max-w-6xl px-4 pb-8 pt-0 sm:px-6 lg:pb-12">
     {{-- Progress: every step of the purchase flow is done. --}}
     {{-- Success hero --}}
     <section class="relative overflow-hidden rounded-card border border-zinc-200 bg-white shadow-sm">

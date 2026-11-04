@@ -20,7 +20,7 @@
 <main>
     @include('theme-ecommerce::partials._breadcrumbs', ['crumbs' => $crumbs])
 
-    <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+    <div class="mx-auto max-w-7xl px-4 pb-6 pt-0 sm:px-6">
         <div class="flex flex-col gap-6 md:flex-row">
             @include('theme-ecommerce::account.partials._account-nav')
 
