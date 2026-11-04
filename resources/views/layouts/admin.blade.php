@@ -347,7 +347,46 @@
     </flux:sidebar>
 
     {{-- Main content --}}
-    <flux:main class="admin-main">
+    <flux:main class="admin-main" style="position: relative;"
+        x-data="{
+            screenOptionsOpen: false,
+            screenOptionsDragging: false,
+            screenOptionsHeight: 0,
+            screenOptionsStartY: 0,
+            screenOptionsStartHeight: 0,
+            screenOptionsMoved: false,
+            screenOptionsSuppressClick: false,
+            beginScreenOptionsDrag(event) {
+                if (event.button !== 0) return;
+                this.screenOptionsDragging = true;
+                this.screenOptionsMoved = false;
+                this.screenOptionsStartY = event.clientY;
+                this.screenOptionsStartHeight = this.screenOptionsOpen ? 105 : 0;
+            },
+            moveScreenOptionsDrag(event) {
+                if (!this.screenOptionsDragging) return;
+                const delta = event.clientY - this.screenOptionsStartY;
+                if (Math.abs(delta) > 6) this.screenOptionsMoved = true;
+                this.screenOptionsHeight = Math.max(0, Math.min(105, this.screenOptionsStartHeight + delta));
+            },
+            endScreenOptionsDrag() {
+                if (!this.screenOptionsDragging) return;
+                this.screenOptionsDragging = false;
+                if (this.screenOptionsMoved) {
+                    this.screenOptionsOpen = this.screenOptionsHeight >= 53;
+                    this.screenOptionsSuppressClick = true;
+                }
+                this.screenOptionsHeight = this.screenOptionsOpen ? 105 : 0;
+            },
+            toggleScreenOptions() {
+                if (this.screenOptionsSuppressClick) { this.screenOptionsSuppressClick = false; return; }
+                this.screenOptionsOpen = !this.screenOptionsOpen;
+                this.screenOptionsHeight = this.screenOptionsOpen ? 105 : 0;
+            }
+        }"
+        x-on:pointermove.window="moveScreenOptionsDrag($event)"
+        x-on:pointerup.window="endScreenOptionsDrag()"
+        x-on:pointercancel.window="endScreenOptionsDrag()">
         <flux:header sticky class="admin-header shrink-0 gap-1">
             <flux:sidebar.toggle class="lg:hidden mr-1" icon="bars-2" inset="left" />
             <flux:sidebar.collapse class="max-lg:hidden" />
@@ -430,12 +469,51 @@
                 @if ($notificationsEnabled)
                     <livewire:admin.notifications.bell />
                 @endif
+
+                <button type="button" aria-label="{{ __('Screen elements') }}" aria-controls="admin-screen-options-panel"
+                    x-bind:aria-expanded="screenOptionsOpen.toString()"
+                    x-on:pointerdown="beginScreenOptionsDrag($event)"
+                    x-on:click="toggleScreenOptions()"
+                    x-bind:style="'position: absolute; right: 0; bottom: -10px; z-index: 9999; transform: translateY(' + (screenOptionsDragging ? screenOptionsHeight : (screenOptionsOpen ? 105 : 0)) + 'px);'"
+                    x-bind:class="screenOptionsDragging ? 'duration-0' : 'duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]'"
+                    class="group inline-flex h-5 cursor-grab touch-none select-none items-center justify-center rounded-bl-md border border-t-0 border-zinc-200/80 bg-white/95 px-1.5 text-zinc-500 shadow-[0_4px_12px_-6px_rgba(15,23,42,0.22)] backdrop-blur transition-[transform,color,background-color,border-color,box-shadow] hover:bg-white hover:text-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 active:cursor-grabbing dark:border-zinc-700/80 dark:bg-zinc-900/95 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100">
+                    <svg class="size-3 text-zinc-400 transition-transform duration-300 ease-out dark:text-zinc-500"
+                        x-bind:class="screenOptionsOpen ? 'rotate-180' : ''" viewBox="0 0 20 20" fill="currentColor"
+                        aria-hidden="true">
+                        <path fill-rule="evenodd"
+                            d="M5.22 7.22a.75.75 0 0 1 1.06 0L10 10.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.28a.75.75 0 0 1 0-1.06Z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </button>
             </div> 
 
             <div class="w-px h-6 bg-zinc-200/80 mx-2 max-sm:hidden"></div>
 
             <x-admin-user-menu />
         </flux:header>
+
+        {{-- The arrow stays attached to the panel's lower edge and moves with it. --}}
+        <div
+            x-bind:style="'height: ' + (screenOptionsDragging ? screenOptionsHeight : (screenOptionsOpen ? 105 : 0)) + 'px'"
+            x-bind:class="screenOptionsDragging ? 'duration-0' : 'duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]'"
+            style="position: absolute; top: 56px; left: 0; right: 0; z-index: 45; height: 0;"
+            class="overflow-hidden transition-[height] will-change-[height]">
+            <div id="admin-screen-options-panel"
+                x-bind:style="'height: ' + (screenOptionsDragging ? screenOptionsHeight : (screenOptionsOpen ? 105 : 0)) + 'px'"
+                x-bind:class="screenOptionsDragging ? 'duration-0' : 'duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]'"
+                style="height: 0;"
+                class="overflow-hidden border-b border-zinc-200 bg-white shadow-[0_18px_36px_-18px_rgba(15,23,42,0.28)] transition-[height] will-change-[height] dark:border-zinc-700 dark:bg-zinc-900">
+                <div class="h-[105px] px-6 py-3">
+                    <h2 class="flex items-center gap-2 text-sm font-semibold text-zinc-700 dark:text-zinc-200">
+                        <flux:icon.adjustments-horizontal class="size-4 text-zinc-400 dark:text-zinc-500" />
+                        {{ __('Screen elements') }}
+                    </h2>
+                    <p class="mt-2 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+                        Choose which screen elements to show. More options will be added here later.
+                    </p>
+                </div>
+            </div>
+        </div>
 
         <div class="flex-1 p-3 max-w-[1600px] w-full mx-auto">
             @unless ($hidePageHeading ?? false)

@@ -71,7 +71,7 @@
         <div class="border border-zinc-100 rounded-lg">
             <table class="w-full divide-y divide-gray-200">
                 <colgroup>
-                    <col style="width:5%">
+                    <col class="lg:hidden" style="width:5%">
                     <col class="hidden lg:table-column" style="width:5%">
                     <col style="width:8%">
                     <col style="width:7%">
@@ -86,7 +86,7 @@
                 </colgroup>
                 <thead>
                     <tr class="bg-zinc-50">
-                        <th class="px-2 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider w-8"></th>
+                        <th class="lg:hidden px-2 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider w-8"></th>
                         <th class="hidden lg:table-cell px-2 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider w-8 admin-id-column">#</th>
                         <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Code</th>
                         <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Type</th>
@@ -108,7 +108,7 @@
                             @click="if ($event.ctrlKey || $event.metaKey) { $event.preventDefault(); $wire.toggleSelect({{ $coupon->id }}) }">
 
                             {{-- Expand toggle, small screens only, where columns are hidden. --}}
-                            <td class="px-1 py-2 text-center">
+                            <td class="lg:hidden px-1 py-2 text-center">
                                 <x-admin-row-expand-toggle class="lg:hidden" :expanded="$viewingId === $coupon->id"
                                     wire:click="{{ $viewingId === $coupon->id ? 'closeDetails' : 'viewDetails('.$coupon->id.')' }}" />
                             </td>
