@@ -51,6 +51,7 @@ class Themes
         'account.orders' => 'account/orders',
         'account.orders.show' => 'account/order',
         'account.profile' => 'account/profile',
+        'account.delete' => 'account/delete',
     ];
 
     /**

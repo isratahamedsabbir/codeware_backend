@@ -31,7 +31,11 @@
     ];
 @endphp
 
-<footer @class(['bg-sf-footer text-sf-footer-text', 'mt-16' => ! ($flushTop ?? false)])>
+<footer class="bg-sf-footer text-sf-footer-text">
+    <div @class(['bg-page-bg pb-6', 'pt-16' => ! ($flushTop ?? false)])>
+        @include('theme-ecommerce::partials._service-benefits')
+    </div>
+
     <div class="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 py-10 sm:grid-cols-2 md:grid-cols-3 sm:px-6">
         <div>
             <a href="{{ url('/') }}" class="flex items-center gap-2">

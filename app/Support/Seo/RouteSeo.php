@@ -55,6 +55,7 @@ final class RouteSeo
         'account.orders' => ['type' => 'website', 'index' => false, 'priority' => '0.0', 'changefreq' => 'yearly'],
         'account.orders.show' => ['type' => 'website', 'index' => false, 'priority' => '0.0', 'changefreq' => 'yearly'],
         'account.profile' => ['type' => 'website', 'index' => false, 'priority' => '0.0', 'changefreq' => 'yearly'],
+        'account.delete' => ['type' => 'website', 'index' => false, 'priority' => '0.0', 'changefreq' => 'yearly'],
     ];
 
     private const DEFAULT = ['type' => 'website', 'index' => true, 'priority' => '0.5', 'changefreq' => 'monthly'];

@@ -387,9 +387,9 @@
         x-on:pointermove.window="moveScreenOptionsDrag($event)"
         x-on:pointerup.window="endScreenOptionsDrag()"
         x-on:pointercancel.window="endScreenOptionsDrag()">
-        <flux:header sticky class="admin-header shrink-0 gap-1">
-            <flux:sidebar.toggle class="lg:hidden mr-1" icon="bars-2" inset="left" />
-            <flux:sidebar.collapse class="max-lg:hidden" />
+        <flux:header sticky class="admin-header shrink-0 gap-1 px-2! lg:px-3!">
+            <flux:sidebar.toggle class="lg:hidden mr-1" icon="bars-3" inset="left" />
+            <flux:sidebar.toggle class="max-lg:hidden" icon="bars-3" />
             <flux:button size="sm" variant="subtle" square x-data x-on:click="location.reload()" icon="arrow-path"
                 aria-label="Refresh" class="max-lg:hidden" />
             <flux:button size="sm" variant="subtle" square :href="config('app.frontend_url')" icon="globe-alt"
@@ -476,8 +476,8 @@
                     x-on:click="toggleScreenOptions()"
                     x-bind:style="'position: absolute; right: 0; bottom: -10px; z-index: 9999; transform: translateY(' + (screenOptionsDragging ? screenOptionsHeight : (screenOptionsOpen ? 105 : 0)) + 'px);'"
                     x-bind:class="screenOptionsDragging ? 'duration-0' : 'duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]'"
-                    class="group inline-flex h-5 cursor-grab touch-none select-none items-center justify-center rounded-bl-md border border-t-0 border-zinc-200/80 bg-white/95 px-1.5 text-zinc-500 shadow-[0_4px_12px_-6px_rgba(15,23,42,0.22)] backdrop-blur transition-[transform,color,background-color,border-color,box-shadow] hover:bg-white hover:text-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 active:cursor-grabbing dark:border-zinc-700/80 dark:bg-zinc-900/95 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100">
-                    <svg class="size-3 text-zinc-400 transition-transform duration-300 ease-out dark:text-zinc-500"
+                    class="group inline-flex h-4 cursor-grab touch-none select-none items-center justify-center rounded-bl-md border border-t-0 border-zinc-200/80 bg-white/95 px-1 text-zinc-500 shadow-[0_4px_12px_-6px_rgba(15,23,42,0.22)] backdrop-blur transition-[transform,color,background-color,border-color,box-shadow] hover:bg-white hover:text-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 active:cursor-grabbing dark:border-zinc-700/80 dark:bg-zinc-900/95 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100">
+                    <svg class="size-2.5 text-zinc-400 transition-transform duration-300 ease-out dark:text-zinc-500"
                         x-bind:class="screenOptionsOpen ? 'rotate-180' : ''" viewBox="0 0 20 20" fill="currentColor"
                         aria-hidden="true">
                         <path fill-rule="evenodd"
