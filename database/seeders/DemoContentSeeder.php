@@ -167,13 +167,22 @@ class DemoContentSeeder extends Seeder
             ->published()
             ->sequence(fn () => ['category_id' => $postCategories->random()->id])
             ->create(['user_id' => $this->authorId]);
-        $posts->each(fn (Post $post) => $post->update([
-            'description' => $this->demoPostDescription(),
-            // Dummy thumbnail so post cards actually show an image in fresh
-            // dev installs (no local files shipped); swap for a library image
-            // from the admin form's Thumbnail Image picker.
-            'featured_image' => "https://picsum.photos/seed/codeware-post-{$post->id}/1200/675",
-        ]));
+        $posts->each(function (Post $post): void {
+            $description = $this->demoPostDescription();
+            $shortDescription = collect($description)->map(fn (string $html) => Str::limit(
+                trim(html_entity_decode(strip_tags($html))),
+                240,
+            ))->all();
+
+            $post->update([
+                'short_description' => $shortDescription,
+                'description' => $description,
+                // Dummy thumbnail so post cards actually show an image in fresh
+                // dev installs (no local files shipped); swap for a library image
+                // from the admin form's Thumbnail Image picker.
+                'featured_image' => "https://picsum.photos/seed/codeware-post-{$post->id}/1200/675",
+            ]);
+        });
         $posts->each(fn (Post $post) => $post->tags()->attach($tags->random(rand(1, 3))->pluck('id')));
         $posts->each(fn (Post $post) => $this->createPage(
             type: 'post',
@@ -181,7 +190,7 @@ class DemoContentSeeder extends Seeder
             title: $post->title,
             slug: $this->slugFor($post->getTranslation('title', 'en'), $post->id),
             status: $post->status,
-            description: $post->description,
+            description: $post->short_description ?: $post->description,
         ));
 
         // Two demo banners so the product-page "Sponsored" slot has something to
