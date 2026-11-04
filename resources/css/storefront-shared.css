@@ -53,6 +53,8 @@
 @source '../views/livewire/delivery/auth';
 @source '../views/layouts/delivery.blade.php';
 @source '../views/layouts/vendor.blade.php';
+@source '../views/livewire/security/mfa-required.blade.php';
+@source '../views/livewire/security/mfa-panel.blade.php';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
