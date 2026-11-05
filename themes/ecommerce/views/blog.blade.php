@@ -5,7 +5,7 @@
     @include('partials._seo-meta')
     @include('partials._custom-code-head')
 </head>
-<body class="bg-white font-storefront text-sf-text antialiased">
+<body class="bg-page-bg font-storefront text-sf-text antialiased">
 
 @include('theme-ecommerce::partials._header')
 
@@ -17,18 +17,18 @@
     ];
 @endphp
 
-@include('theme-ecommerce::partials._breadcrumbs', ['crumbs' => $crumbs])
-
 <main class="mx-auto max-w-7xl px-4 pb-8 pt-0 sm:px-6">
+    @include('theme-ecommerce::partials._page-banner', ['title' => __('Blog'), 'crumbs' => $crumbs, 'icon' => 'M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z'])
+
     @if ($categories->isNotEmpty())
-        <nav aria-label="{{ __('Blog categories') }}" class="mb-8 flex flex-wrap items-center justify-center gap-2">
+        <nav aria-label="{{ __('Blog categories') }}" class="mb-8 flex flex-wrap items-center gap-2">
             <a href="{{ route('blog') }}"
-                class="rounded-full px-4 py-1.5 text-sm font-semibold transition {{ $activeCategory === '' ? 'bg-brand text-white shadow-sm' : 'bg-zinc-100 text-zinc-600 hover:bg-brand/10 hover:text-brand' }}">
+                class="rounded-full px-4 py-1.5 text-sm font-semibold transition {{ $activeCategory === '' ? 'bg-brand text-white shadow-sm' : 'bg-white text-zinc-600 ring-1 ring-zinc-200 hover:text-brand hover:ring-brand/40' }}">
                 {{ __('All') }}
             </a>
             @foreach ($categories as $category)
                 <a href="{{ route('blog', ['category' => $category->slug]) }}"
-                    class="rounded-full px-4 py-1.5 text-sm font-semibold transition {{ $activeCategory === $category->slug ? 'bg-brand text-white shadow-sm' : 'bg-zinc-100 text-zinc-600 hover:bg-brand/10 hover:text-brand' }}">
+                    class="rounded-full px-4 py-1.5 text-sm font-semibold transition {{ $activeCategory === $category->slug ? 'bg-brand text-white shadow-sm' : 'bg-white text-zinc-600 ring-1 ring-zinc-200 hover:text-brand hover:ring-brand/40' }}">
                     {{ $category->name }}
                     <span class="ml-1 text-xs font-normal opacity-70">{{ $category->posts_count }}</span>
                 </a>
@@ -39,7 +39,7 @@
     @if ($posts->isNotEmpty())
         <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($posts as $post)
-                <article class="group flex flex-col overflow-hidden rounded-card border border-zinc-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+                <article class="group flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:-translate-y-1 hover:border-brand/30 hover:shadow-xl">
                     <a href="{{ \App\Support\UrlStructure::url('post', $post->slug) }}" class="flex flex-1 flex-col">
                         <div class="relative aspect-[16/10] overflow-hidden bg-zinc-100">
                             @if ($post->featured_image)
@@ -56,7 +56,7 @@
                         <div class="flex flex-1 flex-col p-5">
                             <div class="mb-2 flex flex-wrap items-center gap-2">
                                 @if ($post->category?->page)
-                                    <span class="text-xs font-semibold uppercase tracking-wide text-brand">{{ $post->category->name }}</span>
+                                    <span class="rounded-full bg-brand/10 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-brand">{{ $post->category->name }}</span>
                                 @endif
                                 @if ($post->published_at)
                                     <span class="text-xs text-zinc-500">{{ $post->published_at->toDisplay() }}</span>
@@ -83,7 +83,7 @@
                                     {{ $post->user->name }}
                                 </p>
                             @endif
-                            <div class="mt-auto flex items-center justify-between pt-4 text-xs text-zinc-500">
+                            <div class="mt-auto flex items-center justify-between border-t border-zinc-100 pt-4 text-xs text-zinc-500">
                                 <span>{{ __(':min min read', ['min' => $post->reading_time]) }}</span>
                                 <span class="inline-flex items-center gap-3">
                                     <span class="inline-flex items-center gap-1">

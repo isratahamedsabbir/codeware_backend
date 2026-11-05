@@ -53,19 +53,20 @@
 
 <div class="bg-page-bg" data-contact-page>
     <div class="mx-auto max-w-7xl px-4 pb-10 pt-0 sm:px-6 lg:pb-10 lg:pt-0">
+        @include('theme-ecommerce::partials._page-banner', ['title' => __('Contact Us'), 'crumbs' => [['label' => __('Home'), 'url' => url('/')], ['label' => __('Contact Us'), 'url' => null]], 'icon' => 'M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75'])
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-[22rem_1fr] lg:items-start">
             {{-- Contact details --}}
             @if ($details !== [] || $socials->isNotEmpty())
                 <aside class="overflow-hidden rounded-card border border-zinc-200 bg-white shadow-sm">
-                    <div class="border-b border-zinc-100 bg-zinc-50/60 px-5 py-4">
-                        <h2 class="text-base font-bold text-sf-heading">{{ __('Contact information') }}</h2>
-                        <p class="mt-0.5 text-xs text-zinc-500">{{ __('Reach us directly through any of these.') }}</p>
+                    <div class="bg-brand px-5 py-5 text-white">
+                        <h2 class="text-lg font-bold">{{ __('Contact information') }}</h2>
+                        <p class="mt-1 text-xs text-white/75">{{ __('Reach us directly through any of these.') }}</p>
                     </div>
 
                     <ul class="divide-y divide-zinc-100">
                         @foreach ($details as $detail)
-                            <li class="flex items-start gap-4 px-5 py-4">
-                                <span class="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand">
+                            <li class="flex items-start gap-4 px-5 py-4 transition hover:bg-zinc-50">
+                                <span class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="{{ $detail['icon'] }}" />
                                     </svg>
@@ -111,8 +112,8 @@
             {{-- Message form --}}
             <section class="overflow-hidden rounded-card border border-zinc-200 bg-white shadow-sm @if ($details === [] && $socials->isEmpty()) lg:col-span-2 @endif"
                 style="--form-accent: var(--color-sf-button); --form-accent-hover: var(--color-sf-button); --form-label: var(--color-sf-heading)">
-                <div class="border-b border-zinc-100 bg-zinc-50/60 px-5 py-4 sm:px-6">
-                    <h2 class="text-base font-bold text-sf-heading">{{ __('Send us a message') }}</h2>
+                <div class="border-b border-zinc-100 bg-zinc-50/60 px-5 py-5 sm:px-6">
+                    <h2 class="text-lg font-bold text-sf-heading">{{ __('Send us a message') }}</h2>
                     <p class="mt-0.5 text-xs text-zinc-500">{{ __("Fill in the form and we'll get back to you by email.") }}</p>
                 </div>
                 <div class="p-5 sm:p-6">
