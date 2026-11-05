@@ -274,29 +274,34 @@
 
 .admin-sidebar-logout {
     border-color: var(--color-sidebar-border);
-    padding: 0.15rem 0.25rem;
+    padding: 0.625rem 0.75rem;
 }
 
 .admin-sidebar-logout-button {
     display: flex;
     align-items: center;
-    gap: 0.625rem;
+    gap: 0.75rem;
     width: 100%;
-    min-height: 2rem;
-    padding: 0.15rem 0.4rem;
-    border: 1px solid color-mix(in srgb, #dc2626 12%, transparent);
+    min-height: 2.625rem;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid color-mix(in srgb, #dc2626 14%, transparent);
     border-radius: 0.75rem;
-    background: color-mix(in srgb, #fff 80%, #fef2f2);
+    background: color-mix(in srgb, #fff 85%, #fef2f2);
     color: #b91c1c;
     text-align: left;
     cursor: pointer;
-    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
 }
 
 .admin-sidebar-logout-button:hover {
-    border-color: color-mix(in srgb, #dc2626 24%, transparent);
+    border-color: color-mix(in srgb, #dc2626 30%, transparent);
     background: #fef2f2;
     color: #991b1b;
+    box-shadow: 0 1px 3px color-mix(in srgb, #dc2626 14%, transparent);
+}
+
+.admin-sidebar-logout-button:active {
+    background: #fee2e2;
 }
 
 .admin-sidebar-logout-button:focus-visible {
@@ -308,12 +313,18 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1.875rem;
+    height: 1.875rem;
     flex-shrink: 0;
-    border-radius: 0.625rem;
+    border-radius: 0.5rem;
     background: #fee2e2;
     color: #b91c1c;
+    transition: background-color 150ms ease, color 150ms ease;
+}
+
+.admin-sidebar-logout-button:hover .admin-sidebar-logout-icon {
+    background: #dc2626;
+    color: #fff;
 }
 
 .admin-sidebar-logout-copy {
@@ -325,9 +336,9 @@
 }
 
 .admin-sidebar-logout-title {
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 600;
-    line-height: 1rem;
+    line-height: 1.25rem;
 }
 
 /* ── Group Labels ── */
@@ -917,6 +928,11 @@ html.dark .admin-sidebar-logout-button:hover {
 html.dark .admin-sidebar-logout-icon {
     background: color-mix(in srgb, #7f1d1d 45%, var(--color-sidebar-bg));
     color: #fca5a5;
+}
+
+html.dark .admin-sidebar-logout-button:hover .admin-sidebar-logout-icon {
+    background: #dc2626;
+    color: #fff;
 }
 
 html.dark .admin-sidebar-search-input {
