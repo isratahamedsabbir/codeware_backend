@@ -34,7 +34,8 @@
 @endphp
 
 <footer class="bg-sf-footer text-sf-footer-text">
-    <div @class(['bg-page-bg pb-6', 'pt-10' => ! ($flushTop ?? false)])>
+    {{-- White behind the benefits strip on every page (not the grey page tint). --}}
+    <div @class(['bg-white pb-6', 'pt-10' => ! ($flushTop ?? false)])>
         @include('theme-ecommerce::partials._service-benefits')
     </div>
 
