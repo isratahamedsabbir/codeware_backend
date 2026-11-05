@@ -64,8 +64,8 @@
     {{-- Conversation list --}}
     <div x-data="{ q: '' }" class="w-full md:w-[340px] shrink-0 min-h-0 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-700 shadow-sm flex-col overflow-hidden {{ $this->activeConversation ? 'hidden md:flex' : 'flex' }}">
         <div class="px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
-            {{-- Livewire never overwrites a focused input, so a new key re-creates the box empty once a chat is opened. --}}
-            <div wire:key="chat-search-{{ $searchResets }}">
+            {{-- wire:ignore: Livewire's morph must not touch this box — it would put the readonly attribute back (blocking typing) and fight Alpine over the value. --}}
+            <div wire:ignore>
                 <flux:input
                     x-model="q"
                     name="chat-user-lookup"

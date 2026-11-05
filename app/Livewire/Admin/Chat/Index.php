@@ -21,9 +21,6 @@ class Index extends Component
 
     public string $userSearch = '';
 
-    /** Bumped whenever a chat opens; keys the search input so it is re-created empty. */
-    public int $searchResets = 0;
-
     public string $messageBody = '';
 
     /**
@@ -117,7 +114,6 @@ class Index extends Component
         // search box and the unsent message both start empty.
         $this->userSearch = '';
         $this->messageBody = '';
-        $this->searchResets++;
 
         $this->markConversationRead($conversationId);
     }
