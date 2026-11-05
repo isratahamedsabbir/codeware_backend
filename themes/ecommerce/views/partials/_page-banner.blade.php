@@ -6,17 +6,20 @@
     current page), $description (fallback when there are no crumbs), $class (optional),
     $tag (heading element, default h1; use p when the page already has its own h1).
 --}}
-<header class="relative my-3 overflow-hidden rounded-xl bg-gradient-to-r from-brand/10 via-brand/5 to-white px-3 py-2.5 sm:px-4 sm:py-3 {{ $class ?? '' }}">
+@php $compact = ($hideTitle ?? false) || ! empty($crumbs); @endphp
+<header class="relative my-3 overflow-hidden rounded-xl bg-gradient-to-r from-brand/10 via-brand/5 to-white {{ $compact ? 'px-3 py-1.5 sm:px-4' : 'px-3 py-2.5 sm:px-4 sm:py-3' }} {{ $class ?? '' }}">
     <div class="pointer-events-none absolute -right-6 -top-8 size-24 rounded-full bg-brand/10" aria-hidden="true"></div>
     <div class="relative flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
-        <span class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand text-white shadow-sm" aria-hidden="true">
-            <svg class="size-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $icon }}"/></svg>
+        @unless ($compact)
+        <span class="flex {{ $compact ? 'size-7' : 'size-9' }} shrink-0 items-center justify-center rounded-lg bg-brand text-white shadow-sm" aria-hidden="true">
+            <svg class="{{ $compact ? 'size-3.5' : 'size-4.5' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $icon }}"/></svg>
         </span>
+        @endunless
         <div class="min-w-0">
-            <{{ $tag ?? 'h1' }} class="truncate text-base font-extrabold leading-tight tracking-tight text-sf-heading sm:text-lg">{{ $title }}</{{ $tag ?? 'h1' }}>
+            @if ($compact)@if (($tag ?? 'h1') === 'h1')<h1 class="sr-only">{{ $title }}</h1>@endif@else<{{ $tag ?? 'h1' }} class="truncate text-base font-extrabold leading-tight tracking-tight text-sf-heading sm:text-lg">{{ $title }}</{{ $tag ?? 'h1' }}>@endif
 
             @if (! empty($crumbs))
-                <nav class="-ml-2 mt-0.5" aria-label="{{ __('Breadcrumb') }}">
+                <nav class="-ml-2 {{ $compact ? '' : 'mt-0.5' }}" aria-label="{{ __('Breadcrumb') }}">
                     <ol class="flex flex-wrap items-center gap-1 text-[11px] font-medium sm:text-xs">
                         @foreach ($crumbs as $index => $crumb)
                             @if ($index > 0)

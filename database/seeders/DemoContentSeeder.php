@@ -237,8 +237,8 @@ class DemoContentSeeder extends Seeder
 
     /**
      * Dummy rich content (en + bn) for the product additional-data fields —
-     * description, short description (`excerpt`) and `specifications`. Stored
-     * as HTML the way the admin editors write it, so the ecommerce theme's
+     * description, short description (`excerpt`, plain text) and `specifications`. Stored
+     * as HTML the way the admin editors write it (except the excerpt), so the ecommerce theme's
      * `rich-text` rendering on the product page shows off its full styling.
      *
      * @return array<string, array{en: string, bn: string}>
@@ -247,14 +247,14 @@ class DemoContentSeeder extends Seeder
     {
         $excerpts = [
             'en' => [
-                '<p>A <strong>premium-quality</strong> everyday pick, built to last and ready to use.</p>',
-                '<p>Thoughtfully designed for comfort, durability and real value — right out of the box.</p>',
-                '<p>Dependable, versatile and easy to use — a great addition to your daily routine.</p>',
+                'A premium-quality everyday pick, built to last and ready to use.',
+                'Thoughtfully designed for comfort, durability and real value — right out of the box.',
+                'Dependable, versatile and easy to use — a great addition to your daily routine.',
             ],
             'bn' => [
-                '<p>দৈনন্দিন ব্যবহারের জন্য একটি <strong>প্রিমিয়াম মানের</strong> পণ্য — ব্যবহারের জন্য তৈরি।</p>',
-                '<p>আরাম, স্থায়িত্ব এবং প্রকৃত মূল্যকে প্রাধান্য দিয়ে সাবধানে ডিজাইন করা হয়েছে।</p>',
-                '<p>নির্ভরযোগ্য, বহুমুখী ও ব্যবহারে সহজ — আপনার দৈনন্দিন জীবনের জন্য দারুণ সংযোজন।</p>',
+                'দৈনন্দিন ব্যবহারের জন্য একটি প্রিমিয়াম মানের পণ্য — ব্যবহারের জন্য তৈরি।',
+                'আরাম, স্থায়িত্ব এবং প্রকৃত মূল্যকে প্রাধান্য দিয়ে সাবধানে ডিজাইন করা হয়েছে।',
+                'নির্ভরযোগ্য, বহুমুখী ও ব্যবহারে সহজ — আপনার দৈনন্দিন জীবনের জন্য দারুণ সংযোজন।',
             ],
         ];
 

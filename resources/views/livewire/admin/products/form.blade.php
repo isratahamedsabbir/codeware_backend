@@ -169,25 +169,24 @@
              rich editors above the Variations --}}
         @if (\App\Support\Features::settingAvailable('additional_data_products_enabled') && \App\Models\Setting::productAdditionalDataEnabled())
             <x-admin-section-card variant="postbox" persist-key="product-additional-data" title="Additional Data"
-                description="Rich-text description, short description and specification for this product."
+                description="Short description, rich-text description and specification for this product."
                 :collapsed="true">
             <x-admin-locale-tabs>
                 @foreach (\App\Support\Locale::translatable() as $language)
                     <x-admin-locale-panel :code="$language->code" class="space-y-3">
+                        <flux:field>
+                            <flux:label :badge="$language->code">Short Description<x-field-hint text="A brief summary — shown in listings and where a shortened product blurb is needed." /></flux:label>
+                            <flux:textarea wire:model="excerpt.{{ $language->code }}" rows="3"
+                                placeholder="A brief summary of the product" />
+                            @if ($language->code === $this->primaryLocale)<flux:error name="excerpt.{{ $language->code }}" />@endif
+                        </flux:field>
+
                         <flux:field>
                             <flux:label :badge="$language->code">Description</flux:label>
                             <livewire:jodit-text-editor wire:model="description.{{ $language->code }}"
                                 :options="['height' => 260]" :identifier="'product-description'.$language->code"
                                 wire:key="product-description-{{ $language->code }}" />
                             @if ($language->code === $this->primaryLocale)<flux:error name="description.{{ $language->code }}" />@endif
-                        </flux:field>
-
-                        <flux:field>
-                            <flux:label :badge="$language->code">Short Description<x-field-hint text="A brief summary — shown in listings and where a shortened product blurb is needed." /></flux:label>
-                            <livewire:jodit-text-editor wire:model="excerpt.{{ $language->code }}"
-                                :options="['height' => 150]" :identifier="'product-excerpt'.$language->code"
-                                wire:key="product-excerpt-{{ $language->code }}" />
-                            @if ($language->code === $this->primaryLocale)<flux:error name="excerpt.{{ $language->code }}" />@endif
                         </flux:field>
 
                         <flux:field>
