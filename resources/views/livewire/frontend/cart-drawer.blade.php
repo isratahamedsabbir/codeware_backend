@@ -6,10 +6,15 @@
 >
     {{-- Floating button, vertically centred on the right edge. --}}
     <button type="button" x-on:click="open = true" aria-label="{{ __('Open cart') }}"
-        class="fixed right-0 top-1/2 z-40 flex w-[4.5rem] -translate-y-1/2 flex-col items-center gap-1.5 rounded-l-xl bg-brand px-2 pb-2 pt-3 text-white shadow-lg transition hover:opacity-95">
-        <x-storefront.icon name="bag" stroke="1.8" class="h-7 w-7" />
-        <span class="text-[11px] font-semibold leading-none">{{ trans_choice(':count item|:count items', $count, ['count' => $count]) }}</span>
-        <span class="w-full rounded-full bg-white/20 px-1 py-1 text-center text-[11px] font-semibold leading-none">{{ format_money($subtotal) }}</span>
+        class="fixed right-0 top-1/2 z-40 flex w-12 -translate-y-1/2 flex-col items-center gap-1 rounded-l-xl bg-brand px-1 py-3 text-white shadow-lg transition hover:opacity-95 sm:w-[4.5rem] sm:gap-1.5 sm:px-2 sm:pb-2 sm:pt-3">
+        <span class="relative">
+            <x-storefront.icon name="bag" stroke="1.8" class="h-6 w-6 sm:h-7 sm:w-7" />
+            @if ($count > 0)
+                <span class="absolute -right-2.5 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold leading-none text-brand sm:hidden">{{ $count }}</span>
+            @endif
+        </span>
+        <span class="hidden text-[11px] font-semibold leading-none sm:block">{{ trans_choice(':count item|:count items', $count, ['count' => $count]) }}</span>
+        <span class="hidden w-full rounded-full bg-white/20 px-1 py-1 text-center text-[11px] font-semibold leading-none sm:block">{{ format_money($subtotal) }}</span>
     </button>
 
     {{-- Backdrop --}}

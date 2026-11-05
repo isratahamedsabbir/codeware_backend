@@ -56,6 +56,33 @@ it('shows an active advertisement beside the product details section', function 
         ->assertSee('example.com');
 });
 
+it('shows the first active advertisement on the home page', function () {
+    $first = Advertisement::factory()->create([
+        'name' => 'Home Banner',
+        'image' => '/storage/media/home-ad.png',
+        'url' => 'https://example.com/home',
+    ]);
+    Advertisement::factory()->create(['name' => 'Second Banner']);
+
+    get('/')
+        ->assertOk()
+        ->assertSee('Sponsored')
+        ->assertSee('Home Banner')
+        ->assertSee('/storage/media/home-ad.png')
+        ->assertSee('/ad/'.$first->code)
+        ->assertDontSee('Second Banner');
+});
+
+it('hides the home page advertisement when the advertisements feature is off', function () {
+    Feature::create(['key' => 'advertisements', 'label' => 'Advertisements', 'is_enabled' => false]);
+    Advertisement::factory()->create(['name' => 'Hidden Home Banner']);
+
+    get('/')
+        ->assertOk()
+        ->assertDontSee('Sponsored')
+        ->assertDontSee('Hidden Home Banner');
+});
+
 it('hides the advertisement when the advertisements feature is off', function () {
     Feature::create(['key' => 'advertisements', 'label' => 'Advertisements', 'is_enabled' => false]);
     Advertisement::factory()->create(['name' => 'Hidden Banner']);

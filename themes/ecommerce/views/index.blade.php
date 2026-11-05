@@ -203,10 +203,12 @@
             }" x-init="$nextTick(() => { update(); new ResizeObserver(() => update()).observe($refs.track); })">
                 <div class="mb-4 flex items-end justify-between gap-4">
                     <div class="flex min-w-0 items-center gap-3">
-                        <h2 class="truncate text-xl font-bold tracking-tight text-sf-text capitalize md:text-2xl">{{ $category->name }}</h2>
-                        <a href="{{ route('shop', ['category' => $category->slug]) }}" class="inline-flex h-8 shrink-0 items-center gap-1 rounded-full border border-brand/20 bg-white px-3 text-xs font-semibold text-brand transition hover:bg-brand hover:text-white">
+                        <div class="min-w-0">
+                            <h2 class="truncate text-xl font-bold tracking-tight text-sf-text capitalize md:text-2xl">{{ $category->name }}</h2>
+                            <span class="mt-2 block h-1 w-12 rounded-full bg-brand"></span>
+                        </div>
+                        <a href="{{ route('shop', ['category' => $category->slug]) }}" class="shrink-0 text-xs font-semibold text-brand transition hover:underline">
                             {{ __('View all') }}
-                            <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.21 4.29a1 1 0 0 1 1.42 0l5 5a1 1 0 0 1 0 1.42l-5 5a1 1 0 1 1-1.42-1.42L11.5 10 7.21 5.71a1 1 0 0 1 0-1.42Z" clip-rule="evenodd"/></svg>
                         </a>
                     </div>
                     <div class="flex shrink-0 items-center gap-2">
@@ -230,6 +232,9 @@
             </section>
         @endforeach
     @endif
+
+    @include('theme-ecommerce::partials._advertisement', ['advertisement' => $advertisement ?? null])
+
     @foreach ($sections as $section)
         @continue(blank($section->localizedCards()))
 

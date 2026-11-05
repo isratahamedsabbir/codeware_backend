@@ -83,7 +83,7 @@
             <div class="mx-auto mt-8 flex max-w-5xl snap-x snap-mandatory gap-3 overflow-x-auto pb-2 sm:justify-center sm:gap-4">
                 @foreach ($galleryImages->take(3) as $image)
                     <img src="{{ $image }}" alt="{{ $product->name }}" @if (! $loop->first) loading="lazy" @endif
-                        class="aspect-square w-[72%] shrink-0 snap-center rounded-xl object-cover shadow-xl ring-1 ring-white/20 sm:w-1/3">
+                        class="aspect-square w-[72%] shrink-0 snap-center rounded-xl object-cover shadow-xl ring-1 ring-white/20 sm:w-[calc((100%-2rem)/3)]">
                 @endforeach
             </div>
         @endif

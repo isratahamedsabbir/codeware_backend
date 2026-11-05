@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Themes\Concerns;
 
+use App\Models\Advertisement;
 use App\Models\CmsSection;
+use App\Support\Features;
 use App\Support\Frontend;
 
 /**
@@ -33,6 +35,7 @@ trait RendersHomePage
             // deliberately does not run through the "%s | Site Name" template.
             'title' => $homePage?->title,
             'currentSlug' => 'home',
+            'advertisement' => Features::enabled('advertisements') ? Advertisement::displayAd() : null,
         ]);
     }
 }

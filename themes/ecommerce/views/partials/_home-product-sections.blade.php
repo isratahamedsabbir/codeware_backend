@@ -38,9 +38,12 @@
                 },
             }"
             x-init="$nextTick(() => { update(); new ResizeObserver(() => update()).observe($refs.track); })">
-            <div class="mb-4 flex items-center justify-between">
-                <h2 class="text-xl font-bold tracking-tight text-sf-text md:text-2xl">{{ __('New arrivals') }}</h2>
-                <div class="flex gap-2" x-cloak x-show="overflow">
+            <div class="mb-4 flex items-end justify-between gap-4">
+                <div class="min-w-0">
+                    <h2 class="text-xl font-bold tracking-tight text-sf-text md:text-2xl">{{ __('New arrivals') }}</h2>
+                    <span class="mt-2 block h-1 w-12 rounded-full bg-brand"></span>
+                </div>
+                <div class="flex shrink-0 gap-2" x-cloak x-show="overflow">
                     <button type="button" @click="slide(-1)" aria-label="{{ __('Previous products') }}"
                         class="flex h-9 w-9 items-center justify-center rounded-full bg-white text-brand shadow-sm transition hover:bg-brand hover:text-white">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12.79 15.71a1 1 0 0 1-1.42 0l-5-5a1 1 0 0 1 0-1.42l5-5a1 1 0 1 1 1.42 1.42L8.5 10l4.29 4.29a1 1 0 0 1 0 1.42Z" clip-rule="evenodd"/></svg>

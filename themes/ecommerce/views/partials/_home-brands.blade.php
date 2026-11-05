@@ -1,5 +1,8 @@
 @if ($homeBrands->isNotEmpty())
-    <section class="mx-auto max-w-7xl px-4 pt-8 sm:px-6">
+    <section class="mx-auto max-w-7xl px-4 pt-10 sm:px-6">
+        @include('theme-ecommerce::partials._section-heading', [
+            'title' => __('Brands'),
+        ])
         <style>
             .home-brand-marquee {
                 will-change: transform;

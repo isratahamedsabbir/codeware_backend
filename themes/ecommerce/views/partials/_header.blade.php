@@ -65,7 +65,7 @@
                 </a>
             </div>
 
-            <div class="relative hidden flex-1 max-w-xl lg:block">
+            <div class="relative hidden flex-1 max-w-xl md:block">
                 @if ($productsEnabled)<livewire:frontend.header-search :key="'header-search'" />@endif
             </div>
 
