@@ -8,7 +8,7 @@
 --}}
 <header class="relative my-3 overflow-hidden rounded-xl bg-gradient-to-r from-brand/10 via-brand/5 to-white px-3 py-2.5 sm:px-4 sm:py-3 {{ $class ?? '' }}">
     <div class="pointer-events-none absolute -right-6 -top-8 size-24 rounded-full bg-brand/10" aria-hidden="true"></div>
-    <div class="relative flex min-w-0 items-center gap-3">
+    <div class="relative flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
         <span class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand text-white shadow-sm" aria-hidden="true">
             <svg class="size-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $icon }}"/></svg>
         </span>
@@ -43,5 +43,13 @@
                 <p class="mt-0.5 text-xs text-zinc-500 sm:text-[13px]">{{ $description }}</p>
             @endif
         </div>
+
+        {{-- Optional notice on the right ($aside, plain text); drops below the title on a phone. --}}
+        @if (filled($aside ?? null))
+            <p class="flex w-full items-start gap-2 text-[11px] leading-snug text-zinc-600 sm:text-xs md:ml-auto md:w-auto md:max-w-xl">
+                <svg class="mt-0.5 size-3.5 shrink-0 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
+                <span>{{ $aside }}</span>
+            </p>
+        @endif
     </div>
 </header>

@@ -28,14 +28,13 @@
 
 <main class="mx-auto max-w-4xl px-4 pb-8 pt-0 sm:px-6">
     <article>
+        <h1 class="text-3xl font-extrabold tracking-tight text-sf-heading sm:text-4xl">{{ $post->title }}</h1>
         @if ($post->category?->page && $post->category->status === 'active')
             <a href="{{ route('blog', ['category' => $post->category->slug]) }}"
-                class="text-xs font-semibold uppercase tracking-wide text-brand hover:underline">
+                class="mt-2 inline-block text-xs font-semibold uppercase tracking-wide text-brand hover:underline">
                 {{ $post->category->name }}
             </a>
         @endif
-
-        <h1 class="mt-2 text-3xl font-extrabold tracking-tight text-sf-heading sm:text-4xl">{{ $post->title }}</h1>
         @if (filled($post->getTranslation('short_description', app()->getLocale())))
             <p class="mt-3 max-w-3xl text-base leading-relaxed text-zinc-600">
                 {{ $post->getTranslation('short_description', app()->getLocale()) }}

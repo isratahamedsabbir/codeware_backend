@@ -21,6 +21,18 @@
 @endphp
 
 <main class="mx-auto max-w-6xl px-4 pb-8 pt-0 sm:px-6 lg:pb-12">
+    @include('theme-ecommerce::partials._page-banner', [
+        'title' => __('Order confirmation'),
+        'tag' => 'p',
+        'icon' => 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
+        'crumbs' => [
+            ['label' => __('Home'), 'url' => route('home')],
+            ['label' => __('My cart'), 'url' => route('cart')],
+            ['label' => __('Checkout'), 'url' => route('checkout')],
+            ['label' => __('Order confirmation'), 'url' => null],
+        ],
+    ])
+
     {{-- Progress: every step of the purchase flow is done. --}}
     {{-- Success hero --}}
     <section class="relative overflow-hidden rounded-card border border-zinc-200 bg-white shadow-sm">
