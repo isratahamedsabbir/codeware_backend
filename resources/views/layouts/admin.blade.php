@@ -268,6 +268,9 @@
                     <flux:icon.magnifying-glass
                         class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" /> 
                 <input type="text" x-model="search" placeholder="{{ __('Search menu...') }}" autocomplete="off"
+                    name="sidebar_menu_filter_{{ \Illuminate\Support\Str::random(6) }}" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore
+                    x-init="$nextTick(() => { search = ''; $el.value = ''; }); setTimeout(() => { search = ''; $el.value = ''; }, 150)"
+                    x-on:pageshow.window="search = ''; $el.value = ''"
                     class="admin-sidebar-search-input w-full bg-gray-50 border border-primary! rounded! pl-9 pr-8 py-1.5 text-sm text-gray-800 placeholder:text-gray-400 outline-none transition"> 
                 <button type="button" x-show="search" x-on:click="search = ''"
                         class="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
