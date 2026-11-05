@@ -21,6 +21,9 @@ class Index extends Component
 
     public string $userSearch = '';
 
+    /** Bumped whenever a chat opens; keys the search input so it is re-created empty. */
+    public int $searchResets = 0;
+
     public string $messageBody = '';
 
     /**
@@ -109,7 +112,12 @@ class Index extends Component
         abort_unless($conversation->isParticipant(auth()->user()), 403);
 
         $this->conversationId = $conversationId;
+
+        // Nothing typed for the previous person may follow into this thread: the
+        // search box and the unsent message both start empty.
         $this->userSearch = '';
+        $this->messageBody = '';
+        $this->searchResets++;
 
         $this->markConversationRead($conversationId);
     }

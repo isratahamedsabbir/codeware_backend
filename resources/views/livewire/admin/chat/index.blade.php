@@ -62,44 +62,50 @@
     :style="panelHeight ? `height: ${panelHeight}; max-height: ${panelHeight}` : ''"
 >
     {{-- Conversation list --}}
-    <div class="w-full md:w-[340px] shrink-0 min-h-0 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-700 shadow-sm flex-col overflow-hidden {{ $this->activeConversation ? 'hidden md:flex' : 'flex' }}">
+    <div x-data="{ q: '' }" class="w-full md:w-[340px] shrink-0 min-h-0 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-700 shadow-sm flex-col overflow-hidden {{ $this->activeConversation ? 'hidden md:flex' : 'flex' }}">
         <div class="px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
-            <div class="mb-3 flex items-center justify-between gap-3">
-                <div>
-                    <h2 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Inbox') }}</h2>
-                    <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">{{ trans_choice(':count conversation|:count conversations', $this->conversations->count(), ['count' => $this->conversations->count()]) }}</p>
-                </div>
-                <span class="flex size-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300">
-                    <flux:icon.chat-bubble-left-right class="size-4" />
-                </span>
+            {{-- Livewire never overwrites a focused input, so a new key re-creates the box empty once a chat is opened. --}}
+            <div wire:key="chat-search-{{ $searchResets }}">
+                <flux:input
+                    x-model="q"
+                    name="chat-user-lookup"
+                    autocomplete="off"
+                    data-lpignore="true"
+                    data-1p-ignore
+                    readonly
+                    onfocus="this.removeAttribute('readonly')"
+                    x-on:input.debounce.300ms="$wire.set('userSearch', q)"
+                    placeholder="Start a chat — search by name or email"
+                    icon="magnifying-glass"
+                />
             </div>
-            <flux:input
-                wire:model.live.debounce.300ms="userSearch"
-                placeholder="Start a chat — search by name or email"
-                icon="magnifying-glass"
-            />
 
-            @if ($this->searchResults->isNotEmpty())
-                <div class="absolute left-3 right-3 top-full mt-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-xl z-20 max-h-72 overflow-y-auto">
-                    @foreach ($this->searchResults as $user)
-                        <button
-                            type="button"
-                            wire:click="startConversationWith({{ $user->id }})"
-                            wire:key="search-result-{{ $user->id }}"
-                            class="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-start transition-colors"
-                        >
-                            <flux:avatar size="sm" :name="$user->name" :initials="$user->initials()" />
-                            <div class="min-w-0">
-                                <div class="text-sm font-medium text-zinc-800 dark:text-zinc-100 truncate">{{ $user->name }}</div>
-                                <div class="text-xs text-zinc-500 dark:text-zinc-400 truncate">{{ $user->email }}</div>
-                            </div>
-                        </button>
-                    @endforeach
-                </div>
-            @endif
         </div>
 
         <div class="flex-1 min-h-0 overflow-y-auto chat-scroll">
+            @if (filled(trim($userSearch)))
+                {{-- Search results sit in the list itself: an absolutely-positioned dropdown is clipped by this panel's overflow-hidden. --}}
+                @forelse ($this->searchResults as $user)
+                    <button
+                        type="button"
+                        wire:click="startConversationWith({{ $user->id }})"
+                        x-on:click="q = ''"
+                        wire:key="search-result-{{ $user->id }}"
+                        class="w-full flex items-center gap-3 px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/70 text-start transition-colors"
+                    >
+                        <flux:avatar size="sm" :name="$user->name" :initials="$user->initials()" />
+                        <div class="min-w-0">
+                            <div class="text-sm font-medium text-zinc-800 dark:text-zinc-100 truncate">{{ $user->name }}</div>
+                            <div class="text-xs text-zinc-500 dark:text-zinc-400 truncate">{{ $user->email }}</div>
+                        </div>
+                    </button>
+                @empty
+                    <div class="px-5 py-12 text-center">
+                        <p class="text-sm font-medium text-zinc-800 dark:text-zinc-100">{{ __('No users found') }}</p>
+                        <p class="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">{{ __('Try a different name or email.') }}</p>
+                    </div>
+                @endforelse
+            @else
             @forelse ($this->conversations as $conversation)
                 @php $other = $conversation->otherUser(auth()->user()); @endphp
                 <button
@@ -135,6 +141,7 @@
                     <p class="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">{{ __('Search for a customer above to start a conversation.') }}</p>
                 </div>
             @endforelse
+            @endif
         </div>
     </div>
 
