@@ -1,8 +1,12 @@
 @if ($homeBrands->isNotEmpty())
     <section class="mx-auto max-w-7xl px-4 pt-10 sm:px-6">
-        @include('theme-ecommerce::partials._section-heading', [
-            'title' => __('Brands'),
-        ])
+        <div class="flex flex-col gap-4 rounded-2xl border border-zinc-200/80 bg-white p-3 shadow-[0_6px_24px_-14px_rgba(15,23,42,0.25)] sm:p-5 flex-row items-center gap-3 sm:gap-6">
+        <div class="flex shrink-0 flex-col items-start justify-center border-r border-zinc-200 pr-3 sm:w-44 sm:pr-6">
+            <div>
+                <h2 class="text-base font-extrabold tracking-tight text-zinc-900 sm:text-2xl">{{ __('Brands') }}</h2>
+                <span class="mt-2 block h-1 w-10 rounded-full bg-brand"></span>
+            </div>
+        </div>
         <style>
             .home-brand-marquee {
                 will-change: transform;
@@ -25,7 +29,7 @@
                 }
             }
         </style>
-        <div class="rounded-xl p-0.5 sm:p-1">
+        <div class="min-w-0 flex-1 rounded-xl p-0.5 sm:p-1">
           <div
             x-data="{
                 offset: 0,
@@ -107,7 +111,7 @@
                             <a href="{{ route('shop', ['brand' => $brand->slug]) }}"
                                 @if ($duplicate) tabindex="-1" @endif
                                 draggable="false"
-                                class="group flex min-h-[56px] w-[140px] shrink-0 items-center justify-center rounded-xl border border-zinc-200/80 bg-white px-3 py-2 shadow-[0_3px_10px_-6px_rgba(15,23,42,0.28)] transition duration-300 hover:-translate-y-1 hover:border-brand/30 hover:shadow-[0_12px_24px_-12px_rgba(4,91,48,0.35)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand sm:min-h-[64px] sm:w-[170px]">
+                                class="group flex min-h-[56px] w-[140px] shrink-0 items-center justify-center rounded-xl border border-zinc-200/80 bg-zinc-50 px-3 py-2 transition hover:bg-white duration-300 hover:-translate-y-1 hover:border-brand/30 hover:shadow-[0_12px_24px_-12px_rgba(4,91,48,0.35)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand sm:min-h-[64px] sm:w-[170px]">
                                 @if ($brand->logo)
                                     <img src="{{ $brand->logo }}" alt="{{ $brand->name }}" loading="lazy" decoding="async" draggable="false" width="160" height="48" class="max-h-10 w-auto object-contain grayscale transition duration-300 group-hover:scale-105 group-hover:grayscale-0">
                                 @else
@@ -119,6 +123,7 @@
                 @endforeach
             </div>
           </div>
+        </div>
         </div>
     </section>
 @endif
