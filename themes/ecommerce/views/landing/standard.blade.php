@@ -199,7 +199,7 @@
     </section>
 </main>
 
-<div class="bg-sf-footer">
+<div>
     @include('theme-ecommerce::partials._footer', ['withoutPopup' => true, 'flushTop' => true])
 </div>
 

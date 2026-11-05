@@ -33,11 +33,12 @@
     ];
 @endphp
 
+{{-- No background of its own: the strip sits on the page's own background (outside the footer, so the footer colour doesn't show through). --}}
+<div @class(['pb-6', 'pt-10' => ! ($flushTop ?? false)])>
+    @include('theme-ecommerce::partials._service-benefits')
+</div>
+
 <footer class="bg-sf-footer text-sf-footer-text">
-    {{-- White behind the benefits strip on every page (not the grey page tint). --}}
-    <div @class(['bg-white pb-6', 'pt-10' => ! ($flushTop ?? false)])>
-        @include('theme-ecommerce::partials._service-benefits')
-    </div>
 
     <div class="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 py-10 sm:grid-cols-2 md:grid-cols-3 sm:px-6">
         <div>

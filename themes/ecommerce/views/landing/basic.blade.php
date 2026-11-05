@@ -153,7 +153,7 @@
     <div class="bg-zinc-50 pb-6"></div>
 </main>
 
-<div class="bg-sf-footer">
+<div>
     @include('theme-ecommerce::partials._footer', ['withoutPopup' => true, 'flushTop' => true])
 </div>
 

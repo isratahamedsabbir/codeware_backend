@@ -388,8 +388,9 @@
 
 {{-- The footer sits flush under the last section (no white gap), and on a phone
      the wrapper leaves room so the sticky order bar never covers its last line. --}}
-<div class="bg-sf-footer pb-20 md:pb-0">
+<div>
     @include('theme-ecommerce::partials._footer', ['withoutPopup' => true, 'flushTop' => true])
+    <div class="h-20 bg-sf-footer md:hidden"></div>
 </div>
 
 @include('theme-ecommerce::partials._landing-call', ['lifted' => true])
