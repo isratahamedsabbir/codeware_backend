@@ -10,7 +10,7 @@
 module.exports = {
     apps: [
         {
-            name: 'codeware-queue',
+            name: 'codeware_backend-queue',
             script: 'artisan',
             interpreter: 'php',
             args: 'queue:work --tries=3 --max-time=3600 --sleep=3',
@@ -27,7 +27,7 @@ module.exports = {
             },
         },
         {
-            name: 'codeware-reverb',
+            name: 'codeware_backend-reverb',
             script: 'artisan',
             interpreter: 'php',
             args: 'reverb:start',
