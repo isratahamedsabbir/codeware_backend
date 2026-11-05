@@ -1,4 +1,4 @@
-<div class="max-w-5xl mx-auto">
+<div class="w-full">
     {{-- Identity header: the avatar shown here is also the live preview for the upload below. --}}
     <div class="bg-white rounded-[5px] border border-zinc-100 shadow-sm overflow-hidden mb-5">
         <div class="h-24 bg-linear-to-r from-secondary to-primary"></div>

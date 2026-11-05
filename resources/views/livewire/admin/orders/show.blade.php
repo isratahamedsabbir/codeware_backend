@@ -1,4 +1,4 @@
-<div class="max-w-[1200px] w-full mx-auto">
+<div class="w-full">
 
     @push('page-header-actions')
         <flux:button variant="primary" size="sm" icon="document-text" href="{{ route('admin.orders.invoice', $order) }}" target="_blank">
