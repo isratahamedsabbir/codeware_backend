@@ -15,7 +15,7 @@ use function Pest\Laravel\actingAs;
 use function Pest\Laravel\get;
 
 beforeEach(function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     Language::create(['code' => 'en', 'name' => 'English', 'native_name' => 'English', 'is_active' => true]);
     Page::factory()->published()->create(['title' => ['en' => 'Home', 'bn' => ''], 'slug' => 'home', 'sort_order' => 0]);
 

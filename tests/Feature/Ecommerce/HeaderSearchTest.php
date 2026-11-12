@@ -76,7 +76,7 @@ it('renders the desktop search form on the storefront', function () {
 
     // The header search is part of the ecommerce theme's shop chrome, and the
     // shop only exists on a theme that ships it (see Themes::view()).
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
     get('/shop')
         ->assertOk()

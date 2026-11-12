@@ -33,7 +33,7 @@
 </head>
 <body class="bg-page-bg font-storefront text-sf-text antialiased">
 
-@include('theme-ecommerce::partials._header', [
+@include('theme-classic_ecommerce::partials._header', [
     'menuItems' => \App\Support\Frontend::menuItems(),
 ])
 
@@ -57,7 +57,7 @@
     </section>
 </main>
 
-@include('theme-ecommerce::partials._footer')
+@include('theme-classic_ecommerce::partials._footer')
 
 @include('frontend.partials._chat-widget')
 @include('partials._custom-code-body')

@@ -4,7 +4,7 @@
 @endphp
 
 <div class="mx-auto max-w-7xl px-4 sm:px-6">
-    @include('theme-ecommerce::partials._page-banner', [
+    @include('theme-classic_ecommerce::partials._page-banner', [
         'title' => collect($crumbs)->last()['label'] ?? '',
         'tag' => 'p',
         'hideTitle' => true,

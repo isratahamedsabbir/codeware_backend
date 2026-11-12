@@ -7,7 +7,7 @@
 </head>
 <body class="bg-page-bg font-storefront text-sf-text antialiased">
 
-@include('theme-ecommerce::partials._header')
+@include('theme-classic_ecommerce::partials._header')
 
 @php
     $user = auth()->user();
@@ -18,11 +18,11 @@
 @endphp
 
 <main>
-    @include('theme-ecommerce::partials._breadcrumbs', ['crumbs' => $crumbs])
+    @include('theme-classic_ecommerce::partials._breadcrumbs', ['crumbs' => $crumbs])
 
     <div class="mx-auto max-w-7xl px-4 pb-6 pt-0 sm:px-6">
         <div class="flex flex-col gap-6 md:flex-row">
-            @include('theme-ecommerce::account.partials._account-nav')
+            @include('theme-classic_ecommerce::account.partials._account-nav')
 
             <div class="flex-1 space-y-6">
                 <div class="grid gap-4 sm:grid-cols-2">
@@ -75,7 +75,7 @@
                                         <p class="text-xs text-gray-500">{{ $order->created_at?->toDisplay() }}</p>
                                     </div>
                                     <div class="flex items-center gap-3">
-                                        @include('theme-ecommerce::account.partials._status-badge', ['status' => $order->status])
+                                        @include('theme-classic_ecommerce::account.partials._status-badge', ['status' => $order->status])
                                         <span class="text-sm font-bold text-sf-text">{{ format_money($order->total) }}</span>
                                     </div>
                                 </li>
@@ -88,7 +88,7 @@
     </div>
 </main>
 
-@include('theme-ecommerce::partials._footer')
+@include('theme-classic_ecommerce::partials._footer')
 
 @include('frontend.partials._chat-widget')
 @include('partials._custom-code-body')

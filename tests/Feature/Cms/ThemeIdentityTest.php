@@ -138,8 +138,8 @@ it('compares theme names the way the panel shows them', function () {
 });
 
 it('lets a theme keep the name it already has', function () {
-    expect(Themes::isNameUnique('Ecommerce', 'ecommerce'))->toBeTrue();
-    expect(Themes::isNameUnique('Portfolio', 'ecommerce'))->toBeFalse();
+    expect(Themes::isNameUnique('Ecommerce', 'classic_ecommerce'))->toBeTrue();
+    expect(Themes::isNameUnique('Portfolio', 'classic_ecommerce'))->toBeFalse();
 });
 
 it('catches two slugs whose fallback names would collide', function () {
@@ -153,9 +153,9 @@ it('catches two slugs whose fallback names would collide', function () {
 
 it('refuses to reuse another theme\'s serial number', function () {
     expect(Themes::isSnUnique(1))->toBeFalse();
-    expect(Themes::slugBySn(2))->toBe('ecommerce');
+    expect(Themes::slugBySn(2))->toBe('classic_ecommerce');
     expect(Themes::isSnUnique(4))->toBeTrue();
-    expect(Themes::isSnUnique(2, 'ecommerce'))->toBeTrue();
+    expect(Themes::isSnUnique(2, 'classic_ecommerce'))->toBeTrue();
 });
 
 it('never hands out zero as a serial number', function () {
@@ -187,7 +187,7 @@ it('leaves a serial number the caller chose in place', function () {
 });
 
 it('shows the theme name read-only, with no identity form', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
     Livewire::test(ThemeSettingsScreen::class)
         ->assertSee('Ecommerce')

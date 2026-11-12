@@ -20,7 +20,7 @@ use App\Support\Seo\SeoResolver;
  * These go through the real middleware stack and assert the tags a crawler reads.
  */
 beforeEach(function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     SeoResolver::flush();
 });
 
@@ -306,7 +306,7 @@ it('uses the global seo title verbatim on the home page, in every theme', functi
         'twitter' => 'Codeware on Twitter',
         'canonical' => 'present',
     ]);
-})->with(['default', 'ecommerce', 'portfolio']);
+})->with(['default', 'classic_ecommerce', 'portfolio']);
 
 it('still lets the home page override the global seo title', function () {
     Setting::set('site_name', 'Codeware');
@@ -320,12 +320,12 @@ it('still lets the home page override the global seo title', function () {
         'status' => 'active',
     ]);
 
-    expect(homeHead('ecommerce')['title'])->toBe('This home page is ours');
+    expect(homeHead('classic_ecommerce')['title'])->toBe('This home page is ours');
 
     $home->update(['seo_title' => []]);
     ContentCache::bust();
 
-    expect(homeHead('ecommerce')['title'])->toBe('The global title');
+    expect(homeHead('classic_ecommerce')['title'])->toBe('The global title');
 });
 
 it('falls back to a templated home title when no global one is set', function () {
@@ -341,7 +341,7 @@ it('falls back to a templated home title when no global one is set', function ()
     ]);
     ContentCache::bust();
 
-    expect(homeHead('ecommerce')['title'])->toBe('Welcome | Codeware');
+    expect(homeHead('classic_ecommerce')['title'])->toBe('Welcome | Codeware');
 });
 
 it('makes an og image absolute, since a relative one is dropped by every scraper', function () {

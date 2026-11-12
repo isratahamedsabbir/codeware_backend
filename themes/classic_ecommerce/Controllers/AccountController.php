@@ -1,12 +1,12 @@
 <?php
 
-namespace Themes\Ecommerce\Controllers;
+namespace Themes\ClassicEcommerce\Controllers;
 
 use App\Http\Controllers\Themes\Concerns\RendersAccount;
 use App\Http\Controllers\Themes\ThemeController;
 
 /**
- * The "ecommerce" theme's customer account: dashboard, order history, order
+ * The "classic_ecommerce" theme's customer account: dashboard, order history, order
  * detail and profile editing.
  *
  * Orders are matched to the user by user_id first, then by their email, so an

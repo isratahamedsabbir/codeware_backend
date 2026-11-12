@@ -14,7 +14,7 @@
 </head>
 <body class="bg-page-bg font-storefront text-sf-text antialiased">
 
-@include('theme-ecommerce::partials._header')
+@include('theme-classic_ecommerce::partials._header')
 
 <main>
     <div class="mx-auto flex max-w-7xl justify-center px-4 py-10 sm:px-6 md:py-14">
@@ -61,7 +61,7 @@
     </div>
 </main>
 
-@include('theme-ecommerce::partials._footer')
+@include('theme-classic_ecommerce::partials._footer')
 
 @include('frontend.partials._chat-widget')
 @include('partials._custom-code-body')

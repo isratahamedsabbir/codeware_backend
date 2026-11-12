@@ -7,7 +7,7 @@
 </head>
 <body class="bg-page-bg font-storefront text-sf-text antialiased">
 
-@include('theme-ecommerce::partials._header')
+@include('theme-classic_ecommerce::partials._header')
 
 @php
     $facets = collect(['category', 'brand', 'tag', 'type', 'min_price', 'max_price']);
@@ -64,7 +64,7 @@
 @endphp
 
 <main class="mx-auto max-w-7xl px-4 pb-8 pt-0 sm:px-6">
-    @include('theme-ecommerce::partials._page-banner', ['title' => __('Shop'), 'crumbs' => [['label' => __('Home'), 'url' => url('/')], ['label' => __('Shop'), 'url' => null]], 'icon' => 'M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007Z'])
+    @include('theme-classic_ecommerce::partials._page-banner', ['title' => __('Shop'), 'crumbs' => [['label' => __('Home'), 'url' => url('/')], ['label' => __('Shop'), 'url' => null]], 'icon' => 'M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007Z'])
 
     <div class="grid gap-6 lg:grid-cols-[17.5rem_1fr]" x-data="{ filtersOpen: false }">
         {{-- Mobile filter toggle --}}
@@ -419,7 +419,7 @@
             @if ($products->isNotEmpty())
                 <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-5 xl:grid-cols-4">
                     @foreach ($products as $product)
-                        @include('theme-ecommerce::partials._product-card', ['product' => $product])
+                        @include('theme-classic_ecommerce::partials._product-card', ['product' => $product])
                     @endforeach
                 </div>
 
@@ -444,7 +444,7 @@
     </div>
 </main>
 
-@include('theme-ecommerce::partials._footer')
+@include('theme-classic_ecommerce::partials._footer')
 
 @include('frontend.partials._chat-widget')
 @include('partials._custom-code-body')

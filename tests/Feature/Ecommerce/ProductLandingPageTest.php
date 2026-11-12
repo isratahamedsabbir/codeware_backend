@@ -20,7 +20,7 @@ use Livewire\Livewire;
 use function Pest\Laravel\get;
 
 beforeEach(function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
     Language::create(['code' => 'en', 'name' => 'English', 'native_name' => 'English', 'is_active' => true]);
 
@@ -46,7 +46,7 @@ it('renders the campaign landing page when the visit carries a fbclid', function
 });
 
 it('renders the landing page chosen on the product, falling back to the default one', function () {
-    $dir = base_path('themes/ecommerce/views/landing');
+    $dir = base_path('themes/classic_ecommerce/views/landing');
     file_put_contents($dir.'/zz-test-promo.blade.php', '<p>ZZ-TEST-PROMO</p>');
 
     try {
@@ -63,7 +63,7 @@ it('renders the landing page chosen on the product, falling back to the default 
 });
 
 it('ships default, basic and standard landing pages that all render', function () {
-    expect(array_keys(Themes::landingPages('ecommerce')))->toBe(['basic', 'default', 'standard']);
+    expect(array_keys(Themes::landingPages('classic_ecommerce')))->toBe(['basic', 'default', 'standard']);
 
     foreach (['basic', 'default', 'standard'] as $page) {
         Product::query()->update(['landing_page' => $page]);

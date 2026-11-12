@@ -11,14 +11,14 @@
     $siteName = \App\Models\Setting::get('site_name', config('app.name'));
     // Hero slider (Theme Settings → Banners): each slide {image, title,
     // description, url}; older image-only data still renders.
-    $heroSlides = \Themes\Ecommerce\Support\HeroSlides::forStorefront();
+    $heroSlides = \Themes\ClassicEcommerce\Support\HeroSlides::forStorefront();
     $promoImage1 = \App\Models\Setting::get('home_promo_banner_1');
     $promoImage2 = \App\Models\Setting::get('home_promo_banner_2');
 
     // Promo tile links (Theme Settings): a site path or an http(s) URL ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â
     // anything else (blank, javascript:, …) falls back to the Shop page. Read
     // from the ecommerce theme's own theme.json.
-    $promoLink = fn (string $key): string => \Themes\Ecommerce\Support\HeroSlides::safeUrl(\App\Support\ThemeSettings::text('ecommerce', $key));
+    $promoLink = fn (string $key): string => \Themes\ClassicEcommerce\Support\HeroSlides::safeUrl(\App\Support\ThemeSettings::text('classic_ecommerce', $key));
 
     $featured = \App\Models\Product::active()
         ->featured()
@@ -67,7 +67,7 @@
         ->get();
 @endphp
 
-@include('theme-ecommerce::partials._header')
+@include('theme-classic_ecommerce::partials._header')
 
 <main>
     <div class="mx-auto w-full max-w-7xl px-4 sm:px-6">
@@ -82,8 +82,8 @@
             // an empty gradient block; with neither, the main banner takes the full
             // width. One tile alone fills the whole side column.
             $promos = array_values(array_filter([
-                ['image' => $promoImage1, 'label' => __('New arrivals'), 'url' => $promoLink('theme_ecommerce_promo_1_link')],
-                ['image' => $promoImage2, 'label' => __('Best deals'), 'url' => $promoLink('theme_ecommerce_promo_2_link')],
+                ['image' => $promoImage1, 'label' => __('New arrivals'), 'url' => $promoLink('theme_classic_ecommerce_promo_1_link')],
+                ['image' => $promoImage2, 'label' => __('Best deals'), 'url' => $promoLink('theme_classic_ecommerce_promo_2_link')],
             ], fn ($promo) => filled($promo['image'])));
         @endphp
         <section class="mt-6 grid w-full grid-cols-1 gap-4 xl:h-[440px] {{ $promos !== [] ? 'xl:grid-cols-3' : '' }}">
@@ -183,9 +183,9 @@
         </section>
     </div>
 
-    @include('theme-ecommerce::partials._home-product-sections')
+    @include('theme-classic_ecommerce::partials._home-product-sections')
 
-    @include('theme-ecommerce::partials._home-brands')
+    @include('theme-classic_ecommerce::partials._home-brands')
 
     @if ($homeCategories->isNotEmpty())
         @foreach ($homeCategories as $category)
@@ -226,20 +226,20 @@
                 </div>
                 <div x-ref="track" class="no-scrollbar grid w-full min-w-0 grid-flow-col auto-cols-[calc(50%_-_6px)] gap-3 overflow-x-auto overscroll-x-contain scroll-smooth pb-1 sm:auto-cols-[calc(33.333333%_-_8px)] md:auto-cols-[calc(25%_-_12px)] md:gap-4 xl:auto-cols-[calc(20%_-_12.8px)]">
                     @foreach ($category->products as $product)
-                        @include('theme-ecommerce::partials._product-card', ['product' => $product])
+                        @include('theme-classic_ecommerce::partials._product-card', ['product' => $product])
                     @endforeach
                 </div>
             </section>
         @endforeach
     @endif
 
-    @include('theme-ecommerce::partials._advertisement', ['advertisement' => $advertisement ?? null])
+    @include('theme-classic_ecommerce::partials._advertisement', ['advertisement' => $advertisement ?? null])
 
     @foreach ($sections as $section)
         @continue(blank($section->localizedCards()))
 
         <section id="{{ $section->name }}" class="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-            @include('theme-ecommerce::partials._section-heading', ['title' => $section->name])
+            @include('theme-classic_ecommerce::partials._section-heading', ['title' => $section->name])
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-4">
                 @foreach ($section->localizedCards() as $card)
                     <div class="group overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md">
@@ -264,7 +264,7 @@
     @endforeach
 </main>
 
-@include('theme-ecommerce::partials._footer')
+@include('theme-classic_ecommerce::partials._footer')
 
 @include('frontend.partials._chat-widget')
 @include('partials._custom-code-body')

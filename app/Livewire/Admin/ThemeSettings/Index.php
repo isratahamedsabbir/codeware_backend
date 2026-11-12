@@ -15,7 +15,7 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
-use Themes\Ecommerce\Support\HeroSlides;
+use Themes\ClassicEcommerce\Support\HeroSlides;
 
 class Index extends Component
 {
@@ -112,7 +112,7 @@ class Index extends Component
 
     /**
      * The homepage hero slider, in order — each slide {image, title,
-     * description, link} (see Themes\Ecommerce\Support\HeroSlides). Persisted as a JSON
+     * description, link} (see Themes\ClassicEcommerce\Support\HeroSlides). Persisted as a JSON
      * list in `home_hero_slides`; the first image is mirrored into
      * `home_hero_image` so anything reading the single hero image keeps working.
      *
@@ -1281,7 +1281,7 @@ class Index extends Component
      * The site-wide settings keys this screen owns. Kept in sync with the field
      * widgets in the blade view; the homepage image keys are read by the
      * storefront home template (see
-     * themes/ecommerce/views/index.blade.php).
+     * themes/classic_ecommerce/views/index.blade.php).
      *
      * Deliberately no `theme_*` key: those belong to a theme's own
      * theme.json, not to this table (see saveThemeValues()).

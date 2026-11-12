@@ -150,11 +150,11 @@ it('404s on a slug no published post owns', function () {
 it('leaves /blog to the theme that owns it when another theme is active', function () {
     // The guard is keyed on the route name, so the ecommerce site keeps its own
     // /blog and this theme is simply not consulted.
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
-    expect(Themes::active())->toBe('ecommerce')
-        ->and(Themes::hasTemplateFor('ecommerce', 'blog'))->toBeTrue()
-        ->and(Themes::hasTemplateFor('ecommerce', 'post'))->toBeTrue();
+    expect(Themes::active())->toBe('classic_ecommerce')
+        ->and(Themes::hasTemplateFor('classic_ecommerce', 'blog'))->toBeTrue()
+        ->and(Themes::hasTemplateFor('classic_ecommerce', 'post'))->toBeTrue();
 });
 
 it('reaches the blog from the portfolio nav as a real page', function () {

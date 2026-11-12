@@ -1,11 +1,11 @@
 @if ($featured->isNotEmpty())
     <section class="mx-auto max-w-7xl px-4 pt-8 sm:px-6">
-        @include('theme-ecommerce::partials._section-heading', [
+        @include('theme-classic_ecommerce::partials._section-heading', [
             'title' => __('Featured products'),
         ])
         <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-4 xl:grid-cols-5">
             @foreach ($featured as $product)
-                @include('theme-ecommerce::partials._product-card', ['product' => $product])
+                @include('theme-classic_ecommerce::partials._product-card', ['product' => $product])
             @endforeach
         </div>
     </section>
@@ -13,12 +13,12 @@
 
 @if ($bestSellers->isNotEmpty())
     <section class="mx-auto max-w-7xl px-4 pt-10 sm:px-6">
-        @include('theme-ecommerce::partials._section-heading', [
+        @include('theme-classic_ecommerce::partials._section-heading', [
             'title' => __('Best sellers'),
         ])
         <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-4 xl:grid-cols-5">
             @foreach ($bestSellers as $product)
-                @include('theme-ecommerce::partials._product-card', ['product' => $product])
+                @include('theme-classic_ecommerce::partials._product-card', ['product' => $product])
             @endforeach
         </div>
     </section>
@@ -56,7 +56,7 @@
             </div>
             <div x-ref="track" class="no-scrollbar grid grid-flow-col auto-cols-[calc(50%_-_6px)] gap-3 overflow-x-auto overscroll-x-contain scroll-smooth pb-1 sm:auto-cols-[calc(33.333333%_-_8px)] md:auto-cols-[calc(25%_-_12px)] md:gap-4 xl:auto-cols-[calc(20%_-_12.8px)]">
                 @foreach ($newArrivals as $product)
-                    @include('theme-ecommerce::partials._product-card', ['product' => $product])
+                    @include('theme-classic_ecommerce::partials._product-card', ['product' => $product])
                 @endforeach
             </div>
         </div>

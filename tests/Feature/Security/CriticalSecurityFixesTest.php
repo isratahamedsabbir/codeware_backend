@@ -260,7 +260,7 @@ it('refuses to resolve the vendor, node_modules and bootstrap trees', function (
 it('still resolves ordinary asset paths, so the tool keeps working', function () {
     expect(FileManagerPath::isDenied('public/img'))->toBeFalse();
     expect(FileManagerPath::isDenied('storage/app/public'))->toBeFalse();
-    expect(FileManagerPath::isDenied('themes/ecommerce/public/css'))->toBeFalse();
+    expect(FileManagerPath::isDenied('themes/classic_ecommerce/public/css'))->toBeFalse();
     expect(FileManagerPath::isDenied('resources/views'))->toBeFalse();
     expect(FileManagerPath::isDenied('composer.json'))->toBeFalse();
     expect(FileManagerPath::isDenied(''))->toBeFalse();

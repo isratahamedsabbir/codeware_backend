@@ -7,7 +7,7 @@
 </head>
 <body class="bg-zinc-50 font-storefront text-sf-text antialiased">
 
-@include('theme-ecommerce::partials._header')
+@include('theme-classic_ecommerce::partials._header')
 
 <section class="relative overflow-hidden bg-brand text-white">
     <div class="pointer-events-none absolute -right-20 -top-24 size-80 rounded-full bg-white/10" aria-hidden="true"></div>
@@ -84,7 +84,7 @@
     </div>
 </main>
 
-@include('theme-ecommerce::partials._footer')
+@include('theme-classic_ecommerce::partials._footer')
 
 @include('frontend.partials._chat-widget')
 @include('partials._custom-code-body')

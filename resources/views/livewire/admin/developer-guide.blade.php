@@ -696,7 +696,7 @@ use App\Models\Setting;
 $name    = Setting::get('site_name');
 $perPage = Setting::perPage();               // typed accessor, with its default baked in
 
-Setting::set('site_theme', 'ecommerce');    // ALWAYS this, never ->update()
+Setting::set('site_theme', 'classic_ecommerce');    // ALWAYS this, never ->update()
         </x-admin-doc-code>
 
         <p>

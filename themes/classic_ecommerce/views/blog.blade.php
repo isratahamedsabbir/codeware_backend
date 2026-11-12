@@ -7,7 +7,7 @@
 </head>
 <body class="bg-page-bg font-storefront text-sf-text antialiased">
 
-@include('theme-ecommerce::partials._header')
+@include('theme-classic_ecommerce::partials._header')
 
 @php
     $activeCategory = (string) request()->query('category', '');
@@ -18,7 +18,7 @@
 @endphp
 
 <main class="mx-auto max-w-7xl px-4 pb-8 pt-0 sm:px-6">
-    @include('theme-ecommerce::partials._page-banner', ['title' => __('Blog'), 'crumbs' => $crumbs, 'icon' => 'M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z'])
+    @include('theme-classic_ecommerce::partials._page-banner', ['title' => __('Blog'), 'crumbs' => $crumbs, 'icon' => 'M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z'])
 
     @if ($categories->isNotEmpty())
         <nav aria-label="{{ __('Blog categories') }}" class="mb-8 flex flex-wrap items-center gap-2">
@@ -114,7 +114,7 @@
     @endif
 </main>
 
-@include('theme-ecommerce::partials._footer')
+@include('theme-classic_ecommerce::partials._footer')
 
 @include('frontend.partials._chat-widget')
 @include('partials._custom-code-body')

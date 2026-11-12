@@ -14,7 +14,7 @@ use Spatie\Permission\Models\Role;
  * theme with no auth/ folder 404s the page instead of borrowing another's.
  */
 test('login screen can be rendered', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
     $response = $this->get(route('login'));
 
@@ -22,7 +22,7 @@ test('login screen can be rendered', function () {
 });
 
 test('login screen shows the uploaded site icon', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     Setting::set('site_icon', '/storage/site-icon.png');
 
     $this->get(route('login'))

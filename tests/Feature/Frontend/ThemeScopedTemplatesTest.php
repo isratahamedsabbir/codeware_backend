@@ -76,7 +76,7 @@ it('does not fall back to another theme for a home or standalone page', function
 });
 
 it('renders each theme own home and page templates rather than one shared fallback', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     $this->get('/about')->assertOk()->assertDontSee('pf-');
 
     Setting::set('site_theme', 'default');
@@ -94,7 +94,7 @@ it('gives every bundled theme its own 404, in that theme own design', function (
     // belonging to no theme. Each one is recognisably that theme's.
     $expected = [
         'default' => ['rounded-lg bg-primary'],
-        'ecommerce' => ['rounded-card bg-sf-button'],
+        'classic_ecommerce' => ['rounded-card bg-sf-button'],
         'portfolio' => ['pf-btn-solid'],
     ];
 
@@ -207,7 +207,7 @@ it('serves a theme its own stylesheet when it has one', function () {
 });
 
 it('keeps the shared error pages for the admin panel and the API', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
     // The API answers in JSON, never with an HTML error page.
     $this->getJson('/api/v1/nope')->assertNotFound()->assertHeader('content-type', 'application/json');
@@ -232,7 +232,7 @@ it('drops a nav link the active theme cannot render, and keeps it on a theme tha
     Setting::set('site_theme', 'default');
     expect(Frontend::menuItems()->pluck('label')->all())->toBe(['About']);
 
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     expect(Frontend::menuItems()->pluck('label')->all())->toBe(['Shop', 'About']);
 });
 
@@ -276,12 +276,12 @@ it('hides a page link even though the page itself is published in the database',
 });
 
 it('resolves a nested account template instead of silently falling through', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
     // 'account.dashboard' is account/dashboard.blade.php — read as directories,
     // since a plain concatenation looks for a file no theme can ship.
-    expect(Themes::view('account.dashboard'))->toBe('theme-ecommerce::account.dashboard');
-    expect(Themes::view('account.profile'))->toBe('theme-ecommerce::account.profile');
+    expect(Themes::view('account.dashboard'))->toBe('theme-classic_ecommerce::account.dashboard');
+    expect(Themes::view('account.profile'))->toBe('theme-classic_ecommerce::account.profile');
 
     Setting::set('site_theme', 'default');
     expect(Themes::view('account.dashboard'))->toBeNull();

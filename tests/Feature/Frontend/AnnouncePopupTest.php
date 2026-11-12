@@ -50,7 +50,7 @@ it('requires the button link to render the button', function () {
 it('shows the popup on ecommerce pages when enabled and hides it when disabled', function () {
     Page::factory()->published()->create(['title' => ['en' => 'Home', 'bn' => ''], 'slug' => 'home', 'sort_order' => 0]);
     MenuItem::create(['group' => 'frontend', 'label' => 'Home', 'url' => '/', 'sort_order' => 0, 'is_active' => true]);
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     Setting::set('popup_title', 'Welcome to our store');
 
     Setting::set('popup_enabled', true);

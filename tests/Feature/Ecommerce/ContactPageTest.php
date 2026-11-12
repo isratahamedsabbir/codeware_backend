@@ -7,7 +7,7 @@ use App\Models\Setting;
 use Livewire\Livewire;
 
 beforeEach(function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     Page::factory()->published()->create(['title' => ['en' => 'Contact Us', 'bn' => ''], 'slug' => 'contact', 'type' => 'page']);
 });
 

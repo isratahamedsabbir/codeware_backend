@@ -1,16 +1,16 @@
 <?php
 
 /*
- * The storefront routes of the "ecommerce" theme — the whole shop.
+ * The storefront routes of the "classic_ecommerce" theme — the whole shop.
  *
  * routes/web.php registers this file behind the 'theme' guard, which 404s any
  * request the active theme has no template for, so these routes answer only
  * while the ecommerce theme is active, and this is the only theme with a cart,
  * a checkout and a customer account. Every controller below is one of this
- * theme's own, in themes/ecommerce/Controllers/ — the fourth per-theme
+ * theme's own, in themes/classic_ecommerce/Controllers/ — the fourth per-theme
  * half, after the route file (this one), the templates
- * (themes/ecommerce/) and the stylesheet
- * (themes/ecommerce/public/css/theme.css).
+ * (themes/classic_ecommerce/) and the stylesheet
+ * (themes/classic_ecommerce/public/css/theme.css).
  *
  * Each of the shop routes renders through the active theme's own template, and
  * would 404 on a theme that shipped none (see Themes::view()) — so every
@@ -18,15 +18,15 @@
  */
 
 use Illuminate\Support\Facades\Route;
-use Themes\Ecommerce\Controllers\AccountController;
-use Themes\Ecommerce\Controllers\BlogController;
-use Themes\Ecommerce\Controllers\CareerController;
-use Themes\Ecommerce\Controllers\CartController;
-use Themes\Ecommerce\Controllers\FlashDealController;
-use Themes\Ecommerce\Controllers\HomeController;
-use Themes\Ecommerce\Controllers\PageController;
-use Themes\Ecommerce\Controllers\ProductController;
-use Themes\Ecommerce\Controllers\ShopController;
+use Themes\ClassicEcommerce\Controllers\AccountController;
+use Themes\ClassicEcommerce\Controllers\BlogController;
+use Themes\ClassicEcommerce\Controllers\CareerController;
+use Themes\ClassicEcommerce\Controllers\CartController;
+use Themes\ClassicEcommerce\Controllers\FlashDealController;
+use Themes\ClassicEcommerce\Controllers\HomeController;
+use Themes\ClassicEcommerce\Controllers\PageController;
+use Themes\ClassicEcommerce\Controllers\ProductController;
+use Themes\ClassicEcommerce\Controllers\ShopController;
 
 // The homepage and the standalone pages are repeated here on purpose: each theme
 // file is a complete description of that theme's site, so they can be read side

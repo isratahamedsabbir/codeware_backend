@@ -19,13 +19,13 @@ use Illuminate\Support\Facades\Mail;
  * Replaces Fortify's token link, which pointed at a page in the Next.js app and
  * so was a dead end until that page existed. See App\Services\PasswordResetService.
  *
- * The three screens are theme templates (themes/ecommerce/auth/{forgot-password,
+ * The three screens are theme templates (themes/classic_ecommerce/auth/{forgot-password,
  * verify-code,reset-password}), so the theme is pinned to the one bundled theme
  * that ships them \u2014 a theme without an auth/ folder has no customer account to
  * reset, and 404s the whole flow (see CustomerAccountTest).
  */
 beforeEach(function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 });
 
 /** The code that was actually mailed, read back off the fake mail. */

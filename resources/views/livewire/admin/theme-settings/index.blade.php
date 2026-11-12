@@ -4,7 +4,7 @@
     $frontendUrl = (string) (config('app.frontend_url') ?: url('/'));
 
     $previews = [
-        'ecommerce' => [
+        'classic_ecommerce' => [
             'bg'    => 'bg-[#f2f4f8]',
             'nav'   => 'bg-[#045b30]',
             'trim'  => 'text-[#045b30]',
@@ -148,7 +148,7 @@
                                 </div>
                             </div>
 
-                            @if ($slug === 'ecommerce')
+                            @if ($slug === 'classic_ecommerce')
                                 {{-- Hero + "Shop now" --}}
                                 <div class="relative flex flex-1 items-end rounded-md bg-gradient-to-br {{ $preview['hero'] }} px-2.5 pb-2 pt-3">
                                     <span class="absolute left-2.5 top-2 h-1.5 w-16 rounded bg-white/50"></span>

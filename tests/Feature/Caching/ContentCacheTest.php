@@ -76,7 +76,7 @@ it('caches the theme folder scan', function () {
     // the memo without ever writing the entry it is meant to be asserting on.
     Themes::forget();
 
-    expect(Themes::all())->toHaveKey('ecommerce')
+    expect(Themes::all())->toHaveKey('classic_ecommerce')
         ->and(Cache::has('themes:all'))->toBeTrue();
 });
 

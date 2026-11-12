@@ -13,7 +13,7 @@
 </head>
 <body class="bg-white font-storefront text-sf-text antialiased">
 
-@include('theme-ecommerce::partials._header')
+@include('theme-classic_ecommerce::partials._header')
 
 {{-- Basic landing page: product name, one big photo, an order button and the
      order form itself right on the page (no cart, no checkout step), then the
@@ -154,10 +154,10 @@
 </main>
 
 <div>
-    @include('theme-ecommerce::partials._footer', ['withoutPopup' => true, 'flushTop' => true])
+    @include('theme-classic_ecommerce::partials._footer', ['withoutPopup' => true, 'flushTop' => true])
 </div>
 
-@include('theme-ecommerce::partials._landing-call')
+@include('theme-classic_ecommerce::partials._landing-call')
 @include('frontend.partials._chat-widget')
 @include('partials._custom-code-body')
 </body>

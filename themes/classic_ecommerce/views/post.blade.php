@@ -7,7 +7,7 @@
 </head>
 <body class="bg-white font-storefront text-sf-text antialiased">
 
-@include('theme-ecommerce::partials._header')
+@include('theme-classic_ecommerce::partials._header')
 
 @php
     $crumbs = [
@@ -18,7 +18,7 @@
 @endphp
 
 <div class="mx-auto max-w-7xl px-4 sm:px-6">
-    @include('theme-ecommerce::partials._page-banner', [
+    @include('theme-classic_ecommerce::partials._page-banner', [
         'title' => __('Blog'),
         'hideTitle' => true,
         'tag' => 'p',
@@ -153,7 +153,7 @@
     @endif
 </main>
 
-@include('theme-ecommerce::partials._footer')
+@include('theme-classic_ecommerce::partials._footer')
 
 @include('frontend.partials._chat-widget')
 @include('partials._custom-code-body')

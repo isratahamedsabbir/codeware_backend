@@ -29,7 +29,7 @@ beforeEach(function () {
 });
 
 it('renders every standalone page on the themes that ship a page template', function () {
-    foreach (['default', 'ecommerce'] as $theme) {
+    foreach (['default', 'classic_ecommerce'] as $theme) {
         Setting::set('site_theme', $theme);
 
         foreach (['/', '/about', '/contact', '/faq'] as $path) {
@@ -64,7 +64,7 @@ it('drives the default theme nav from the pages list, not the frontend menu', fu
 it('drives the ecommerce theme nav from the frontend menu, not the pages list', function () {
     MenuItem::where('label', 'About Us')->update(['label' => 'Renamed Menu Item']);
 
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
     $this->get('/')->assertOk()->assertSee('Renamed Menu Item')->assertDontSee('About Us');
 });
@@ -85,7 +85,7 @@ it('drives the portfolio theme nav from the portfolio menu, not the frontend men
 it('reflects a frontend menu change in ecommerce without touching the pages list', function () {
     MenuItem::create(['group' => 'frontend', 'label' => 'Extra Link', 'url' => '/faq', 'sort_order' => 99, 'is_active' => true]);
 
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     $this->get('/')->assertOk()->assertSee('Extra Link');
 
     Setting::set('site_theme', 'default');
@@ -95,7 +95,7 @@ it('reflects a frontend menu change in ecommerce without touching the pages list
 it('hides an inactive frontend menu item from the ecommerce nav', function () {
     MenuItem::where('label', 'FAQ')->update(['is_active' => false]);
 
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     $this->get('/')->assertOk()->assertDontSee('>FAQ<', false);
 });
 
@@ -138,7 +138,7 @@ it('drops a portfolio nav path item the one-pager theme cannot render', function
 });
 
 it('shows only featured product categories in the storefront shop-by-category grid', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
     $featured = Category::factory()->create([
         'name' => ['en' => 'Mustard Oil', 'bn' => ''],
@@ -165,10 +165,10 @@ it('shows only featured product categories in the storefront shop-by-category gr
 });
 
 it('applies the ecommerce theme primary & secondary colors to the storefront', function () {
-    Setting::set('site_theme', 'ecommerce');
-    ThemeSettings::merge('ecommerce', [
-        'theme_ecommerce_primary_color' => '#c01616',
-        'theme_ecommerce_secondary_color' => '#1e7bc4',
+    Setting::set('site_theme', 'classic_ecommerce');
+    ThemeSettings::merge('classic_ecommerce', [
+        'theme_classic_ecommerce_primary_color' => '#c01616',
+        'theme_classic_ecommerce_secondary_color' => '#1e7bc4',
     ]);
 
     $this->get('/')
@@ -186,7 +186,7 @@ it('does not inject theme colors when the ecommerce theme is not active', functi
 });
 
 it('shows a language switcher in the ecommerce header when more than one language is active', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     Language::create(['code' => 'en', 'name' => 'English', 'is_active' => true, 'is_default' => true]);
     Language::create(['code' => 'bn', 'name' => 'Bengali', 'native_name' => 'বাংলা', 'flag' => '🇧🇩', 'is_active' => true]);
 
@@ -198,7 +198,7 @@ it('shows a language switcher in the ecommerce header when more than one languag
 });
 
 it('switches the storefront language per-visitor via the lang query param', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     Language::create(['code' => 'en', 'name' => 'English', 'is_active' => true, 'is_default' => true]);
     Language::create(['code' => 'bn', 'name' => 'Bengali', 'native_name' => 'বাংলা', 'is_active' => true]);
 
@@ -208,14 +208,14 @@ it('switches the storefront language per-visitor via the lang query param', func
 });
 
 it('hides the ecommerce language switcher while only one language is active', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     Language::create(['code' => 'en', 'name' => 'English', 'is_active' => true, 'is_default' => true]);
 
     $this->get('/')->assertOk()->assertDontSee('Change language', false);
 });
 
 it('hides the ecommerce language switcher once disabled in settings', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     Setting::set('language_switcher_enabled', '0');
     Language::create(['code' => 'en', 'name' => 'English', 'is_active' => true, 'is_default' => true]);
     Language::create(['code' => 'bn', 'name' => 'Bengali', 'native_name' => 'বাংলা', 'is_active' => true]);
@@ -224,7 +224,7 @@ it('hides the ecommerce language switcher once disabled in settings', function (
 });
 
 it('ranks best-selling products by units sold on non-cancelled orders', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
     $user = User::factory()->create();
 

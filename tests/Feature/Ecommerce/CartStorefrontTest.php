@@ -17,7 +17,7 @@ use Livewire\Livewire;
 use function Pest\Laravel\get;
 
 beforeEach(function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
     // Most tests here act as a signed-in shopper. Guests can check out too —
     // see the two guest tests below, and GuestCheckoutTest for the account a

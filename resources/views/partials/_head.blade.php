@@ -44,7 +44,7 @@
     // the font a theme renders by default, so a theme that has chosen one gets
     // that file preloaded instead — two preloads would mean two requests for two
     // files where only one is ever drawn.
-    $otherFontThemes = ['ecommerce', 'portfolio'];
+    $otherFontThemes = ['classic_ecommerce', 'portfolio'];
     $preloadStorefrontFont = $storefrontFontStack === null
         && ! in_array(theme_slug(), $otherFontThemes, true);
 @endphp

@@ -17,7 +17,7 @@ beforeEach(function () {
     // The ecommerce theme, because the sitemap only advertises what the active
     // theme can actually serve — under the default theme /products/widget is a
     // 404 and is correctly absent.
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     SeoResolver::flush();
 
     $this->seed(RolePermissionSeeder::class);

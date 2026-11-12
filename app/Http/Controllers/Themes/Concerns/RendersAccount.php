@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
  *
  * Note what is *not* here any more: the old CustomerController had an
  * ensureEcommerceTheme() guard aborting unless the active theme was literally
- * named "ecommerce", on the grounds that the controller was shared and could
+ * named "classic_ecommerce", on the grounds that the controller was shared and could
  * be called directly. The guard was already belt-and-braces (the route group's
  * 'theme' middleware is what keeps /account off a portfolio site), and it is
  * now plainly wrong: the account pages live in Themes/Ecommerce/, so a theme

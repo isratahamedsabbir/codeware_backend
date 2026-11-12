@@ -115,7 +115,7 @@ it('404s the API for a deal that is not live', function () {
 });
 
 it('shows the Flash Deals button after the menu only while a deal is live', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
     $this->get('/')->assertOk()->assertDontSee('Flash Deals');
 
@@ -125,7 +125,7 @@ it('shows the Flash Deals button after the menu only while a deal is live', func
 });
 
 it('renders the flash deals page with the deal price', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     dealFor(flashProduct(1000), ['name' => 'Eid Sale']);
 
     $this->get(route('flash-deals'))
@@ -135,7 +135,7 @@ it('renders the flash deals page with the deal price', function () {
 });
 
 it('shows an empty state on the flash deals page when nothing is live', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
     $this->get(route('flash-deals'))->assertOk()->assertSee('No flash deals right now');
 });

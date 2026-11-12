@@ -24,27 +24,27 @@ it('keeps every part of a bundled theme inside its own folder', function (string
         ->and(is_file("{$folder}/public/css/theme.css"))->toBeTrue()
         ->and(is_dir("{$folder}/public"))->toBeTrue()
         ->and(is_dir("{$folder}/Controllers"))->toBeTrue();
-})->with(['default', 'ecommerce', 'portfolio']);
+})->with(['default', 'classic_ecommerce', 'portfolio']);
 
 it('autoloads a theme controller from its own folder', function () {
-    expect(class_exists('Themes\Ecommerce\Controllers\ShopController'))->toBeTrue()
+    expect(class_exists('Themes\ClassicEcommerce\Controllers\ShopController'))->toBeTrue()
         ->and(class_exists('Themes\Portfolio\Controllers\HomeController'))->toBeTrue()
         ->and(class_exists('Themes\Nope\Controllers\HomeController'))->toBeFalse();
 });
 
 it('autoloads a theme seeder from its database folder', function () {
     expect(class_exists('Themes\Portfolio\Database\Seeders\MenuSeeder'))->toBeTrue()
-        ->and(class_exists('Themes\Ecommerce\Database\Seeders\MenuSeeder'))->toBeTrue();
+        ->and(class_exists('Themes\ClassicEcommerce\Database\Seeders\MenuSeeder'))->toBeTrue();
 });
 
 it('registers each theme templates under its own view namespace', function (string $slug) {
     expect(View::exists(Themes::viewNamespace($slug).'::index'))->toBeTrue();
-})->with(['default', 'ecommerce', 'portfolio']);
+})->with(['default', 'classic_ecommerce', 'portfolio']);
 
 it('routes the storefront to controllers that live in the theme folder', function () {
     $action = Route::getRoutes()->getByName('shop')->getActionName();
 
-    expect($action)->toStartWith('Themes\Ecommerce\Controllers\ShopController');
+    expect($action)->toStartWith('Themes\ClassicEcommerce\Controllers\ShopController');
 });
 
 it('serves a file out of a theme public folder', function () {

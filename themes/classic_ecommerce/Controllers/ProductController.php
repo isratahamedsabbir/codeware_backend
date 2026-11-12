@@ -1,12 +1,12 @@
 <?php
 
-namespace Themes\Ecommerce\Controllers;
+namespace Themes\ClassicEcommerce\Controllers;
 
 use App\Http\Controllers\Themes\Concerns\RendersProduct;
 use App\Http\Controllers\Themes\ThemeController;
 
 /**
- * The "ecommerce" theme's product detail page, plus the two storefront pages
+ * The "classic_ecommerce" theme's product detail page, plus the two storefront pages
  * that hang off a product: the favorites list and the advertisement click
  * tracker that sends a visitor on to a banner's destination.
  *

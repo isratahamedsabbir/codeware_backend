@@ -9,7 +9,7 @@ use App\Models\Setting;
 use App\Models\Tag;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
-use Themes\Ecommerce\Database\Seeders\MenuSeeder as FrontendMenuSeeder;
+use Themes\ClassicEcommerce\Database\Seeders\MenuSeeder as FrontendMenuSeeder;
 
 use function Pest\Laravel\get;
 
@@ -17,7 +17,7 @@ beforeEach(function () {
     $this->seed(RolePermissionSeeder::class);
     $this->admin = User::factory()->admin()->create();
 
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
     Language::create(['code' => 'en', 'name' => 'English', 'native_name' => 'English', 'is_active' => true]);
 
@@ -425,7 +425,7 @@ it('lists featured categories and brands in the ecommerce header, after the menu
 });
 
 it('serves its own storefront templates and keeps them to itself', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
     $product = storefrontProduct('scoped-product', ['name' => ['en' => 'Scoped Product', 'bn' => '']]);
 

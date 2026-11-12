@@ -7,7 +7,7 @@
 </head>
 <body class="bg-page-bg font-storefront text-sf-text antialiased">
 
-@include('theme-ecommerce::partials._header')
+@include('theme-classic_ecommerce::partials._header')
 
 @php
     $crumbs = [
@@ -18,7 +18,7 @@
     ];
 @endphp
 
-@include('theme-ecommerce::partials._breadcrumbs', ['crumbs' => $crumbs])
+@include('theme-classic_ecommerce::partials._breadcrumbs', ['crumbs' => $crumbs])
 
 <main class="mx-auto max-w-7xl px-4 pb-8 pt-0 sm:px-6">
     <section>
@@ -31,7 +31,7 @@
         @if ($products->isNotEmpty())
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-5 lg:grid-cols-4">
                 @foreach ($products as $product)
-                    @include('theme-ecommerce::partials._product-card', ['product' => $product])
+                    @include('theme-classic_ecommerce::partials._product-card', ['product' => $product])
                 @endforeach
             </div>
             <div class="mt-10">
@@ -48,7 +48,7 @@
     </section>
 </main>
 
-@include('theme-ecommerce::partials._footer')
+@include('theme-classic_ecommerce::partials._footer')
 
 @include('frontend.partials._chat-widget')
 @include('partials._custom-code-body')

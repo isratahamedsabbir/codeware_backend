@@ -9,7 +9,7 @@ beforeEach(function () {
 
     // The registration page is a theme template (themes/{slug}/auth/register),
     // so the suite runs on the one bundled theme that ships it.
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 });
 
 test('registration screen can be rendered', function () {

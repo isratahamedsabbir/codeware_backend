@@ -1,6 +1,6 @@
 <?php
 
-namespace Themes\Ecommerce\Controllers;
+namespace Themes\ClassicEcommerce\Controllers;
 
 use App\Http\Controllers\Themes\Concerns\RendersCatalog;
 use App\Http\Controllers\Themes\ThemeController;
@@ -8,7 +8,7 @@ use App\Models\ProductCategory;
 use Illuminate\Http\RedirectResponse;
 
 /**
- * The "ecommerce" theme's catalog: the shop listing and the category, brand and
+ * The "classic_ecommerce" theme's catalog: the shop listing and the category, brand and
  * tag pages that filter it.
  *
  * The only theme with a shop — the portfolio is a one-pager and the default

@@ -139,9 +139,9 @@ it('links the theme builder guide PDF in the install modal', function () {
 it('supplies each theme manifest (name, version, author, tags) to the picker', function () {
     Livewire::test(ThemeSettingsScreen::class)
         ->assertViewHas('themeCards', function (array $cards): bool {
-            $ecommerce = $cards['ecommerce'];
+            $ecommerce = $cards['classic_ecommerce'];
 
-            return $ecommerce['manifest']['name'] === 'Ecommerce'
+            return $ecommerce['manifest']['name'] === 'Classic Ecommerce'
                 && $ecommerce['manifest']['version'] === '1.0.0'
                 && $ecommerce['manifest']['author'] === 'Codeware'
                 && is_array($ecommerce['manifest']['tags']);
@@ -188,7 +188,7 @@ it('treats a malformed theme.json as if it were missing', function () {
 
 it('renders the selected theme settings panel below the picker', function () {
     Livewire::test(ThemeSettingsScreen::class)
-        ->set('settings.site_theme', 'ecommerce')
+        ->set('settings.site_theme', 'classic_ecommerce')
         ->assertSeeHtml('Ecommerce')
         ->assertSeeHtml('About Ecommerce');
 });
@@ -197,39 +197,39 @@ it('loads theme-scoped values out of the theme\'s own theme.json', function () {
     // A theme's settings live in its own theme.json, not the settings table,
     // so this is written straight to the file. A DB row under the same key would
     // prove nothing — nothing on the save path reads one.
-    ThemeSettings::merge('ecommerce', ['theme_ecommerce_accent_color' => '#c01616']);
+    ThemeSettings::merge('classic_ecommerce', ['theme_classic_ecommerce_accent_color' => '#c01616']);
 
     $component = Livewire::test(ThemeSettingsScreen::class);
 
-    expect($component->get('settings.theme_ecommerce_accent_color'))->toBe('#c01616');
+    expect($component->get('settings.theme_classic_ecommerce_accent_color'))->toBe('#c01616');
 });
 
 it('loads a blank value for a declared field the file has never had a key for', function () {
-    ThemeSettings::merge('ecommerce', ['theme_ecommerce_accent_color' => '#c01616']);
+    ThemeSettings::merge('classic_ecommerce', ['theme_classic_ecommerce_accent_color' => '#c01616']);
 
     // header_bg_color is declared by ecommerce/settings.blade.php but absent from
     // the file, so it has to come up blank rather than missing from the bag.
     // Taken out of the file first: the shipped file does carry a colour for it,
     // and the state worth pinning down is the absent one, not whatever the
     // repository happens to be holding today.
-    forgetThemeJsonKeys('ecommerce', ['theme_ecommerce_header_bg_color']);
+    forgetThemeJsonKeys('classic_ecommerce', ['theme_classic_ecommerce_header_bg_color']);
 
     $component = Livewire::test(ThemeSettingsScreen::class);
 
-    expect($component->get('settings.theme_ecommerce_header_bg_color'))->toBe('');
+    expect($component->get('settings.theme_classic_ecommerce_header_bg_color'))->toBe('');
 });
 
 it('saves each theme\'s values into that theme\'s own theme.json', function () {
     Livewire::test(ThemeSettingsScreen::class)
-        ->set('settings.theme_ecommerce_accent_color', '#c01616')
+        ->set('settings.theme_classic_ecommerce_accent_color', '#c01616')
         ->set('settings.theme_portfolio_hero_title', 'Designer')
         ->call('save');
 
-    expect(ThemeSettings::text('ecommerce', 'theme_ecommerce_accent_color'))->toBe('#c01616')
+    expect(ThemeSettings::text('classic_ecommerce', 'theme_classic_ecommerce_accent_color'))->toBe('#c01616')
         ->and(ThemeSettings::text('portfolio', 'theme_portfolio_hero_title'))->toBe('Designer')
         // And nowhere near the other theme's file, nor the settings table.
-        ->and(ThemeSettings::text('portfolio', 'theme_ecommerce_accent_color'))->toBe('')
-        ->and(ThemeSettings::text('ecommerce', 'theme_portfolio_hero_title'))->toBe('')
+        ->and(ThemeSettings::text('portfolio', 'theme_classic_ecommerce_accent_color'))->toBe('')
+        ->and(ThemeSettings::text('classic_ecommerce', 'theme_portfolio_hero_title'))->toBe('')
         ->and(Setting::where('key', 'like', 'theme\_%')->count())->toBe(0);
 });
 
@@ -259,22 +259,22 @@ it('stores repeater rows in the theme\'s theme.json as a JSON list', function ()
 });
 
 it('warns instead of writing when a theme\'s theme.json is missing', function () {
-    ThemeSettings::delete('ecommerce');
+    ThemeSettings::delete('classic_ecommerce');
 
     $component = Livewire::test(ThemeSettingsScreen::class)
-        ->set('settings.site_theme', 'ecommerce')
+        ->set('settings.site_theme', 'classic_ecommerce')
         // The card says which file is missing and puts the button next to it, so
         // a save that cannot write is explained where the fields are, not only
         // in a flash that goes away on reload.
         ->assertSee('This theme has no theme.json file.')
-        ->assertSee(ThemeSettings::file('ecommerce'), escape: false)
+        ->assertSee(ThemeSettings::file('classic_ecommerce'), escape: false)
         ->assertSee('Create theme.json')
-        ->set('settings.theme_ecommerce_accent_color', '#c01616')
+        ->set('settings.theme_classic_ecommerce_accent_color', '#c01616')
         ->call('save');
 
     // Nothing was invented, and nothing fell back to the settings table either.
-    expect(ThemeSettings::exists('ecommerce'))->toBeFalse()
-        ->and(Setting::where('key', 'theme_ecommerce_accent_color')->exists())->toBeFalse()
+    expect(ThemeSettings::exists('classic_ecommerce'))->toBeFalse()
+        ->and(Setting::where('key', 'theme_classic_ecommerce_accent_color')->exists())->toBeFalse()
         ->and($component->html())->toContain('Create theme.json');
 });
 
@@ -282,42 +282,42 @@ it('leaves keys the settings screen does not declare alone when saving', functio
     // A theme.json is a theme's own file, and a theme author may well put
     // something in it the admin form knows nothing about. Merging the form's
     // values in has to leave that untouched — a save is not a rewrite.
-    ThemeSettings::merge('ecommerce', ['theme_ecommerce_author_note' => 'Hand-edited.']);
+    ThemeSettings::merge('classic_ecommerce', ['theme_classic_ecommerce_author_note' => 'Hand-edited.']);
 
     Livewire::test(ThemeSettingsScreen::class)
-        ->set('settings.theme_ecommerce_accent_color', '#c01616')
+        ->set('settings.theme_classic_ecommerce_accent_color', '#c01616')
         ->call('save');
 
-    expect(ThemeSettings::text('ecommerce', 'theme_ecommerce_author_note'))->toBe('Hand-edited.')
-        ->and(ThemeSettings::text('ecommerce', 'theme_ecommerce_accent_color'))->toBe('#c01616');
+    expect(ThemeSettings::text('classic_ecommerce', 'theme_classic_ecommerce_author_note'))->toBe('Hand-edited.')
+        ->and(ThemeSettings::text('classic_ecommerce', 'theme_classic_ecommerce_accent_color'))->toBe('#c01616');
 });
 
 it('creates the selected theme\'s theme.json seeded with every field it declares', function () {
-    ThemeSettings::delete('ecommerce');
+    ThemeSettings::delete('classic_ecommerce');
 
     Livewire::test(ThemeSettingsScreen::class)
-        ->set('settings.site_theme', 'ecommerce')
+        ->set('settings.site_theme', 'classic_ecommerce')
         ->assertSee('Create theme.json')
         ->call('createSettingsFile')
         ->assertHasNoErrors();
 
-    $written = json_decode((string) file_get_contents(ThemeSettings::file('ecommerce')), true);
+    $written = json_decode((string) file_get_contents(ThemeSettings::file('classic_ecommerce')), true);
 
     // The point of the button: the theme's fields have somewhere to go again.
-    expect(ThemeSettings::exists('ecommerce'))->toBeTrue()
+    expect(ThemeSettings::exists('classic_ecommerce'))->toBeTrue()
         // A readable statement of what this theme can be configured with, not a
         // bare {} — the file is also what a theme author reads to find the keys.
-        ->and($written)->toHaveKey('theme_ecommerce_accent_color', '')
-        ->and($written)->toHaveKey('theme_ecommerce_promo_1_link', '')
+        ->and($written)->toHaveKey('theme_classic_ecommerce_accent_color', '')
+        ->and($written)->toHaveKey('theme_classic_ecommerce_promo_1_link', '')
         ->and(array_values($written))->not->toContain(null);
 
     // And the form now saves into it.
     Livewire::test(ThemeSettingsScreen::class)
-        ->set('settings.site_theme', 'ecommerce')
-        ->set('settings.theme_ecommerce_accent_color', '#c01616')
+        ->set('settings.site_theme', 'classic_ecommerce')
+        ->set('settings.theme_classic_ecommerce_accent_color', '#c01616')
         ->call('save');
 
-    expect(ThemeSettings::text('ecommerce', 'theme_ecommerce_accent_color'))->toBe('#c01616');
+    expect(ThemeSettings::text('classic_ecommerce', 'theme_classic_ecommerce_accent_color'))->toBe('#c01616');
 });
 
 it('seeds an empty list for each repeater a theme declares', function () {
@@ -335,19 +335,19 @@ it('seeds an empty list for each repeater a theme declares', function () {
 });
 
 it('refuses to create a theme.json that is already there', function () {
-    ThemeSettings::merge('ecommerce', ['theme_ecommerce_accent_color' => '#c01616']);
+    ThemeSettings::merge('classic_ecommerce', ['theme_classic_ecommerce_accent_color' => '#c01616']);
 
     // The button is not even offered for a theme that has its file, and calling
     // the action anyway is a no-op: this is the recovery path for a missing file,
     // not a reset, and a create that overwrote would be one click from wiping a
     // finished theme's content.
     Livewire::test(ThemeSettingsScreen::class)
-        ->set('settings.site_theme', 'ecommerce')
+        ->set('settings.site_theme', 'classic_ecommerce')
         ->assertDontSee('Create theme.json')
         ->call('createSettingsFile')
-        ->assertSet('settings.theme_ecommerce_accent_color', '#c01616');
+        ->assertSet('settings.theme_classic_ecommerce_accent_color', '#c01616');
 
-    expect(ThemeSettings::text('ecommerce', 'theme_ecommerce_accent_color'))->toBe('#c01616');
+    expect(ThemeSettings::text('classic_ecommerce', 'theme_classic_ecommerce_accent_color'))->toBe('#c01616');
 });
 
 it('offers no theme.json button for a theme that declares no settings form', function () {
@@ -396,14 +396,14 @@ it('does not create a theme.json for a theme that is not installed', function ()
 
 it('renders a color picker for every storefront area', function () {
     $component = Livewire::test(ThemeSettingsScreen::class)
-        ->set('settings.site_theme', 'ecommerce')
+        ->set('settings.site_theme', 'classic_ecommerce')
         ->assertSeeHtml('type="color"')
         ->assertDontSee('Primary Color')
         ->assertDontSee('Secondary Color');
 
     foreach (['header_bg', 'header_text', 'nav_bg', 'nav_text', 'footer_bg', 'footer_text', 'footer_bottom',
         'button_bg', 'button_text', 'heading', 'text', 'price', 'accent', 'sale', 'page_bg'] as $area) {
-        $component->assertSeeHtml("theme_ecommerce_{$area}_color");
+        $component->assertSeeHtml("theme_classic_ecommerce_{$area}_color");
     }
 });
 
@@ -411,25 +411,25 @@ it('saves brand-new per-area colors even before they are in the file', function 
     // Both keys start out absent, which is the whole subject of the test: the
     // screen has to offer a field the file has never heard of. Removed here
     // rather than assumed, since the shipped file now carries values for them.
-    forgetThemeJsonKeys('ecommerce', ['theme_ecommerce_header_bg_color', 'theme_ecommerce_button_bg_color']);
+    forgetThemeJsonKeys('classic_ecommerce', ['theme_classic_ecommerce_header_bg_color', 'theme_classic_ecommerce_button_bg_color']);
 
     Livewire::test(ThemeSettingsScreen::class)
-        ->assertSet('settings.theme_ecommerce_header_bg_color', '')
-        ->set('settings.theme_ecommerce_header_bg_color', '#112233')
-        ->set('settings.theme_ecommerce_button_bg_color', '#c01616')
+        ->assertSet('settings.theme_classic_ecommerce_header_bg_color', '')
+        ->set('settings.theme_classic_ecommerce_header_bg_color', '#112233')
+        ->set('settings.theme_classic_ecommerce_button_bg_color', '#c01616')
         ->call('save');
 
-    expect(ThemeSettings::text('ecommerce', 'theme_ecommerce_header_bg_color'))->toBe('#112233')
-        ->and(ThemeSettings::text('ecommerce', 'theme_ecommerce_button_bg_color'))->toBe('#c01616');
+    expect(ThemeSettings::text('classic_ecommerce', 'theme_classic_ecommerce_header_bg_color'))->toBe('#112233')
+        ->and(ThemeSettings::text('classic_ecommerce', 'theme_classic_ecommerce_button_bg_color'))->toBe('#c01616');
 });
 
 it('applies the per-area colors to the storefront and ignores anything that is not a hex color', function () {
-    Setting::set('site_theme', 'ecommerce');
-    ThemeSettings::merge('ecommerce', [
-        'theme_ecommerce_primary_color' => '#045b30',
-        'theme_ecommerce_header_bg_color' => '#112233',
-        'theme_ecommerce_footer_text_color' => '#eeeeee',
-        'theme_ecommerce_button_bg_color' => 'red; } body { display:none',
+    Setting::set('site_theme', 'classic_ecommerce');
+    ThemeSettings::merge('classic_ecommerce', [
+        'theme_classic_ecommerce_primary_color' => '#045b30',
+        'theme_classic_ecommerce_header_bg_color' => '#112233',
+        'theme_classic_ecommerce_footer_text_color' => '#eeeeee',
+        'theme_classic_ecommerce_button_bg_color' => 'red; } body { display:none',
     ]);
 
     $this->get('/')
@@ -443,9 +443,9 @@ it('applies the per-area colors to the storefront and ignores anything that is n
 });
 
 it('loads the ecommerce theme colors the file holds into the form', function () {
-    ThemeSettings::merge('ecommerce', [
-        'theme_ecommerce_primary_color' => '#045b30',
-        'theme_ecommerce_secondary_color' => '#7cc242',
+    ThemeSettings::merge('classic_ecommerce', [
+        'theme_classic_ecommerce_primary_color' => '#045b30',
+        'theme_classic_ecommerce_secondary_color' => '#7cc242',
     ]);
 
     $component = Livewire::test(ThemeSettingsScreen::class);
@@ -454,26 +454,26 @@ it('loads the ecommerce theme colors the file holds into the form', function () 
     // legacy primary is in there (the colour preview falls back to it) while the
     // secondary is not — it is read on the storefront, not edited here. Both
     // values still survive a save, because a save merges rather than rewrites.
-    expect($component->get('settings.theme_ecommerce_primary_color'))->toBe('#045b30')
-        ->and(ThemeSettings::text('ecommerce', 'theme_ecommerce_secondary_color'))->toBe('#7cc242');
+    expect($component->get('settings.theme_classic_ecommerce_primary_color'))->toBe('#045b30')
+        ->and(ThemeSettings::text('classic_ecommerce', 'theme_classic_ecommerce_secondary_color'))->toBe('#7cc242');
 });
 
 it('renders the selected theme settings blade when the theme ships one', function () {
-    expect(Themes::hasSettings('ecommerce'))->toBeTrue()
+    expect(Themes::hasSettings('classic_ecommerce'))->toBeTrue()
         ->and(Themes::hasSettings('default'))->toBeTrue()
         ->and(Themes::hasSettings('portfolio'))->toBeTrue();
 
     Livewire::test(ThemeSettingsScreen::class)
-        ->set('settings.site_theme', 'ecommerce')
+        ->set('settings.site_theme', 'classic_ecommerce')
         // The ecommerce card holds the homepage banner uploads + its colors only.
         ->assertSee('Banners')
         ->assertSee("tab === 'colors'", false)
         ->assertSee('heroSlides.0')
         ->assertSee('Add slide')
         ->assertSee('settings.home_promo_banner_2')
-        ->assertSee('theme_ecommerce_header_bg_color')
-        ->assertSee('theme_ecommerce_button_bg_color')
-        ->assertSee('theme_ecommerce_footer_bg_color')
+        ->assertSee('theme_classic_ecommerce_header_bg_color')
+        ->assertSee('theme_classic_ecommerce_button_bg_color')
+        ->assertSee('theme_classic_ecommerce_footer_bg_color')
         ->assertDontSee('Hero Badge')
         ->assertDontSee('Promo Banner 1 Title');
 });
@@ -510,7 +510,7 @@ it('navigates a theme\'s settings sections by menu beside the form, not a tab st
     // cannot reach. Education and Certifications used to share one "Credentials"
     // entry and are two now, which is what took this from eight to nine.
     $expectMenu('portfolio', 9);
-    $expectMenu('ecommerce', 3);
+    $expectMenu('classic_ecommerce', 3);
 });
 
 it('picks the theme from the Site Design grid, open on arrival and on the live theme', function () {
@@ -525,7 +525,7 @@ it('picks the theme from the Site Design grid, open on arrival and on the live t
 
     expect($html)->toContain('x-data="{ open: true }"');
 
-    foreach (['default', 'ecommerce', 'portfolio'] as $slug) {
+    foreach (['default', 'classic_ecommerce', 'portfolio'] as $slug) {
         expect($html)->toContain('value="'.$slug.'"');
     }
 
@@ -540,15 +540,15 @@ it('moves the selection when a theme card is picked', function () {
     Setting::set('site_theme', 'portfolio');
 
     Livewire::test(ThemeSettingsScreen::class)
-        ->call('$set', 'settings.site_theme', 'ecommerce')
-        ->assertSet('settings.site_theme', 'ecommerce');
+        ->call('$set', 'settings.site_theme', 'classic_ecommerce')
+        ->assertSet('settings.site_theme', 'classic_ecommerce');
 
     $html = Livewire::test(ThemeSettingsScreen::class)
-        ->set('settings.site_theme', 'ecommerce')
+        ->set('settings.site_theme', 'classic_ecommerce')
         ->html();
 
     // The ecommerce settings form is what came up.
-    expect($html)->toContain('theme_ecommerce_accent_color')
+    expect($html)->toContain('theme_classic_ecommerce_accent_color')
         ->and($html)->not->toContain('theme_portfolio_projects');
 
     // One card action menu per theme, so every card carries its own download.
@@ -571,7 +571,7 @@ it('keys each theme settings panel by slug so switching themes cannot leave a st
     //
     // A per-slug wire:key makes the node unique, so Livewire is forced to
     // replace it and Alpine re-initialises with the incoming theme's scope.
-    foreach (['default', 'portfolio', 'ecommerce'] as $slug) {
+    foreach (['default', 'portfolio', 'classic_ecommerce'] as $slug) {
         $html = Livewire::test(ThemeSettingsScreen::class)
             ->set('settings.site_theme', $slug)
             ->html();
@@ -587,18 +587,18 @@ it('keys each theme settings panel by slug so switching themes cannot leave a st
         ->html();
 
     $ecommerce = Livewire::test(ThemeSettingsScreen::class)
-        ->set('settings.site_theme', 'ecommerce')
+        ->set('settings.site_theme', 'classic_ecommerce')
         ->html();
 
     expect($portfolio)->toContain("localStorage.getItem('theme-portfolio-tab')")
-        ->and($ecommerce)->toContain("localStorage.getItem('theme-ecommerce-tab')")
-        ->and($portfolio)->not->toContain('wire:key="theme-settings-ecommerce"')
+        ->and($ecommerce)->toContain("localStorage.getItem('theme-classic_ecommerce-tab')")
+        ->and($portfolio)->not->toContain('wire:key="theme-settings-classic_ecommerce"')
         ->and($ecommerce)->not->toContain('wire:key="theme-settings-portfolio"');
 });
 
 it('sends the theme settings info icon into the guide theme settings block', function () {
     $html = Livewire::test(ThemeSettingsScreen::class)
-        ->set('settings.site_theme', 'ecommerce')
+        ->set('settings.site_theme', 'classic_ecommerce')
         ->html();
 
     expect($html)
@@ -616,7 +616,7 @@ it('sends the site design info icon to the guide theme creation checklist', func
     // theme settings work" - two different questions, so they must not both
     // land on the same spot.
     $html = Livewire::test(ThemeSettingsScreen::class)
-        ->set('settings.site_theme', 'ecommerce')
+        ->set('settings.site_theme', 'classic_ecommerce')
         ->html();
 
     expect($html)
@@ -629,7 +629,7 @@ it('points every guide deep link at an anchor the guide actually renders', funct
 
     $guide = Livewire::actingAs($admin)->test(DeveloperGuide::class)->html();
     $settings = Livewire::actingAs($admin)->test(ThemeSettingsScreen::class)
-        ->set('settings.site_theme', 'ecommerce')
+        ->set('settings.site_theme', 'classic_ecommerce')
         ->html();
 
     // Collect every fragment the theme settings screen links into the guide with,
@@ -687,7 +687,7 @@ it('is reachable by admins via its own route', function () {
 });
 
 it('loads existing theme settings into the form', function () {
-    Setting::factory()->create(['key' => 'site_theme', 'value' => 'ecommerce', 'group' => 'frontend', 'type' => 'select']);
+    Setting::factory()->create(['key' => 'site_theme', 'value' => 'classic_ecommerce', 'group' => 'frontend', 'type' => 'select']);
     Setting::factory()->create(['key' => 'site_tagline', 'value' => 'Shop smart', 'group' => 'frontend', 'type' => 'textarea']);
     Setting::factory()->create(['key' => 'chat_widget_enabled', 'value' => '0', 'group' => 'frontend', 'type' => 'boolean']);
     Setting::factory()->create(['key' => 'popup_enabled', 'value' => '1', 'group' => 'frontend', 'type' => 'boolean']);
@@ -695,7 +695,7 @@ it('loads existing theme settings into the form', function () {
 
     $component = Livewire::test(ThemeSettingsScreen::class);
 
-    expect($component->get('settings.site_theme'))->toBe('ecommerce')
+    expect($component->get('settings.site_theme'))->toBe('classic_ecommerce')
         ->and($component->get('settings.site_tagline'))->toBe('Shop smart')
         ->and($component->get('settings.chat_widget_enabled'))->toBe(false)
         ->and($component->get('settings.popup_enabled'))->toBe(true)
@@ -751,7 +751,7 @@ it('still reads hero slides saved as plain image URLs', function () {
 });
 
 it('renders the homepage hero as a slider with each slide\'s title, description and link', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     Setting::set('home_hero_slides', json_encode([
         ['image' => '/storage/a.jpg', 'title' => 'Fresh organic tea', 'description' => 'Hand-picked leaves.', 'link' => '/shop?category=tea'],
         ['image' => '/storage/b.jpg', 'title' => '', 'description' => '', 'link' => 'javascript:alert(1)'],
@@ -778,18 +778,18 @@ it('renders the homepage hero as a slider with each slide\'s title, description 
 
 it('links each promo banner to its own URL, falling back to the shop', function () {
     Livewire::test(ThemeSettingsScreen::class)
-        ->set('settings.site_theme', 'ecommerce')
+        ->set('settings.site_theme', 'classic_ecommerce')
         // The tiles' own labels, not the heading that used to sit above them:
         // a panel heading is decoration, and asserting on it made a cosmetic
         // change look like a broken screen.
         ->assertSee('New arrivals')
         ->assertSee('Best deals')
-        ->assertSee('settings.theme_ecommerce_promo_2_link', false)
-        ->set('settings.theme_ecommerce_promo_1_link', '/shop?sort=newest')
-        ->set('settings.theme_ecommerce_promo_2_link', 'javascript:alert(1)')
+        ->assertSee('settings.theme_classic_ecommerce_promo_2_link', false)
+        ->set('settings.theme_classic_ecommerce_promo_1_link', '/shop?sort=newest')
+        ->set('settings.theme_classic_ecommerce_promo_2_link', 'javascript:alert(1)')
         ->call('save');
 
-    expect(ThemeSettings::text('ecommerce', 'theme_ecommerce_promo_1_link'))->toBe('/shop?sort=newest');
+    expect(ThemeSettings::text('classic_ecommerce', 'theme_classic_ecommerce_promo_1_link'))->toBe('/shop?sort=newest');
 
     $this->get('/')
         ->assertOk()
@@ -801,7 +801,7 @@ it('links each promo banner to its own URL, falling back to the shop', function 
 
 it('lists every installed theme folder as a selectable design', function () {
     Livewire::test(ThemeSettingsScreen::class)
-        ->assertViewHas('themes', fn ($themes) => collect(['default', 'ecommerce', 'portfolio'])->diff(array_keys($themes))->isEmpty());
+        ->assertViewHas('themes', fn ($themes) => collect(['default', 'classic_ecommerce', 'portfolio'])->diff(array_keys($themes))->isEmpty());
 });
 
 it('saves the site-wide settings through Setting::set', function () {
@@ -813,7 +813,7 @@ it('saves the site-wide settings through Setting::set', function () {
     Setting::factory()->create(['key' => 'popup_enabled', 'value' => '0', 'group' => 'frontend', 'type' => 'boolean']);
 
     Livewire::test(ThemeSettingsScreen::class)
-        ->set('settings.site_theme', 'ecommerce')
+        ->set('settings.site_theme', 'classic_ecommerce')
         ->set('heroSlides.0.image', 'media/hero.jpg')
         ->set('settings.chat_widget_enabled', false)
         ->set('settings.popup_enabled', true)
@@ -823,7 +823,7 @@ it('saves the site-wide settings through Setting::set', function () {
         ->set('settings.popup_button_url', '/shop')
         ->call('save');
 
-    expect(Setting::where('key', 'site_theme')->value('value'))->toBe('ecommerce')
+    expect(Setting::where('key', 'site_theme')->value('value'))->toBe('classic_ecommerce')
         ->and(Setting::where('key', 'home_hero_image')->value('value'))->toBe('media/hero.jpg')
         ->and(Setting::where('key', 'chat_widget_enabled')->value('value'))->toBe('0')
         ->and(Setting::where('key', 'popup_enabled')->value('value'))->toBe('1')
@@ -1202,7 +1202,7 @@ it('does not put a tick on a card when a theme is picked', function () {
     Setting::set('site_theme', 'default');
 
     $html = Livewire::test(ThemeSettingsScreen::class)
-        ->set('settings.site_theme', 'ecommerce')
+        ->set('settings.site_theme', 'classic_ecommerce')
         ->html();
 
     // No Alpine-driven tick overlay is left anywhere: nothing on a card reacts to
@@ -1245,25 +1245,25 @@ it('refuses to delete the live theme', function () {
     // Three themes are installed, so this is the live-theme guard and not the
     // last-theme one — and it has to hold for a theme that is *not* the default
     // one, or the default flag would be doing the work instead.
-    expect(Themes::isDefault('ecommerce'))->toBeFalse()
+    expect(Themes::isDefault('classic_ecommerce'))->toBeFalse()
         ->and(count(Themes::all()))->toBeGreaterThan(1);
 
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
-    expect(Themes::undeletableBecause('ecommerce'))->toContain('live');
+    expect(Themes::undeletableBecause('classic_ecommerce'))->toContain('live');
 
     Livewire::test(ThemeSettingsScreen::class)
-        ->call('confirmDelete', 'ecommerce')
+        ->call('confirmDelete', 'classic_ecommerce')
         ->call('deleteTheme')
         ->assertHasErrors('themeToDelete');
 
-    expect(is_dir(Themes::path().'/ecommerce'))->toBeTrue();
+    expect(is_dir(Themes::path().'/classic_ecommerce'))->toBeTrue();
 });
 
 it('protects only the default theme, whichever one is live', function () {
     // The default theme is refused while another one is live, so the refusal is
     // the manifest flag and not the live-theme guard standing in for it.
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
     expect(Themes::undeletableBecause('default'))->toContain('ships with Codeware');
 
@@ -1273,7 +1273,7 @@ it('protects only the default theme, whichever one is live', function () {
 
     expect(Themes::undeletableBecause('default'))->toContain('ships with Codeware')
         ->and(Themes::undeletableBecause('portfolio'))->toContain('live')
-        ->and(Themes::undeletableBecause('ecommerce'))->toBeNull();
+        ->and(Themes::undeletableBecause('classic_ecommerce'))->toBeNull();
 });
 
 it('lets any theme but the default one be deleted', function () {
@@ -1281,14 +1281,14 @@ it('lets any theme but the default one be deleted', function () {
     // bundled themes are ordinary folders as far as deletion goes — being part of
     // the release is not the same as being the one the site falls back to.
     expect(Themes::isDefault('default'))->toBeTrue()
-        ->and(Themes::isDefault('ecommerce'))->toBeFalse()
+        ->and(Themes::isDefault('classic_ecommerce'))->toBeFalse()
         ->and(Themes::isDefault('portfolio'))->toBeFalse();
 
     // Something else has to be live, or the live-theme guard would be the thing
     // under test rather than the manifest flag.
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
-    expect(Themes::undeletableBecause('ecommerce'))->toContain('live')
+    expect(Themes::undeletableBecause('classic_ecommerce'))->toContain('live')
         ->and(Themes::undeletableBecause('portfolio'))->toBeNull();
 
     // The fallback theme stays protected even once it is not the live one.

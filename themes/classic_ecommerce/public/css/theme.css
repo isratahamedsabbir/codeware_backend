@@ -1,4 +1,4 @@
-/* ── The "ecommerce" theme stylesheet ──
+/* ── The "classic_ecommerce" theme stylesheet ──
    Its own entry, so a product page downloads the classes its own ~45 shop,
    cart, checkout and account templates use and not the portfolio theme's
    one-pager. The shared half comes from storefront-shared.css, which is why

@@ -1,12 +1,12 @@
 <?php
 
-namespace Themes\Ecommerce\Controllers;
+namespace Themes\ClassicEcommerce\Controllers;
 
 use App\Http\Controllers\Themes\Concerns\RendersBlog;
 use App\Http\Controllers\Themes\ThemeController;
 
 /**
- * The "ecommerce" theme's blog: the posts feed and a single post.
+ * The "classic_ecommerce" theme's blog: the posts feed and a single post.
  *
  * Structurally the same as Themes/Portfolio\BlogController and deliberately a
  * separate class: the two themes render the same Post rows through their own

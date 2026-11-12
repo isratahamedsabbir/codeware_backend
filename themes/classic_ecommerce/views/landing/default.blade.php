@@ -24,7 +24,7 @@
 </head>
 <body class="bg-white font-storefront text-sf-text antialiased">
 
-@include('theme-ecommerce::partials._header')
+@include('theme-classic_ecommerce::partials._header')
 
 {{-- Campaign landing page: shown instead of product.blade.php when the visit
      carries `?fbclid=` (see RendersProduct::product()). Same product data, a
@@ -389,11 +389,11 @@
 {{-- The footer sits flush under the last section (no white gap), and on a phone
      the wrapper leaves room so the sticky order bar never covers its last line. --}}
 <div>
-    @include('theme-ecommerce::partials._footer', ['withoutPopup' => true, 'flushTop' => true])
+    @include('theme-classic_ecommerce::partials._footer', ['withoutPopup' => true, 'flushTop' => true])
     <div class="h-20 bg-sf-footer md:hidden"></div>
 </div>
 
-@include('theme-ecommerce::partials._landing-call', ['lifted' => true])
+@include('theme-classic_ecommerce::partials._landing-call', ['lifted' => true])
 @include('frontend.partials._chat-widget')
 @include('partials._custom-code-body')
 </body>

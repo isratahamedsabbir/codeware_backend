@@ -7,7 +7,7 @@
 </head>
 <body class="bg-zinc-50 font-storefront text-sf-text antialiased">
 
-@include('theme-ecommerce::partials._header')
+@include('theme-classic_ecommerce::partials._header')
 
 <section class="bg-gradient-to-br from-brand to-brand/80 text-white">
     <div class="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
@@ -78,7 +78,7 @@
     </aside>
 </main>
 
-@include('theme-ecommerce::partials._footer')
+@include('theme-classic_ecommerce::partials._footer')
 
 @include('frontend.partials._chat-widget')
 @include('partials._custom-code-body')

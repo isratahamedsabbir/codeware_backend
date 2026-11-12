@@ -11,7 +11,7 @@ beforeEach(function () {
     $this->seed(RolePermissionSeeder::class);
     $this->admin = User::factory()->admin()->create();
 
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
     Language::create(['code' => 'en', 'name' => 'English', 'native_name' => 'English', 'is_active' => true]);
 

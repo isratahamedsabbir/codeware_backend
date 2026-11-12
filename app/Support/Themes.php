@@ -193,8 +193,8 @@ class Themes
      * Resolve a class in the Themes\{Studly}\... namespace to a file inside the
      * matching theme folder, so a theme's controllers and seeders load without a
      * composer dump — which a theme installed from a zip could never wait for.
-     * Themes\Ecommerce\Controllers\ShopController is
-     * themes/ecommerce/Controllers/ShopController.php, and
+     * Themes\ClassicEcommerce\Controllers\ShopController is
+     * themes/classic_ecommerce/Controllers/ShopController.php, and
      * Themes\Portfolio\Database\Seeders\MenuSeeder is
      * themes/portfolio/database/seeders/MenuSeeder.php (directories are tried as
      * written and then lowercased).
@@ -791,7 +791,7 @@ class Themes
      * or null when the theme ships no such template.
      *
      * Themes are strictly self-contained: there is deliberately no fallback to
-     * any other theme (not to "ecommerce", not to "default"). A page the active
+     * any other theme (not to "classic_ecommerce", not to "default"). A page the active
      * theme has no template for does not exist on that site — it 404s — rather
      * than silently appearing in a design the admin never selected.
      */

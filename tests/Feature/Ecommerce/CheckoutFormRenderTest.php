@@ -10,7 +10,7 @@ use App\Support\Cart;
 use Livewire\Livewire;
 
 it('renders checkout form fields with visible borders and payment methods', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
     // Checkout requires a signed-in shopper.
     $this->actingAs(User::factory()->create());

@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Cache;
 beforeEach(function () {
     Language::create(['code' => 'en', 'name' => 'English', 'native_name' => 'English', 'is_active' => true, 'is_default' => true]);
 
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     Setting::set('site_name', 'Codeware');
     Setting::set('seo_site_url', 'https://codeware.test');
 

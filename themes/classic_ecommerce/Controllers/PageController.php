@@ -1,12 +1,12 @@
 <?php
 
-namespace Themes\Ecommerce\Controllers;
+namespace Themes\ClassicEcommerce\Controllers;
 
 use App\Http\Controllers\Themes\Concerns\RendersStandalonePage;
 use App\Http\Controllers\Themes\ThemeController;
 
 /**
- * The "ecommerce" theme's standalone pages (About, Contact, FAQ) — the same
+ * The "classic_ecommerce" theme's standalone pages (About, Contact, FAQ) — the same
  * three whitelisted slugs the default theme serves, rendered in this theme's
  * page.blade.php.
  *

@@ -13,7 +13,7 @@ use App\Models\User;
 use App\Support\Cart;
 
 beforeEach(function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     Setting::set('vat_enabled', '0');
     Setting::set('vat_rate', '0');
 

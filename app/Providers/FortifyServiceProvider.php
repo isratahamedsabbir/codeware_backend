@@ -107,7 +107,7 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public static function accountPath(): string
     {
-        return Themes::active() === 'ecommerce'
+        return Themes::active() === 'classic_ecommerce'
             ? route('account.dashboard')
             : config('fortify.home');
     }

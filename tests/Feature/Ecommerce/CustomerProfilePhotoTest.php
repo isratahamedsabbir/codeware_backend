@@ -11,7 +11,7 @@ use function Pest\Laravel\actingAs;
 
 beforeEach(function () {
     Storage::fake('public');
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
     $this->customer = User::factory()->create(['name' => 'Jane Doe']);
     actingAs($this->customer);

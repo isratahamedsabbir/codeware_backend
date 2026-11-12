@@ -172,7 +172,7 @@ it('toggles a brand as featured from the index', function () {
 });
 
 it('lists only featured brands in the storefront header, after the categories', function () {
-    \App\Models\Setting::set('site_theme', 'ecommerce');
+    \App\Models\Setting::set('site_theme', 'classic_ecommerce');
     \App\Support\Themes::forget();
 
     ProductBrand::factory()->create(['name' => ['en' => 'Shown Brand', 'bn' => ''], 'featured' => true]);

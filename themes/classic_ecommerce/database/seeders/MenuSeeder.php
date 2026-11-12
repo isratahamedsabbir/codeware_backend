@@ -1,6 +1,6 @@
 <?php
 
-namespace Themes\Ecommerce\Database\Seeders;
+namespace Themes\ClassicEcommerce\Database\Seeders;
 
 use App\Models\Menu;
 use App\Models\MenuItem;
@@ -8,7 +8,7 @@ use Illuminate\Database\Seeder;
 
 /**
  * The "Frontend" menu — the site nav rendered by the ecommerce theme's header
- * (themes/ecommerce/partials/_header.blade.php).
+ * (themes/classic_ecommerce/partials/_header.blade.php).
  * Mirrors the standalone pages PageSeeder creates.
  *
  * The portfolio theme has a nav of its own, see ThemesPortfolioDatabaseSeedersMenuSeeder.

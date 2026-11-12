@@ -13,7 +13,7 @@ use Livewire\Livewire;
 use Spatie\Permission\Models\Role;
 
 beforeEach(function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     Storage::fake('local');
 });
 

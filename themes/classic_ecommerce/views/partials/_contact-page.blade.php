@@ -53,7 +53,7 @@
 
 <div class="bg-page-bg" data-contact-page>
     <div class="mx-auto max-w-7xl px-4 pb-10 pt-0 sm:px-6 lg:pb-10 lg:pt-0">
-        @include('theme-ecommerce::partials._page-banner', ['title' => __('Contact Us'), 'crumbs' => [['label' => __('Home'), 'url' => url('/')], ['label' => __('Contact Us'), 'url' => null]], 'icon' => 'M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75'])
+        @include('theme-classic_ecommerce::partials._page-banner', ['title' => __('Contact Us'), 'crumbs' => [['label' => __('Home'), 'url' => url('/')], ['label' => __('Contact Us'), 'url' => null]], 'icon' => 'M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75'])
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-[22rem_1fr] lg:items-start">
             {{-- Contact details --}}
             @if ($details !== [] || $socials->isNotEmpty())

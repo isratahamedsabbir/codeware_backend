@@ -23,10 +23,10 @@ it('injects the custom head and body code on every theme\'s public pages', funct
         ->and($html)->toContain('<script>window.customBodyProbe = 1;</script>')
         ->and(strpos($html, 'customBodyProbe'))->toBeLessThan(strrpos($html, '</body>'))
         ->and(strpos($html, 'customBodyProbe'))->toBeGreaterThan(strpos($html, '</head>'));
-})->with(['ecommerce', 'portfolio', 'default']);
+})->with(['classic_ecommerce', 'portfolio', 'default']);
 
 it('injects the custom code on inner ecommerce pages too', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
     $this->get('/shop')->assertOk()
         ->assertSee('custom-head-probe', false)
@@ -37,7 +37,7 @@ it('injects the custom code on the storefront login page, like any other public 
     // A theme's own auth/login template, so a public page of the active theme —
     // which is where the code used to be missing, because that page used to be
     // the shared admin-styled one rather than the theme's.
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
     $this->get(route('login'))->assertOk()
         ->assertSee('custom-head-probe', false)
@@ -45,7 +45,7 @@ it('injects the custom code on the storefront login page, like any other public 
 });
 
 it('keeps the custom code off the admin panel', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     $this->seed(RolePermissionSeeder::class);
     $this->actingAs(User::factory()->admin()->create());
 
@@ -55,7 +55,7 @@ it('keeps the custom code off the admin panel', function () {
 });
 
 it('outputs nothing when no custom code is set', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     Setting::set('custom_head_code', '');
     Setting::set('custom_body_code', '');
 
@@ -65,7 +65,7 @@ it('outputs nothing when no custom code is set', function () {
 });
 
 it('outputs a snippet only on the pages that picked it', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     Setting::set('custom_code_rules', json_encode([
         ['id' => 'abc123', 'name' => 'About pixel', 'head' => '<meta name="snippet-probe" content="1">', 'body' => '<script>window.snippetProbe = 1;</script>'],
     ]));
@@ -136,7 +136,7 @@ it('offers the snippets in a Custom Code card on the page, product, post and cat
 
 describe('page-type coverage', function () {
     beforeEach(function () {
-        Setting::set('site_theme', 'ecommerce');
+        Setting::set('site_theme', 'classic_ecommerce');
         Setting::set('custom_head_code', '<meta name="g-head" content="1">');
         Setting::set('custom_code_rules', json_encode([
             ['id' => 'aaa', 'name' => 'A', 'head' => '<meta name="snip-a" content="1">', 'body' => '<i id="body-a"></i>'],

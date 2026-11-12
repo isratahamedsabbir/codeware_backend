@@ -21,8 +21,8 @@
 <div
     wire:key="theme-settings-{{ $themeSlug }}"
     x-data="{
-        tab: (() => { try { return localStorage.getItem('theme-ecommerce-tab') || 'banners' } catch (e) { return 'banners' } })(),
-        open(name) { this.tab = name; try { localStorage.setItem('theme-ecommerce-tab', name) } catch (e) {} },
+        tab: (() => { try { return localStorage.getItem('theme-classic_ecommerce-tab') || 'banners' } catch (e) { return 'banners' } })(),
+        open(name) { this.tab = name; try { localStorage.setItem('theme-classic_ecommerce-tab', name) } catch (e) {} },
     }"
     class="grid gap-5 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-6"
 >
@@ -48,8 +48,8 @@
         $promoSize = '800 × 424';
 
         $promoTiles = [
-            ['home_promo_banner_1', 'theme_ecommerce_promo_1_link', 'New arrivals', 'Top tile', '/shop?sort=newest'],
-            ['home_promo_banner_2', 'theme_ecommerce_promo_2_link', 'Best deals', 'Bottom tile', '/shop'],
+            ['home_promo_banner_1', 'theme_classic_ecommerce_promo_1_link', 'New arrivals', 'Top tile', '/shop?sort=newest'],
+            ['home_promo_banner_2', 'theme_classic_ecommerce_promo_2_link', 'Best deals', 'Bottom tile', '/shop'],
         ];
     @endphp
 
@@ -174,31 +174,31 @@
         // Theme Settings component discovers them (see declaredScalarKeys()).
         $colorGroups = [
             'Header' => ['icon' => 'bars-3-bottom-left', 'fields' => [
-                ['theme_ecommerce_header_bg_color', 'Background', '#045b30', 'Logo, search and account bar'],
-                ['theme_ecommerce_header_text_color', 'Text & icons', '#ffffff', 'Site name, phone, icons'],
+                ['theme_classic_ecommerce_header_bg_color', 'Background', '#045b30', 'Logo, search and account bar'],
+                ['theme_classic_ecommerce_header_text_color', 'Text & icons', '#ffffff', 'Site name, phone, icons'],
             ]],
             'Menu bar' => ['icon' => 'bars-3', 'fields' => [
-                ['theme_ecommerce_nav_bg_color', 'Background', '#ffffff', 'Categories / Brands / pages row'],
-                ['theme_ecommerce_nav_text_color', 'Links', '#222222', 'Menu link text'],
+                ['theme_classic_ecommerce_nav_bg_color', 'Background', '#ffffff', 'Categories / Brands / pages row'],
+                ['theme_classic_ecommerce_nav_text_color', 'Links', '#222222', 'Menu link text'],
             ]],
             'Buttons' => ['icon' => 'cursor-arrow-rays', 'fields' => [
-                ['theme_ecommerce_button_bg_color', 'Background', '#045b30', 'Add to cart, Checkout, Place order'],
-                ['theme_ecommerce_button_text_color', 'Text', '#ffffff', 'Button labels'],
+                ['theme_classic_ecommerce_button_bg_color', 'Background', '#045b30', 'Add to cart, Checkout, Place order'],
+                ['theme_classic_ecommerce_button_text_color', 'Text', '#ffffff', 'Button labels'],
             ]],
             'Text' => ['icon' => 'language', 'fields' => [
-                ['theme_ecommerce_heading_color', 'Headings', '#171717', 'Titles, product names, totals'],
-                ['theme_ecommerce_text_color', 'Body text', '#262626', 'Regular copy and labels'],
-                ['theme_ecommerce_price_color', 'Prices', '#045b30', 'Prices on cards and product page'],
+                ['theme_classic_ecommerce_heading_color', 'Headings', '#171717', 'Titles, product names, totals'],
+                ['theme_classic_ecommerce_text_color', 'Body text', '#262626', 'Regular copy and labels'],
+                ['theme_classic_ecommerce_price_color', 'Prices', '#045b30', 'Prices on cards and product page'],
             ]],
             'Accents' => ['icon' => 'sparkles', 'fields' => [
-                ['theme_ecommerce_accent_color', 'Links & highlights', '#045b30', 'Links, badges, active states'],
-                ['theme_ecommerce_sale_color', 'Sale badge', '#c01616', 'The "-30%" discount badge'],
-                ['theme_ecommerce_page_bg_color', 'Page background', '#f2f4f8', 'Behind every storefront page'],
+                ['theme_classic_ecommerce_accent_color', 'Links & highlights', '#045b30', 'Links, badges, active states'],
+                ['theme_classic_ecommerce_sale_color', 'Sale badge', '#c01616', 'The "-30%" discount badge'],
+                ['theme_classic_ecommerce_page_bg_color', 'Page background', '#f2f4f8', 'Behind every storefront page'],
             ]],
             'Footer' => ['icon' => 'window', 'fields' => [
-                ['theme_ecommerce_footer_bg_color', 'Background', '#045b30', 'Main footer area'],
-                ['theme_ecommerce_footer_text_color', 'Text', '#ffffff', 'Headings, links, contact details'],
-                ['theme_ecommerce_footer_bottom_color', 'Copyright bar', '#1d2327', 'Thin strip at the very bottom'],
+                ['theme_classic_ecommerce_footer_bg_color', 'Background', '#045b30', 'Main footer area'],
+                ['theme_classic_ecommerce_footer_text_color', 'Text', '#ffffff', 'Headings, links, contact details'],
+                ['theme_classic_ecommerce_footer_bottom_color', 'Copyright bar', '#1d2327', 'Thin strip at the very bottom'],
             ]],
         ];
     @endphp
@@ -211,7 +211,7 @@
                 const v = ($wire.settings[key] || '').trim();
                 return /^#[0-9a-fA-F]{3,8}$/.test(v) ? v : fallback;
             },
-            get accent() { return this.c('theme_ecommerce_accent_color', this.c('theme_ecommerce_primary_color', '#045b30')); },
+            get accent() { return this.c('theme_classic_ecommerce_accent_color', this.c('theme_classic_ecommerce_primary_color', '#045b30')); },
         }"
         role="tabpanel" x-show="tab === 'colors'" x-cloak
     >
@@ -275,10 +275,10 @@
             {{-- Live preview — a miniature storefront painted with the values above. --}}
             <aside class="overflow-hidden rounded-xl bg-white shadow-sm xl:sticky xl:top-24 dark:bg-zinc-900">
                 <div class="p-3">
-                    <div class="overflow-hidden rounded-lg" style="font-family: {{ \App\Support\ThemeFont::stackFor($settings['theme_ecommerce_font'] ?? '') ?? "'Trebuchet MS', 'Segoe UI', sans-serif" }}">
+                    <div class="overflow-hidden rounded-lg" style="font-family: {{ \App\Support\ThemeFont::stackFor($settings['theme_classic_ecommerce_font'] ?? '') ?? "'Trebuchet MS', 'Segoe UI', sans-serif" }}">
                         {{-- Header --}}
                         <div class="flex items-center gap-2 px-2.5 py-2"
-                            :style="`background: ${c('theme_ecommerce_header_bg_color', accent)}; color: ${c('theme_ecommerce_header_text_color', '#ffffff')}`">
+                            :style="`background: ${c('theme_classic_ecommerce_header_bg_color', accent)}; color: ${c('theme_classic_ecommerce_header_text_color', '#ffffff')}`">
                             <span class="size-3 rounded-full bg-current opacity-80"></span>
                             <span class="text-[10px] font-bold">Codeware</span>
                             <span class="ml-1 h-3.5 flex-1 rounded bg-white/90"></span>
@@ -287,13 +287,13 @@
                         </div>
                         {{-- Menu bar --}}
                         <div class="flex gap-2.5 border-b border-black/5 px-2.5 py-1.5 text-[9px] font-semibold"
-                            :style="`background: ${c('theme_ecommerce_nav_bg_color', '#ffffff')}; color: ${c('theme_ecommerce_nav_text_color', '#222222')}`">
+                            :style="`background: ${c('theme_classic_ecommerce_nav_bg_color', '#ffffff')}; color: ${c('theme_classic_ecommerce_nav_text_color', '#222222')}`">
                             <span>Categories</span><span>Brands</span><span :style="`color: ${accent}`">Home</span><span>Shop</span>
                         </div>
                         {{-- Page --}}
-                        <div class="space-y-2 p-2.5" :style="`background: ${c('theme_ecommerce_page_bg_color', '#f2f4f8')}`">
+                        <div class="space-y-2 p-2.5" :style="`background: ${c('theme_classic_ecommerce_page_bg_color', '#f2f4f8')}`">
                             <div class="flex items-center justify-between">
-                                <span class="text-[11px] font-bold" :style="`color: ${c('theme_ecommerce_heading_color', '#171717')}`">Best sellers</span>
+                                <span class="text-[11px] font-bold" :style="`color: ${c('theme_classic_ecommerce_heading_color', '#171717')}`">Best sellers</span>
                                 <span class="text-[9px] font-semibold" :style="`color: ${accent}`">View all →</span>
                             </div>
                             <div class="grid grid-cols-2 gap-2">
@@ -302,26 +302,26 @@
                                         <div class="relative h-12 bg-zinc-100">
                                             @if ($i === 0)
                                                 <span class="absolute left-1 top-1 rounded px-1 text-[8px] font-bold text-white"
-                                                    :style="`background: ${c('theme_ecommerce_sale_color', '#c01616')}`">-30%</span>
+                                                    :style="`background: ${c('theme_classic_ecommerce_sale_color', '#c01616')}`">-30%</span>
                                             @endif
                                         </div>
                                         <div class="space-y-1 p-1.5">
-                                            <p class="truncate text-[9px] font-semibold" :style="`color: ${c('theme_ecommerce_heading_color', '#171717')}`">{{ $name }}</p>
-                                            <p class="truncate text-[8px]" :style="`color: ${c('theme_ecommerce_text_color', '#262626')}`">100 gm · Organic</p>
-                                            <p class="text-[10px] font-bold" :style="`color: ${c('theme_ecommerce_price_color', accent)}`">৳450</p>
+                                            <p class="truncate text-[9px] font-semibold" :style="`color: ${c('theme_classic_ecommerce_heading_color', '#171717')}`">{{ $name }}</p>
+                                            <p class="truncate text-[8px]" :style="`color: ${c('theme_classic_ecommerce_text_color', '#262626')}`">100 gm · Organic</p>
+                                            <p class="text-[10px] font-bold" :style="`color: ${c('theme_classic_ecommerce_price_color', accent)}`">৳450</p>
                                             <span class="block rounded py-1 text-center text-[8px] font-semibold"
-                                                :style="`background: ${c('theme_ecommerce_button_bg_color', accent)}; color: ${c('theme_ecommerce_button_text_color', '#ffffff')}`">Add to cart</span>
+                                                :style="`background: ${c('theme_classic_ecommerce_button_bg_color', accent)}; color: ${c('theme_classic_ecommerce_button_text_color', '#ffffff')}`">Add to cart</span>
                                         </div>
                                     </div>
                                 @endforeach
                             </div>
                         </div>
                         {{-- Footer --}}
-                        <div class="space-y-1 px-2.5 py-2" :style="`background: ${c('theme_ecommerce_footer_bg_color', accent)}; color: ${c('theme_ecommerce_footer_text_color', '#ffffff')}`">
+                        <div class="space-y-1 px-2.5 py-2" :style="`background: ${c('theme_classic_ecommerce_footer_bg_color', accent)}; color: ${c('theme_classic_ecommerce_footer_text_color', '#ffffff')}`">
                             <p class="text-[9px] font-bold">Quick Links</p>
                             <p class="text-[8px] opacity-75">About Us · Contact · FAQ</p>
                         </div>
-                        <div class="px-2.5 py-1 text-[8px]" :style="`background: ${c('theme_ecommerce_footer_bottom_color', '#1d2327')}; color: ${c('theme_ecommerce_footer_text_color', '#ffffff')}`">
+                        <div class="px-2.5 py-1 text-[8px]" :style="`background: ${c('theme_classic_ecommerce_footer_bottom_color', '#1d2327')}; color: ${c('theme_classic_ecommerce_footer_text_color', '#ffffff')}`">
                             <span class="opacity-75">© Codeware. All rights reserved.</span>
                         </div>
                     </div>
@@ -338,8 +338,8 @@
     <section role="tabpanel" x-show="tab === 'typography'" x-cloak
         class="rounded-xl bg-white p-5 dark:bg-zinc-900">
         <x-admin-font-picker
-            model="settings.theme_ecommerce_font"
-            :value="$settings['theme_ecommerce_font'] ?? ''"
+            model="settings.theme_classic_ecommerce_font"
+            :value="$settings['theme_classic_ecommerce_font'] ?? ''"
             own-face="trebuchet"
             own-label="Trebuchet MS"
             hint="Applies to this theme's public pages only. Every theme keeps its own typeface until you say otherwise."

@@ -159,7 +159,7 @@ it('describes no file for a system face or for the theme default', function () {
 it('emits nothing at all for a theme that has not chosen a font', function () {
     // The no-regression property. A theme's font is chosen to go with its
     // design, and a picker that overwrote that on install would be a bug.
-    foreach (['default', 'ecommerce', 'portfolio'] as $theme) {
+    foreach (['default', 'classic_ecommerce', 'portfolio'] as $theme) {
         expect(storefrontHome($theme))->not->toContain(storefrontOverride(), escape: false);
     }
 });
@@ -178,7 +178,7 @@ it('overrides a font the theme declared on a class, not on body', function () {
     // `font-storefront` utility; both outrank a plain `body` selector, so a rule
     // without the marker would lose the cascade while the setting still saved
     // correctly — a picker that looks like it works and changes nothing.
-    foreach (['portfolio', 'ecommerce'] as $theme) {
+    foreach (['portfolio', 'classic_ecommerce'] as $theme) {
         chooseFontFor($theme, 'roboto');
 
         $home = storefrontHome($theme);

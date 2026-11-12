@@ -7,10 +7,10 @@
 </head>
 <body class="bg-page-bg font-storefront text-sf-text antialiased">
 
-@include('theme-ecommerce::partials._header')
+@include('theme-classic_ecommerce::partials._header')
 
 @unless (in_array($page->slug, ['about', 'faq'], true) || \App\Support\PageBlocks::for($page->slug) === 'frontend.contact-form')
-@include('theme-ecommerce::partials._breadcrumbs', [
+@include('theme-classic_ecommerce::partials._breadcrumbs', [
     'crumbs' => [
         ['label' => __('Home'), 'url' => url('/')],
         ['label' => $page->getTranslation('title', 'en', false), 'url' => null],
@@ -23,12 +23,12 @@
 
     @if ($block === 'frontend.contact-form')
         {{-- Contact gets its own layout: details beside the form. --}}
-        @include('theme-ecommerce::partials._contact-page')
+        @include('theme-classic_ecommerce::partials._contact-page')
     @endif
 
     @if (in_array($page->slug, ['about', 'faq'], true))
         <div class="mx-auto max-w-7xl px-4 sm:px-6">
-            @include('theme-ecommerce::partials._page-banner', [
+            @include('theme-classic_ecommerce::partials._page-banner', [
                 'title' => $page->getTranslation('title', app()->getLocale(), true),
                 'crumbs' => [
                     ['label' => __('Home'), 'url' => url('/')],
@@ -165,7 +165,7 @@
     @endif
 </main>
 
-@include('theme-ecommerce::partials._footer')
+@include('theme-classic_ecommerce::partials._footer')
 
 @include('frontend.partials._chat-widget')
 @include('partials._custom-code-body')

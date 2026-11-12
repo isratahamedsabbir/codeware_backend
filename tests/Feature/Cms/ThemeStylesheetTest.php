@@ -23,7 +23,7 @@ use App\Support\Themes;
 it('gives every bundled theme its own stylesheet', function (string $theme) {
     expect(Themes::hasStylesheet($theme))->toBeTrue()
         ->and(Themes::storefrontEntry($theme))->toBe("themes/{$theme}/public/css/theme.css");
-})->with(['default', 'ecommerce', 'portfolio']);
+})->with(['default', 'classic_ecommerce', 'portfolio']);
 
 it('falls back to the catch-all storefront bundle for a theme that ships no stylesheet', function () {
     // A theme folder with templates in it but no public/css/theme.css — the shape
@@ -54,7 +54,7 @@ it('keeps every theme stylesheet inside its own folder', function () {
         }
     }
 
-    expect($found)->toBe(['default', 'ecommerce', 'portfolio']);
+    expect($found)->toBe(['default', 'classic_ecommerce', 'portfolio']);
 
     foreach ($found as $theme) {
         // Scans its own templates, and declares no other theme's folder as a

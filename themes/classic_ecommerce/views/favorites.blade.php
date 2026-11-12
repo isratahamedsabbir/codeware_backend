@@ -7,7 +7,7 @@
 </head>
 <body class="bg-page-bg font-storefront text-sf-text antialiased">
 
-@include('theme-ecommerce::partials._header')
+@include('theme-classic_ecommerce::partials._header')
 
 @php
     $crumbs = [
@@ -18,7 +18,7 @@
 
 <main>
     <div class="mx-auto max-w-7xl px-4 pb-6 pt-0 sm:px-6">
-        @include('theme-ecommerce::partials._page-banner', ['title' => __('My favorites'), 'crumbs' => $crumbs, 'icon' => 'M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z'])
+        @include('theme-classic_ecommerce::partials._page-banner', ['title' => __('My favorites'), 'crumbs' => $crumbs, 'icon' => 'M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z'])
         @if ($products->isEmpty())
             <div class="rounded-card border border-dashed border-zinc-300 bg-white px-6 py-16 text-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -36,7 +36,7 @@
         @else
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-4 xl:grid-cols-5">
                 @foreach ($products as $product)
-                    @include('theme-ecommerce::partials._product-card', ['product' => $product])
+                    @include('theme-classic_ecommerce::partials._product-card', ['product' => $product])
                 @endforeach
             </div>
 
@@ -47,7 +47,7 @@
     </div>
 </main>
 
-@include('theme-ecommerce::partials._footer')
+@include('theme-classic_ecommerce::partials._footer')
 
 @include('frontend.partials._chat-widget')
 @include('partials._custom-code-body')

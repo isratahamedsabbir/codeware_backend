@@ -7,7 +7,7 @@
 </head>
 <body class="bg-white font-storefront text-sf-text antialiased">
 
-@include('theme-ecommerce::partials._header')
+@include('theme-classic_ecommerce::partials._header')
 
 @php
     $visibleVariations = collect($product->variations ?? [])
@@ -52,7 +52,7 @@
 @endphp
 
 <div class="mx-auto max-w-7xl px-4 sm:px-6">
-    @include('theme-ecommerce::partials._page-banner', [
+    @include('theme-classic_ecommerce::partials._page-banner', [
         'title' => __('Shop'),
         'hideTitle' => true,
         'tag' => 'p',
@@ -291,7 +291,7 @@
             {{-- Share sits directly under the price, above the add-to-cart block:
                  a visitor deciding about a product is still reading, not yet
                  buying, and this is the row they come back to once they have. --}}
-            @include('theme-ecommerce::partials._share')
+            @include('theme-classic_ecommerce::partials._share')
 
             {{-- The short description comes before the add-to-cart block, so it is
                  read before the buy decision rather than below it. --}}
@@ -521,14 +521,14 @@
             <h2 class="mb-6 text-2xl font-bold text-sf-heading">{{ __('You may also like') }}</h2>
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-5 lg:grid-cols-4">
                 @foreach ($related as $product)
-                    @include('theme-ecommerce::partials._product-card', ['product' => $product])
+                    @include('theme-classic_ecommerce::partials._product-card', ['product' => $product])
                 @endforeach
             </div>
         </section>
     @endif
 </main>
 
-@include('theme-ecommerce::partials._footer')
+@include('theme-classic_ecommerce::partials._footer')
 
 @include('frontend.partials._chat-widget')
 @include('partials._custom-code-body')

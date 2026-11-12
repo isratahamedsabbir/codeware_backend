@@ -15,7 +15,7 @@
 </head>
 <body class="bg-white font-storefront text-sf-text antialiased">
 
-@include('theme-ecommerce::partials._header')
+@include('theme-classic_ecommerce::partials._header')
 
 {{-- Standard landing page: a blue sales page — hero with the photos, why it is
      special, the offer, why buy from us, FAQ, a call box, and the order form
@@ -200,10 +200,10 @@
 </main>
 
 <div>
-    @include('theme-ecommerce::partials._footer', ['withoutPopup' => true, 'flushTop' => true])
+    @include('theme-classic_ecommerce::partials._footer', ['withoutPopup' => true, 'flushTop' => true])
 </div>
 
-@include('theme-ecommerce::partials._landing-call')
+@include('theme-classic_ecommerce::partials._landing-call')
 @include('frontend.partials._chat-widget')
 @include('partials._custom-code-body')
 </body>

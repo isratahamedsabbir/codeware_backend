@@ -12,7 +12,7 @@
     // Fixed link rather than a menu item: it follows the "careers" feature flag, and the
     // page only exists in themes that ship career.blade.php (this one does).
     $showCareers = \App\Support\Features::enabled('careers')
-        && \App\Support\Themes::hasTemplateFor('ecommerce', 'careers')
+        && \App\Support\Themes::hasTemplateFor('classic_ecommerce', 'careers')
         && ! $quickLinks->contains(fn ($item) => str_ends_with(rtrim((string) $item->url, '/'), '/careers'));
 
     $socials = collect([
@@ -35,7 +35,7 @@
 
 {{-- No background of its own: the strip sits on the page's own background (outside the footer, so the footer colour doesn't show through). --}}
 <div @class(['pb-6', 'pt-10' => ! ($flushTop ?? false)])>
-    @include('theme-ecommerce::partials._service-benefits')
+    @include('theme-classic_ecommerce::partials._service-benefits')
 </div>
 
 <footer class="bg-sf-footer text-sf-footer-text">

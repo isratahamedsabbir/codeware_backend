@@ -292,7 +292,7 @@ it('leaves the loader to the portfolio theme alone', function () {
     // A loader is a theme's own decision. The storefront does not get one, and
     // the default theme's page is a set of login links — a splash in front of
     // it would be the second thing in the way.
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     expect($this->get('/')->assertOk()->getContent())->not->toContain('data-pf-loader');
 
     Setting::set('site_theme', 'default');
@@ -335,7 +335,7 @@ it('says in one place that the default theme is a login screen', function () {
 });
 
 it('leaves a storefront theme indexable', function () {
-    foreach (['ecommerce', 'portfolio'] as $slug) {
+    foreach (['classic_ecommerce', 'portfolio'] as $slug) {
         expect(Themes::isIndexable($slug))->toBeTrue()
             ->and(Themes::manifest($slug)['no_index'])->toBeFalse();
     }
@@ -378,7 +378,7 @@ it('keeps the site root out of the sitemap while it is a login screen', function
 });
 
 it('lists the site root again once a storefront theme is active', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
     expect(Themes::isIndexable())->toBeTrue()
         ->and(collect(Sitemap::entries())->pluck('loc')->all())->toContain(Url::url('/'));
@@ -391,6 +391,6 @@ it('rebuilds the cached sitemap when a theme stops wanting to be indexed', funct
     Setting::set('site_theme', 'default');
     expect(Sitemap::xml('pages'))->not->toContain('<loc>'.Url::url('/').'</loc>');
 
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     expect(Sitemap::xml('pages'))->toContain('<loc>'.Url::url('/').'</loc>');
 });

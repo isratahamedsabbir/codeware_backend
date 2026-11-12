@@ -56,8 +56,8 @@ it('serves a page from the active theme own route file', function (string $theme
 })->with([
     'the default home' => ['default', '/'],
     'a default standalone page' => ['default', '/about'],
-    'the ecommerce home' => ['ecommerce', '/'],
-    'the ecommerce shop' => ['ecommerce', '/shop'],
+    'the ecommerce home' => ['classic_ecommerce', '/'],
+    'the ecommerce shop' => ['classic_ecommerce', '/shop'],
     'the portfolio home' => ['portfolio', '/'],
 ]);
 
@@ -112,7 +112,7 @@ it('gives an account page a 404 on a theme without an account area, rather than 
 
     // The ecommerce theme does have one, so the same guest gets the login
     // redirect there — the guard is not standing in for auth.
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
     $this->get('/account')->assertRedirect(route('login'));
 });
@@ -130,7 +130,7 @@ it('gives an account page a 404 on a theme without an account area, rather than 
  * site with no accounts at all answered the URL with the admin panel's own login.
  */
 it('serves the customer login page from the active theme, and 404s it on a theme without one', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
 
     $this->get('/login')
         ->assertOk()
@@ -172,14 +172,14 @@ it('keeps the system routes on every theme, since they are not a themed page', f
     foreach (['invoices.public.show', 'invoices.public.download', 'vouchers.public.show', 'vouchers.public.download', 'admin.legacy', 'dashboard'] as $name) {
         expect(Route::has($name))->toBeTrue("{$name} must exist on the {$theme} theme");
     }
-})->with(['default', 'ecommerce', 'portfolio']);
+})->with(['default', 'classic_ecommerce', 'portfolio']);
 
 it('contributes no routes for a theme that ships no route file', function () {
     // The same rule as the templates: a theme contributes nothing it didn't ship.
     // Its templates can still be reached through a controller another theme's
     // route points at, but it registers no URL of its own.
-    expect(Themes::routeFileExists('ecommerce'))->toBeTrue();
-    expect(Themes::allRouteFiles())->toHaveKeys(['default', 'ecommerce', 'portfolio']);
+    expect(Themes::routeFileExists('classic_ecommerce'))->toBeTrue();
+    expect(Themes::allRouteFiles())->toHaveKeys(['default', 'classic_ecommerce', 'portfolio']);
 });
 
 it('registers every route Themes::ROUTE_TEMPLATES maps, in at least one theme', function () {
@@ -246,7 +246,7 @@ it('leaves the live route table alone while reading a theme file', function () {
     // process would be reading routes into a scratch collection.
     $before = count(Route::getRoutes()->getRoutes());
 
-    routesOfTheme('ecommerce');
+    routesOfTheme('classic_ecommerce');
 
     expect(count(Route::getRoutes()->getRoutes()))->toBe($before);
 });

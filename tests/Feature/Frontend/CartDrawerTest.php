@@ -13,7 +13,7 @@ it('renders an empty cart drawer', function () {
 });
 
 it('puts the cart drawer on ecommerce pages but not on the cart page', function () {
-    Setting::set('site_theme', 'ecommerce');
+    Setting::set('site_theme', 'classic_ecommerce');
     Themes::forget();
 
     $this->get('/')->assertOk()->assertSee('x-on:open-cart-drawer.window', false);

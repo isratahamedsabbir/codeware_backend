@@ -7,7 +7,7 @@
 </head>
 <body class="bg-page-bg font-storefront text-sf-text antialiased">
 
-@include('theme-ecommerce::partials._header')
+@include('theme-classic_ecommerce::partials._header')
 
 @php
     $itemCount = (int) $order->items->sum('quantity');
@@ -21,7 +21,7 @@
 @endphp
 
 <main class="mx-auto max-w-6xl px-4 pb-8 pt-0 sm:px-6 lg:pb-12">
-    @include('theme-ecommerce::partials._page-banner', [
+    @include('theme-classic_ecommerce::partials._page-banner', [
         'title' => __('Order confirmation'),
         'tag' => 'p',
         'icon' => 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
@@ -180,7 +180,7 @@
                     </div>
                     <div class="flex items-center justify-between gap-3">
                         <dt class="text-zinc-500">{{ __('Status') }}</dt>
-                        <dd>@include('theme-ecommerce::account.partials._status-badge', ['status' => $order->status ?: 'pending'])</dd>
+                        <dd>@include('theme-classic_ecommerce::account.partials._status-badge', ['status' => $order->status ?: 'pending'])</dd>
                     </div>
                     @if ($order->payment_method)
                         <div class="flex items-center justify-between gap-3">
@@ -190,7 +190,7 @@
                     @endif
                     <div class="flex items-center justify-between gap-3">
                         <dt class="text-zinc-500">{{ __('Payment status') }}</dt>
-                        <dd>@include('theme-ecommerce::account.partials._status-badge', ['status' => $paymentStatus])</dd>
+                        <dd>@include('theme-classic_ecommerce::account.partials._status-badge', ['status' => $paymentStatus])</dd>
                     </div>
                 </dl>
             </section>
@@ -281,7 +281,7 @@
     </div>
 </main>
 
-@include('theme-ecommerce::partials._footer')
+@include('theme-classic_ecommerce::partials._footer')
 
 @include('frontend.partials._chat-widget')
 @include('partials._custom-code-body')
