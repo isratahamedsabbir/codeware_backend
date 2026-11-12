@@ -74,6 +74,10 @@ class CmsSection extends Model
             'image' => $card['image'] ?? null,
             'title' => $card['title'] ?? null,
             'description' => $card['description'] ?? null,
+            'subtitle' => $card['subtitle'] ?? null,
+            'button_label' => $card['button_label'] ?? null,
+            'button_url' => $card['button_url'] ?? null,
+            'text_color' => preg_match('/^#[0-9a-fA-F]{3,8}$/', (string) ($card['text_color'] ?? '')) === 1 ? $card['text_color'] : null,
         ])->all();
     }
 

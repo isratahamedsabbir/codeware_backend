@@ -308,7 +308,7 @@ it('creates the selected theme\'s theme.json seeded with every field it declares
         // A readable statement of what this theme can be configured with, not a
         // bare {} — the file is also what a theme author reads to find the keys.
         ->and($written)->toHaveKey('theme_classic_ecommerce_accent_color', '')
-        ->and($written)->toHaveKey('theme_classic_ecommerce_promo_1_link', '')
+        ->and($written)->toHaveKey('theme_classic_ecommerce_header_bg_color', '')
         ->and(array_values($written))->not->toContain(null);
 
     // And the form now saves into it.
@@ -465,12 +465,11 @@ it('renders the selected theme settings blade when the theme ships one', functio
 
     Livewire::test(ThemeSettingsScreen::class)
         ->set('settings.site_theme', 'classic_ecommerce')
-        // The ecommerce card holds the homepage banner uploads + its colors only.
-        ->assertSee('Banners')
+        // The ecommerce card is the global look only: colors and typography.
+        // The homepage banners are page content, edited under Page Settings.
         ->assertSee("tab === 'colors'", false)
-        ->assertSee('heroSlides.0')
-        ->assertSee('Add slide')
-        ->assertSee('settings.home_promo_banner_2')
+        ->assertDontSee('heroSlides.0')
+        ->assertDontSee('settings.home_promo_banner_2')
         ->assertSee('theme_classic_ecommerce_header_bg_color')
         ->assertSee('theme_classic_ecommerce_button_bg_color')
         ->assertSee('theme_classic_ecommerce_footer_bg_color')
@@ -509,8 +508,7 @@ it('navigates a theme\'s settings sections by menu beside the form, not a tab st
     // section added to the theme without a nav entry is a section the owner
     // cannot reach. Education and Certifications used to share one "Credentials"
     // entry and are two now, which is what took this from eight to nine.
-    $expectMenu('portfolio', 9);
-    $expectMenu('classic_ecommerce', 3);
+    $expectMenu('classic_ecommerce', 2);
 });
 
 it('picks the theme from the Site Design grid, open on arrival and on the live theme', function () {
@@ -703,6 +701,8 @@ it('loads existing theme settings into the form', function () {
 });
 
 it('manages multiple hero slides and mirrors the first image into home_hero_image', function () {
+    Setting::set('site_theme', 'classic_ecommerce');
+
     // An install from before the slider: its single hero image becomes slide 1.
     Setting::factory()->create(['key' => 'home_hero_image', 'value' => 'media/old.jpg', 'group' => 'frontend', 'type' => 'string']);
 
@@ -742,6 +742,7 @@ it('manages multiple hero slides and mirrors the first image into home_hero_imag
 });
 
 it('still reads hero slides saved as plain image URLs', function () {
+    Setting::set('site_theme', 'classic_ecommerce');
     Setting::set('home_hero_slides', json_encode(['media/a.jpg', 'media/b.jpg']));
 
     Livewire::test(ThemeSettingsScreen::class)
@@ -814,7 +815,6 @@ it('saves the site-wide settings through Setting::set', function () {
 
     Livewire::test(ThemeSettingsScreen::class)
         ->set('settings.site_theme', 'classic_ecommerce')
-        ->set('heroSlides.0.image', 'media/hero.jpg')
         ->set('settings.chat_widget_enabled', false)
         ->set('settings.popup_enabled', true)
         ->set('settings.popup_title', 'Welcome to our store')
@@ -824,7 +824,6 @@ it('saves the site-wide settings through Setting::set', function () {
         ->call('save');
 
     expect(Setting::where('key', 'site_theme')->value('value'))->toBe('classic_ecommerce')
-        ->and(Setting::where('key', 'home_hero_image')->value('value'))->toBe('media/hero.jpg')
         ->and(Setting::where('key', 'chat_widget_enabled')->value('value'))->toBe('0')
         ->and(Setting::where('key', 'popup_enabled')->value('value'))->toBe('1')
         ->and(Setting::where('key', 'popup_title')->value('value'))->toBe('Welcome to our store')

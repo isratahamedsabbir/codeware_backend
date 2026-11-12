@@ -2,5 +2,7 @@
     "default": true,
     "theme_default_intro_heading": "",
     "theme_default_intro_text": "",
-    "theme_default_font": ""
+    "theme_default_font": "",
+    "theme_default_promo_1_link": "",
+    "theme_default_promo_2_link": ""
 }

@@ -2,9 +2,11 @@
 
 namespace App\Livewire\Admin\ThemeSettings;
 
+use App\Livewire\Admin\ThemeSettings\Concerns\ManagesPageSettings;
 use App\Models\Setting;
 use App\Support\AdminActivity;
 use App\Support\CodeInstall;
+use App\Support\HeroSlides;
 use App\Support\SafeUpload;
 use App\Support\Themes;
 use App\Support\ThemeSettings;
@@ -15,11 +17,14 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
-use App\Support\HeroSlides;
 
 class Index extends Component
 {
+    use ManagesPageSettings;
     use WithFileUploads;
+
+    /** Most hero slides the home slider takes. */
+    public const MAX_HERO_SLIDES = HeroSlides::MAX;
 
     public bool $showInstallModal = false;
 
@@ -81,9 +86,6 @@ class Index extends Component
      */
     public array $settings = [];
 
-    /** Most hero slides the homepage slider takes. */
-    public const MAX_HERO_SLIDES = HeroSlides::MAX;
-
     /**
      * Row cap for a repeater whose theme declaration omits `:max`. Mirrors the
      * `max` default on <x-admin-repeatable-fields> — the two must agree, or a
@@ -109,16 +111,6 @@ class Index extends Component
      * @var array<int, string>|null
      */
     private ?array $declarations = null;
-
-    /**
-     * The homepage hero slider, in order — each slide {image, title,
-     * description, link} (see App\Support\HeroSlides). Persisted as a JSON
-     * list in `home_hero_slides`; the first image is mirrored into
-     * `home_hero_image` so anything reading the single hero image keeps working.
-     *
-     * @var array<int, array{image: string, title: string, description: string, link: string}>
-     */
-    public array $heroSlides = [];
 
     /**
      * Repeating theme fields, keyed by their "theme_{slug}_*" key.
@@ -166,10 +158,7 @@ class Index extends Component
         }
 
         $this->loadThemeValues();
-
-        // Older installs (plain image URLs, or only the single hero image) load
-        // as image-only slides.
-        $this->heroSlides = HeroSlides::stored() ?: [HeroSlides::blank()];
+        $this->loadPageSettings();
     }
 
     /**
@@ -346,20 +335,6 @@ class Index extends Component
         $this->resetErrorBag('uploads.'.$key);
     }
 
-    public function addHeroSlide(): void
-    {
-        if (count($this->heroSlides) < self::MAX_HERO_SLIDES) {
-            $this->heroSlides[] = HeroSlides::blank();
-        }
-    }
-
-    public function removeHeroSlide(int $index): void
-    {
-        unset($this->heroSlides[$index]);
-
-        $this->heroSlides = array_values($this->heroSlides) ?: [HeroSlides::blank()];
-    }
-
     public function save(): void
     {
         $this->settings['chat_widget_color'] = strtolower(trim((string) ($this->settings['chat_widget_color'] ?? '')));
@@ -371,13 +346,11 @@ class Index extends Component
 
         $this->validate($this->uploadRules());
 
-        // A slide without an image isn't shown, so it isn't kept either.
-        $slides = array_values(array_filter(
-            array_map(HeroSlides::normalize(...), $this->heroSlides),
-            fn (array $slide) => $slide['image'] !== '',
-        ));
-        Setting::set('home_hero_slides', json_encode($slides));
-        $this->settings['home_hero_image'] = $slides[0]['image'] ?? '';
+        [$pageRules, $pageMessages] = $this->pageSettingsRules();
+        $this->validate($pageRules, $pageMessages);
+
+        // Page Settings card: page titles, section content, home banners.
+        $this->savePageSettings();
 
         $this->saveUploads();
 
@@ -1259,7 +1232,7 @@ class Index extends Component
             })
             ->all();
 
-        return view('livewire.admin.theme-settings.index', [
+        return view('livewire.admin.theme-settings.index', $this->pageSettingsData() + [
             'themes' => $themes,
             'themeCards' => $themeCards,
             'activeTheme' => Themes::active(),
@@ -1295,9 +1268,6 @@ class Index extends Component
             'chat_widget_enabled',
             'chat_widget_color',
             'site_tagline',
-            'home_hero_image',
-            'home_promo_banner_1',
-            'home_promo_banner_2',
             'popup_enabled',
             'popup_image',
             'popup_title',
@@ -1319,7 +1289,7 @@ class Index extends Component
     private function settingsDeclarations(): array
     {
         return $this->declarations ??= collect(
-            glob(base_path('themes/*/settings.blade.php')) ?: []
+            array_merge(glob(base_path('themes/*/settings.blade.php')) ?: [], glob(base_path('themes/*/page-settings.blade.php')) ?: [])
         )
             ->map(fn (string $file) => (string) file_get_contents($file))
             ->values()

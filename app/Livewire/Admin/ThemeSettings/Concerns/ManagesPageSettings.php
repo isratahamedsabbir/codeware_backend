@@ -1,0 +1,315 @@
+<?php
+
+namespace App\Livewire\Admin\ThemeSettings\Concerns;
+
+use App\Models\CmsSection;
+use App\Models\Page;
+use App\Models\Setting;
+use App\Support\AdminActivity;
+use App\Support\Features;
+use App\Support\HeroSlides;
+use App\Support\Locale;
+use App\Support\ThemeSettings;
+use App\Support\Themes;
+use Illuminate\Support\Collection;
+
+/**
+ * Theme Settings → the "Page Settings" card (mixed into the screen's component, so
+ * it shares its state, uploads and single Save bar): the pages the live theme serves on
+ * the left, and — for the page you pick — its title and every section's content
+ * on the right, editable in place.
+ *
+ * Theme Settings (the other card) is the global look: colours, typography. This
+ * is content: a page's title, and per section each card's image, title,
+ * subtitle, description, button and text colour, plus the values of the
+ * section's constants.
+ *
+ * Which pages: the home page when the theme ships an index template, and every
+ * standalone page (About, Contact, ...) when it ships a `page` template — the
+ * same rule the storefront uses to answer or 404 a URL.
+ *
+ * A theme can add its own built-in home sections (a hero slider, promo tiles)
+ * by shipping page-settings.blade.php at its root; that fragment binds to
+ * $heroSlides and $promo below and is shown at the top of the Home page.
+ *
+ * Structure — new sections, renamed sections, constant keys, slug, SEO, the
+ * page builder — stays in Pages / CMS, which the page panel links to.
+ */
+trait ManagesPageSettings
+{
+    /** Card fields editable here, in display order. */
+    private const CARD_FIELDS = ['image', 'title', 'subtitle', 'description', 'button_label', 'button_url', 'text_color'];
+
+    public ?int $selectedPageId = null;
+
+    /** @var array<int, array<string, string>> page id => locale => title */
+    public array $titles = [];
+
+    /** @var array<int, array<int, array<string, ?string>>> section id => cards */
+    public array $cards = [];
+
+    /** @var array<int, array<int, string>> section id => constant index => value */
+    public array $values = [];
+
+    /** @var array<int, array<string, mixed>> */
+    public array $heroSlides = [];
+
+    /** @var array<int, array{image: string, link: string}> */
+    public array $promo = [];
+
+    protected function loadPageSettings(): void
+    {
+        $this->load();
+
+        $this->selectedPageId ??= $this->pages()->first()?->id;
+    }
+
+    public function selectPage(int $pageId): void
+    {
+        if ($this->pages()->contains('id', $pageId)) {
+            $this->selectedPageId = $pageId;
+        }
+    }
+
+    /** Whether the live theme ships its own home-page banner editor. */
+    private function hasBanners(): bool
+    {
+        return is_file(Themes::path().'/'.Themes::active().'/page-settings.blade.php');
+    }
+
+    /** @return Collection<int, Page> */
+    private function pages(): Collection
+    {
+        if (! Features::enabled('pages')) {
+            return collect();
+        }
+
+        $theme = Themes::active();
+        $pages = collect();
+
+        if (Themes::hasTemplateFor($theme, 'index')) {
+            $home = Page::ofType('page')->where('slug', 'home')->first();
+
+            if ($home) {
+                $pages->push($home);
+            }
+        }
+
+        if (Themes::hasTemplateFor($theme, 'page')) {
+            $pages = $pages->merge(
+                Page::ofType('page')->where('slug', '!=', 'home')->orderBy('sort_order')->orderBy('id')->get()
+            );
+        }
+
+        return $pages->unique('id')->values();
+    }
+
+    /** @return Collection<int, CmsSection> */
+    private function sectionsFor(Collection $pages): Collection
+    {
+        return CmsSection::whereIn('page_id', $pages->pluck('id'))
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+    }
+
+    private function load(): void
+    {
+        $pages = $this->pages();
+
+        $this->titles = $pages->mapWithKeys(fn (Page $page) => [$page->id => $page->getTranslations('title')])->all();
+
+        $sections = $this->sectionsFor($pages);
+
+        $this->cards = $sections->mapWithKeys(fn (CmsSection $section) => [
+            $section->id => collect($section->cards ?? [])
+                ->map(fn ($card) => collect(self::CARD_FIELDS)->mapWithKeys(fn ($f) => [$f => $card[$f] ?? ($f === 'image' ? null : '')])->all())
+                ->values()
+                ->all(),
+        ])->all();
+
+        $this->values = $sections->mapWithKeys(fn (CmsSection $section) => [
+            $section->id => collect($section->constant ?? [])->map(fn ($pair) => (string) ($pair['value'] ?? ''))->values()->all(),
+        ])->all();
+
+        if ($this->hasBanners()) {
+            $this->heroSlides = HeroSlides::stored() ?: [HeroSlides::blank()];
+            $theme = Themes::active();
+            $this->promo = [
+                ['image' => (string) Setting::get('home_promo_banner_1', ''), 'link' => ThemeSettings::text($theme, 'theme_'.$theme.'_promo_1_link')],
+                ['image' => (string) Setting::get('home_promo_banner_2', ''), 'link' => ThemeSettings::text($theme, 'theme_'.$theme.'_promo_2_link')],
+            ];
+        }
+    }
+
+    public function addHeroSlide(): void
+    {
+        if (count($this->heroSlides) < self::MAX_HERO_SLIDES) {
+            $this->heroSlides[] = HeroSlides::blank();
+        }
+    }
+
+    public function removeHeroSlide(int $index): void
+    {
+        unset($this->heroSlides[$index]);
+
+        $this->heroSlides = array_values($this->heroSlides) ?: [HeroSlides::blank()];
+    }
+
+    public function addCard(int $sectionId): void
+    {
+        if (! array_key_exists($sectionId, $this->cards)) {
+            return;
+        }
+
+        $this->cards[$sectionId][] = collect(self::CARD_FIELDS)->mapWithKeys(fn ($f) => [$f => $f === 'image' ? null : ''])->all();
+    }
+
+    public function removeCard(int $sectionId, int $index): void
+    {
+        if (! isset($this->cards[$sectionId][$index])) {
+            return;
+        }
+
+        unset($this->cards[$sectionId][$index]);
+        $this->cards[$sectionId] = array_values($this->cards[$sectionId]);
+    }
+
+    /** @return array{0: array<string, mixed>, 1: array<string, string>} */
+    protected function pageSettingsRules(): array
+    {
+        $primary = Locale::primary();
+
+        $rules = [
+            'titles.*' => ['array'],
+            "titles.*.{$primary}" => ['required', 'string', 'max:255'],
+            'cards.*.*.image' => ['nullable', 'string'],
+            'cards.*.*.title' => ['nullable', 'string', 'max:255'],
+            'cards.*.*.subtitle' => ['nullable', 'string', 'max:255'],
+            'cards.*.*.description' => ['nullable', 'string'],
+            'cards.*.*.button_label' => ['nullable', 'string', 'max:80'],
+            'cards.*.*.button_url' => ['nullable', 'string', 'max:500'],
+            'cards.*.*.text_color' => ['nullable', 'regex:/^#[0-9a-fA-F]{3,8}$/'],
+            'values.*.*' => ['nullable', 'string', 'max:1000'],
+            'promo.*.link' => ['nullable', 'string', 'max:500'],
+            'promo.*.image' => ['nullable', 'string'],
+        ];
+
+        foreach (Locale::codes() as $code) {
+            if ($code !== $primary) {
+                $rules["titles.*.{$code}"] = ['nullable', 'string', 'max:255'];
+            }
+        }
+
+        return [$rules, ['cards.*.*.text_color.regex' => 'Use a hex colour like #1e7bc4.']];
+    }
+
+    protected function savePageSettings(): void
+    {
+        $pages = $this->pages();
+        $sections = $this->sectionsFor($pages);
+        $primary = Locale::primary();
+
+        // Only rows this card loaded may be written: ids arrive from the browser,
+        // so a page or section that is not one of the theme's own is ignored
+        // rather than trusted.
+        foreach ($pages as $page) {
+            if (! isset($this->titles[$page->id])) {
+                continue;
+            }
+
+            $title = array_filter(array_map(fn ($v) => is_string($v) ? trim($v) : '', $this->titles[$page->id]));
+
+            if ($title !== [] && $title !== $page->getTranslations('title')) {
+                $page->update(['title' => $title]);
+                AdminActivity::log('updated', "Page #{$page->id}: {$page->getTranslation('title', $primary, false)} (Page Settings)");
+            }
+        }
+
+        foreach ($sections as $section) {
+            if (! isset($this->cards[$section->id])) {
+                continue;
+            }
+
+            $cards = collect($this->cards[$section->id])
+                ->map(function ($card) {
+                    $row = [];
+
+                    foreach (self::CARD_FIELDS as $field) {
+                        $row[$field] = $field === 'image'
+                            ? (filled($card[$field] ?? null) ? $card[$field] : null)
+                            : (string) ($card[$field] ?? '');
+                    }
+
+                    return $row;
+                })
+                ->values()
+                ->all();
+
+            // Keys and types stay as stored; only the value is edited here.
+            $constant = collect($section->constant ?? [])
+                ->values()
+                ->map(fn ($pair, $i) => [...$pair, 'value' => (string) ($this->values[$section->id][$i] ?? ($pair['value'] ?? ''))])
+                ->all();
+
+            if ($cards !== ($section->cards ?? []) || $constant !== ($section->constant ?? [])) {
+                $section->update(['cards' => $cards, 'constant' => $constant]);
+                AdminActivity::log('updated', "CMS section: {$section->name} (Page Settings)");
+            }
+        }
+
+        if ($this->hasBanners()) {
+            $this->saveBanners();
+        }
+
+    }
+
+    private function saveBanners(): void
+    {
+        // A slide without an image isn't shown, so it isn't kept either.
+        $slides = array_values(array_filter(
+            array_map(HeroSlides::normalize(...), $this->heroSlides),
+            fn (array $slide) => $slide['image'] !== '',
+        ));
+
+        Setting::set('home_hero_slides', json_encode($slides));
+        Setting::set('home_hero_image', $slides[0]['image'] ?? '');
+
+        $theme = Themes::active();
+
+        Setting::set('home_promo_banner_1', (string) ($this->promo[0]['image'] ?? ''));
+        Setting::set('home_promo_banner_2', (string) ($this->promo[1]['image'] ?? ''));
+
+        if (ThemeSettings::exists($theme)) {
+            ThemeSettings::merge($theme, [
+                "theme_{$theme}_promo_1_link" => (string) ($this->promo[0]['link'] ?? ''),
+                "theme_{$theme}_promo_2_link" => (string) ($this->promo[1]['link'] ?? ''),
+            ]);
+        }
+
+        AdminActivity::log('updated', 'Home banners updated (Page Settings)');
+    }
+
+    /**
+     * What the Page Settings card's partial reads, prefixed `ps` so it can never
+     * collide with a variable a theme's own settings partial sets in the same scope.
+     *
+     * @return array<string, mixed>
+     */
+    protected function pageSettingsData(): array
+    {
+        $pages = $this->pages();
+        $selected = $pages->firstWhere('id', $this->selectedPageId) ?? $pages->first();
+
+        return [
+            'psPages' => $pages,
+            'psSelected' => $selected,
+            'psSections' => $selected ? $this->sectionsFor(collect([$selected])) : collect(),
+            'psLanguages' => Locale::translatable(),
+            'psPrimary' => Locale::primary(),
+            'psTheme' => Themes::active(),
+            'psFeatureOn' => Features::enabled('pages'),
+            'psBanners' => $this->hasBanners() ? Themes::viewNamespace(Themes::active()).'::page-settings' : null,
+        ];
+    }
+}

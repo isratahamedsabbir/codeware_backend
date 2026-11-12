@@ -176,8 +176,12 @@
                             <img src="{{ $card['image'] }}" alt="{{ $card['title'] }}" loading="lazy" class="aspect-[4/3] w-full object-cover">
                         @endif
                         <div class="p-4">
-                            @if ($card['title'])<h3 class="font-bold text-gray-900">{{ $card['title'] }}</h3>@endif
+                            @if ($card['title'])<h3 class="font-bold text-gray-900" @if ($card['text_color']) style="color: {{ $card['text_color'] }}" @endif>{{ $card['title'] }}</h3>@endif
+                            @if ($card['subtitle'])<p class="text-xs font-medium text-gray-400">{{ $card['subtitle'] }}</p>@endif
                             @if ($card['description'])<p class="mt-1.5 line-clamp-2 text-sm text-gray-500">{{ $card['description'] }}</p>@endif
+                            @if ($card['button_label'] && $card['button_url'])
+                                <a href="{{ \App\Support\HeroSlides::safeUrl($card['button_url']) ?: url('/') }}" class="mt-3 inline-block rounded-full bg-[var(--me-accent)] px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white">{{ $card['button_label'] }}</a>
+                            @endif
                         </div>
                     </div>
                 @endforeach

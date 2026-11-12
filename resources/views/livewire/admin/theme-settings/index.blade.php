@@ -70,10 +70,11 @@
          The preview grid, and the only place the theme is picked: each card is a
          radio bound to the same `settings.site_theme` the storefront reads, so
          choosing here is choosing the live site, not a separate "editing" state.
-         Kept expanded because it holds that selector. --}}
+         Collapsed on open so the selected theme's own settings sit higher on the
+         page; the header still shows what it is and expands in one click. --}}
     <x-admin-section-card plain header-border="border-zinc-100" icon="swatch" title="Site Design"
         description="Preview each installed theme, read what it ships with, and pick the one to use — changes apply once you save."
-        collapsible :collapsed="false">
+        collapsible :collapsed="true">
 
         {{-- This card is where a theme is chosen and installed, so the question it
              draws is "how do I add one" — answered by the guide's creation
@@ -600,6 +601,17 @@
         </x-admin-section-card>
     @endif
 
+    {{-- ── Page Settings ──
+         Content, as opposed to the Theme Settings card above (the global look:
+         colours, typography): the pages the live theme serves on the left, and for
+         the page you pick, its sections — title, subtitle, image, button, text
+         colour — on the right. Same component state as the Theme Settings card, so the
+         one Save Changes bar below saves both. --}}
+    <x-admin-section-card plain header-border="border-zinc-100" icon="document-text" title="Page Settings"
+        description="The pages this theme serves. Pick a page to edit its sections — titles, subtitles, images, buttons and text colour.">
+        @include('livewire.admin.theme-settings.page-settings')
+    </x-admin-section-card>
+
     {{-- ── Live Chat and Popup ─────────────────────────────────────────────
          Neither is a theme setting: no key starts with a theme slug, neither is
          declared by a theme's settings.blade.php, and neither lands in a
@@ -782,6 +794,7 @@
             </div>
         </div>
     </x-admin-section-card>
+
 
     {{-- ── Install Theme modal ─────────────────────────────────────────────── --}}
     @if ($showInstallModal)

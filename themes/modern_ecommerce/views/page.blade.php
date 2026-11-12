@@ -89,10 +89,16 @@
                                 @endif
                                 <div class="p-5">
                                     @if ($card['title'])
-                                        <h3 class="font-extrabold text-[#1a1a1a]">{{ $card['title'] }}</h3>
+                                        <h3 class="font-extrabold text-[#1a1a1a]" @if ($card['text_color']) style="color: {{ $card['text_color'] }}" @endif>{{ $card['title'] }}</h3>
+                                    @endif
+                                    @if ($card['subtitle'])
+                                        <p class="text-xs font-medium text-gray-400">{{ $card['subtitle'] }}</p>
                                     @endif
                                     @if ($card['description'])
                                         <p class="mt-2 text-sm leading-6 text-gray-500">{{ $card['description'] }}</p>
+                                    @endif
+                                    @if ($card['button_label'] && $card['button_url'])
+                                        <a href="{{ \App\Support\HeroSlides::safeUrl($card['button_url']) ?: url('/') }}" class="mt-3 inline-block rounded-full bg-[var(--me-accent)] px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white">{{ $card['button_label'] }}</a>
                                     @endif
                                 </div>
                             </div>
