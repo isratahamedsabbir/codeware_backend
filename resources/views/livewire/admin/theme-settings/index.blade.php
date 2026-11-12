@@ -100,7 +100,10 @@
              2xl is the first breakpoint where three cards are actually comfortable,
              so a laptop gets two roomy cards rather than three squeezed ones. --}}
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-3">
-            @foreach ($themes as $slug => $label)
+            {{-- The live theme leads the grid: it is the one the owner is most likely
+                 here to tweak or replace, and it should not sit wherever the
+                 folder scan happened to put it. --}}
+            @foreach (collect($themes)->sortBy(fn ($label, $slug) => $slug === $activeTheme ? 0 : 1) as $slug => $label)
                 @php
                     $selected = ($settings['site_theme'] ?? null) === $slug;
                     $preview = $previews[$slug] ?? $previews['default'];
@@ -132,7 +135,7 @@
                         <span class="size-2 rounded-full bg-amber-400"></span>
                         <span class="size-2 rounded-full bg-emerald-400"></span>
                         <span class="ml-2 flex-1 truncate rounded bg-white px-2 py-0.5 text-[9px] font-medium text-zinc-400 dark:bg-zinc-800">
-                            {{ $slug }} · codeware.test
+                            {{ $label }} · preview
                         </span>
                     </div>
 
@@ -168,6 +171,33 @@
                                         <div class="flex flex-col items-center gap-1 rounded-md bg-white p-1.5">
                                             <div class="w-full rounded-sm bg-zinc-200" style="height: 14px"></div>
                                             <div class="h-1 w-5 rounded bg-zinc-300"></div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @elseif ($slug === 'modern_ecommerce')
+                                {{-- Light, airy storefront: white nav with a search pill, a soft
+                                     grey hero with a dark CTA, then a row of product tiles with
+                                     a red price accent. --}}
+                                <div class="flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-2.5 py-1.5">
+                                    <span class="size-2.5 rounded-sm bg-[#e63946]"></span>
+                                    <span class="h-1.5 w-8 rounded bg-zinc-800"></span>
+                                    <span class="mx-1 h-3 flex-1 rounded-full bg-zinc-100"></span>
+                                    <span class="size-2.5 rounded-full bg-zinc-300"></span>
+                                    <span class="size-2.5 rounded-full bg-zinc-300"></span>
+                                </div>
+                                <div class="relative flex flex-1 items-center rounded-md bg-gradient-to-br {{ $preview['hero'] }} px-3">
+                                    <div class="space-y-1.5">
+                                        <span class="block h-1.5 w-20 rounded bg-white/80"></span>
+                                        <span class="block h-1.5 w-14 rounded bg-white/50"></span>
+                                        <span class="mt-1 inline-block rounded-full {{ $preview['cta'] }} px-2 py-0.5 text-[7px] font-bold uppercase">Shop now</span>
+                                    </div>
+                                    <span class="absolute right-3 top-1/2 size-10 -translate-y-1/2 rounded-full bg-white/40"></span>
+                                </div>
+                                <div class="grid grid-cols-4 gap-1.5">
+                                    @foreach ([1, 2, 3, 4] as $tile)
+                                        <div class="rounded-md border border-zinc-200 bg-white p-1">
+                                            <div class="w-full rounded-sm bg-zinc-100" style="height: 14px"></div>
+                                            <div class="mt-1 h-1 w-6 rounded bg-[#e63946]/70"></div>
                                         </div>
                                     @endforeach
                                 </div>
@@ -213,6 +243,19 @@
                                 </div>
                             @endif
                         </div>
+
+                        {{-- Hover cue. A "Select" pill fades in on cards that are not
+                             picked, so the whole card reads as clickable instead of
+                             looking like a static screenshot. No tick on the picked
+                             card: the glow / ring and the Live / Selected badge
+                             already say it. --}}
+                        @unless ($selected)
+                            <span class="pointer-events-none absolute inset-0 flex items-center justify-center bg-zinc-900/0 transition group-hover:bg-zinc-900/25">
+                                <span class="translate-y-1 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-zinc-800 opacity-0 shadow transition group-hover:translate-y-0 group-hover:opacity-100">
+                                    Select this theme
+                                </span>
+                            </span>
+                        @endunless
                     </div>
 
                     {{-- Footer. mt-auto pins it to the bottom of the card, so the
@@ -238,6 +281,12 @@
                                         <flux:icon.information-circle class="size-4" />
                                     </button>
                                 </flux:tooltip>
+                                @endif
+                                @if (\App\Support\Themes::isDefault($slug))
+                                    <span class="inline-flex shrink-0 items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300"
+                                        title="Ships with Codeware and cannot be deleted">
+                                        <flux:icon.lock-closed class="size-2.5" /> Default
+                                    </span>
                                 @endif
                                 @if ($slug === $activeTheme)
                                     <span class="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
@@ -300,7 +349,7 @@
                         x-on:click.outside="open = false" x-on:keydown.escape.window="open = false">
                         <button type="button" x-on:click.prevent.stop="open = ! open"
                             aria-label="Actions for {{ $label }}" title="Theme actions"
-                            class="flex size-6 items-center justify-center rounded-full bg-white/80 text-zinc-500 opacity-0 shadow-sm backdrop-blur transition group-hover:opacity-100 focus:opacity-100 hover:bg-white hover:text-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-white"
+                            class="flex size-6 items-center justify-center rounded-full bg-white/80 text-zinc-500 opacity-60 shadow-sm backdrop-blur transition group-hover:opacity-100 focus:opacity-100 hover:bg-white hover:text-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-white"
                             :class="open && 'opacity-100'">
                             <flux:icon.ellipsis-horizontal class="size-4" />
                         </button>
