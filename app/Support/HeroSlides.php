@@ -1,6 +1,6 @@
 <?php
 
-namespace Themes\ClassicEcommerce\Support;
+namespace App\Support;
 
 use App\Models\Setting;
 

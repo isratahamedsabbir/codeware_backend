@@ -107,7 +107,9 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public static function accountPath(): string
     {
-        return Themes::active() === 'classic_ecommerce'
+        // Any theme that ships an account area gets it; no theme is named here,
+        // so deleting one can never break the redirect.
+        return Themes::has('account.dashboard') && \Illuminate\Support\Facades\Route::has('account.dashboard')
             ? route('account.dashboard')
             : config('fortify.home');
     }

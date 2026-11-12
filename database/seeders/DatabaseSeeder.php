@@ -5,8 +5,6 @@ namespace Database\Seeders;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Themes\ClassicEcommerce\Database\Seeders\MenuSeeder;
-use Themes\Portfolio\Database\Seeders\ContentSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -56,9 +54,17 @@ class DatabaseSeeder extends Seeder
         $this->call(ProductAttributeSeeder::class);
         $this->call(ShippingMethodSeeder::class);
         $this->call(PageSeeder::class);
-        $this->call(MenuSeeder::class);
-        $this->call(\Themes\Portfolio\Database\Seeders\MenuSeeder::class);
-        $this->call(ContentSeeder::class);
+        // Theme seeders are optional: a theme folder can be deleted, and the
+        // rest of the system must keep seeding without it.
+        foreach ([
+            \Themes\ClassicEcommerce\Database\Seeders\MenuSeeder::class,
+            \Themes\Portfolio\Database\Seeders\MenuSeeder::class,
+            \Themes\Portfolio\Database\Seeders\ContentSeeder::class,
+        ] as $themeSeeder) {
+            if (class_exists($themeSeeder)) {
+                $this->call($themeSeeder);
+            }
+        }
         $this->call(QuickLinksMenuSeeder::class);
         $this->call(EmailTemplatesSeeder::class);
         $this->call(NotificationsSeeder::class);

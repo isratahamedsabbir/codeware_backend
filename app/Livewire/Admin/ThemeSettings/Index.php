@@ -15,7 +15,7 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
-use Themes\ClassicEcommerce\Support\HeroSlides;
+use App\Support\HeroSlides;
 
 class Index extends Component
 {
@@ -112,7 +112,7 @@ class Index extends Component
 
     /**
      * The homepage hero slider, in order — each slide {image, title,
-     * description, link} (see Themes\ClassicEcommerce\Support\HeroSlides). Persisted as a JSON
+     * description, link} (see App\Support\HeroSlides). Persisted as a JSON
      * list in `home_hero_slides`; the first image is mirrored into
      * `home_hero_image` so anything reading the single hero image keeps working.
      *

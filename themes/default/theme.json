@@ -1,4 +1,5 @@
 {
+    "default": true,
     "theme_default_intro_heading": "",
     "theme_default_intro_text": "",
     "theme_default_font": ""
