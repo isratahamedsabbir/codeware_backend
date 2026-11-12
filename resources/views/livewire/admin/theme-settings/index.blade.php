@@ -18,6 +18,13 @@
             'hero'  => 'from-zinc-200 to-zinc-400',
             'cta'   => 'bg-[#1a1a1a] text-white',
         ],
+        'news' => [
+            'bg'    => 'bg-white',
+            'nav'   => 'bg-white border-b-2 border-[#b91c1c]',
+            'trim'  => 'text-[#b91c1c]',
+            'hero'  => 'from-zinc-300 to-zinc-500',
+            'cta'   => 'bg-[#b91c1c] text-white',
+        ],
         'portfolio' => [
             'bg'    => 'bg-[#06080f]',
             'nav'   => 'bg-[#0b0f1a]',
@@ -199,6 +206,37 @@
                                             <div class="w-full rounded-sm bg-zinc-100" style="height: 14px"></div>
                                             <div class="mt-1 h-1 w-6 rounded bg-[#e63946]/70"></div>
                                         </div>
+                                    @endforeach
+                                </div>
+                            @elseif ($slug === 'news')
+                                {{-- Newspaper front page: a serif masthead rule, a lead story
+                                     beside two small ones, then a row of headline lines. --}}
+                                <div class="flex flex-col items-center gap-1 rounded-md border-b-2 border-[#b91c1c] bg-white px-2.5 py-1.5">
+                                    <span class="h-2 w-24 rounded-sm bg-zinc-800"></span>
+                                    <span class="flex gap-2">
+                                        @foreach (range(1, 4) as $navItem)
+                                            <span class="h-1 w-6 rounded bg-zinc-300"></span>
+                                        @endforeach
+                                    </span>
+                                </div>
+                                <div class="grid flex-1 grid-cols-3 gap-1.5">
+                                    <div class="col-span-2 flex flex-col gap-1">
+                                        <div class="flex-1 rounded-sm bg-gradient-to-br {{ $preview['hero'] }}"></div>
+                                        <span class="h-1.5 w-full rounded bg-zinc-800"></span>
+                                        <span class="h-1.5 w-2/3 rounded bg-zinc-800"></span>
+                                    </div>
+                                    <div class="flex flex-col gap-1.5">
+                                        @foreach ([1, 2] as $story)
+                                            <div class="flex flex-1 flex-col gap-1">
+                                                <div class="flex-1 rounded-sm bg-zinc-200"></div>
+                                                <span class="h-1 w-full rounded bg-zinc-500"></span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-x-2 gap-y-1">
+                                    @foreach (range(1, 4) as $line)
+                                        <span class="h-1 rounded bg-zinc-300"></span>
                                     @endforeach
                                 </div>
                             @elseif ($slug === 'portfolio')

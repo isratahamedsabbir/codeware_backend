@@ -1,0 +1,29 @@
+/* ── The "news" theme stylesheet ──
+   Its own Vite entry (see Themes::storefrontEntry()). The shared half comes from
+   storefront-shared.css; the look is Tailwind utilities in the templates plus the
+   few rules below. @source is relative to this file: '../../views' is the
+   theme's templates. */
+
+@import '../../../../resources/css/base.css';
+@import '../../../../resources/css/storefront-shared.css';
+
+@source '../../views';
+
+.nw-serif {
+    font-family: Georgia, 'Times New Roman', 'Noto Serif', serif;
+}
+
+.nw-prose {
+    font-size: 1.0625rem;
+    line-height: 1.8;
+    color: #27272a;
+}
+.nw-prose > * + * { margin-top: 1.25em; }
+.nw-prose h2, .nw-prose h3 { font-family: Georgia, 'Times New Roman', serif; font-weight: 700; line-height: 1.25; color: #18181b; }
+.nw-prose h2 { font-size: 1.5rem; margin-top: 2em; }
+.nw-prose h3 { font-size: 1.25rem; margin-top: 1.6em; }
+.nw-prose a { color: var(--nw-accent); text-decoration: underline; text-underline-offset: 3px; }
+.nw-prose img { max-width: 100%; height: auto; border-radius: 0.5rem; }
+.nw-prose blockquote { border-left: 3px solid var(--nw-accent); padding-left: 1rem; font-family: Georgia, serif; font-style: italic; color: #3f3f46; }
+.nw-prose ul { list-style: disc; padding-left: 1.4rem; }
+.nw-prose ol { list-style: decimal; padding-left: 1.4rem; }
