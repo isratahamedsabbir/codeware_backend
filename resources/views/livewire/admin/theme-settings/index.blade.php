@@ -600,24 +600,11 @@
         </x-admin-section-card>
     @endif
 
-    {{-- ── Site Widgets ─────────────────────────────────────────────────────
-     Live Chat and Popup are not theme settings. Neither has a single key
-     starting with a theme slug, neither is declared by the theme's own
-     settings.blade.php, and neither lands in the theme's theme.json — they
-     are two site-wide features that happen to live on this screen. Left as
-     siblings of the theme's own sections they read as more of the same
-     thing, which is the wrong thing to believe about them: editing a theme
-     should not imply you are about to change the chat bubble for every
-     theme, or a popup that is not part of the theme at all.
-
-     So they get their own parent section. It carries the boundary on its
-     own — its heading, and the outlined cards nested under it — so nothing
-     is wedged between it and Theme Settings; the gap a separator would have
-     occupied is not worth a strip of empty page halfway down. --}}
-<x-admin-section-card plain icon="squares-2x2" title="Site Widgets"
-        description="Features that sit on the public site on their own, kept apart from the theme above because no theme sets them and switching theme does not change them.">
-
-        <div class="space-y-5">
+    {{-- ── Live Chat and Popup ─────────────────────────────────────────────
+         Neither is a theme setting: no key starts with a theme slug, neither is
+         declared by a theme's settings.blade.php, and neither lands in a
+         theme.json. They are two independent site-wide features, so each is its
+         own section instead of sharing a parent card. --}}
 
     {{-- ── Live Chat Widget ───────────────────────────────────────────────
          Collapsed on open, like Popup: the colour picker and its mockup are a
@@ -630,7 +617,7 @@
          readable without expanding anything — this folds the controls, not the
          state. The card component puts @click.stop on the actions slot, so
          flipping that switch does not also fold the card it sits in. --}}
-    <x-admin-section-card header-border="border-zinc-100" icon="chat-bubble-left-right" title="Live Chat Widget"
+    <x-admin-section-card plain header-border="border-zinc-100" icon="chat-bubble-left-right" title="Live Chat Widget"
         description="The support chat bubble on the public site. Visitors verify with an email code before chatting."
         collapsible :collapsed="true">
 
@@ -757,7 +744,7 @@
     </x-admin-section-card>
 
     {{-- ── Popup (announcement) ────────────────────────────────────────────── --}}
-    <x-admin-section-card header-border="border-zinc-100" icon="megaphone" title="Popup"
+    <x-admin-section-card plain header-border="border-zinc-100" icon="megaphone" title="Popup"
         description="A one-time announcement popup for visitors: it appears on their first visit and, once closed, never bothers them again."
         collapsible :collapsed="true">
 
@@ -793,9 +780,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </x-admin-section-card>
-
         </div>
     </x-admin-section-card>
 
