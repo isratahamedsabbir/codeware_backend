@@ -1,0 +1,45 @@
+/* ── The "modern_ecommerce" theme stylesheet ──
+   Its own Vite entry (see Themes::storefrontEntry()). The shared half comes from
+   storefront-shared.css; the theme's look is Tailwind utilities in its templates.
+   @source is relative to this file: '../../views' is the theme's templates. */
+
+@import '../../../../resources/css/base.css';
+@import '../../../../resources/css/storefront-shared.css';
+
+@source '../../views';
+
+@keyframes me-fade-in-left {
+    from { opacity: 0; transform: translateX(-40px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* The Livewire cart counter is styled for the classic theme's dark header. On
+   this theme's light header it has to read as a plain icon with an accent badge. */
+.me-cart-link a {
+    color: #1a1a1a !important;
+}
+.me-cart-link a:hover {
+    background-color: #f3f4f6 !important;
+}
+.me-cart-link a span {
+    background-color: var(--me-accent) !important;
+    color: #ffffff !important;
+}
+
+/* The shared newsletter component reads its colours from --form-*; point them at
+   this theme's light footer instead of the classic theme's dark one. */
+.me-newsletter {
+    --form-input-bg: #f9fafb;
+    --form-border: #f3f4f6;
+    --form-text: #1a1a1a;
+    --form-placeholder: #9ca3af;
+    --form-input-bg-focus: #ffffff;
+    --form-border-focus: var(--me-accent);
+    --form-accent: #1a1a1a;
+    --form-submit-text: #ffffff;
+    --form-accent-hover: var(--me-accent);
+    --form-success-bg: #f0fdf4;
+    --form-success-text: #166534;
+    --form-success-icon: #16a34a;
+    --form-error: #dc2626;
+}

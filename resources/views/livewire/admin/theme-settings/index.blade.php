@@ -11,6 +11,13 @@
             'hero'  => 'from-[#045b30] to-emerald-800',
             'cta'   => 'bg-white text-[#045b30]',
         ],
+        'modern_ecommerce' => [
+            'bg'    => 'bg-white',
+            'nav'   => 'bg-white border-b border-zinc-200',
+            'trim'  => 'text-[#e63946]',
+            'hero'  => 'from-zinc-200 to-zinc-400',
+            'cta'   => 'bg-[#1a1a1a] text-white',
+        ],
         'portfolio' => [
             'bg'    => 'bg-[#06080f]',
             'nav'   => 'bg-[#0b0f1a]',

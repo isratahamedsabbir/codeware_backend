@@ -1,0 +1,13 @@
+{
+    "name": "Modern Ecommerce",
+    "description": "A clean, bold storefront with a sliding hero, promo tiles and product rows.",
+    "version": "1.0.0",
+    "author": "Codeware",
+    "tags": [
+        "Ecommerce",
+        "Modern",
+        "Fashion"
+    ],
+    "theme_modern_ecommerce_accent_color": "#e63946",
+    "theme_modern_ecommerce_font": ""
+}

@@ -59,6 +59,9 @@ it('serves a page from the active theme own route file', function (string $theme
     'the ecommerce home' => ['classic_ecommerce', '/'],
     'the ecommerce shop' => ['classic_ecommerce', '/shop'],
     'the portfolio home' => ['portfolio', '/'],
+    'the modern home' => ['modern_ecommerce', '/'],
+    'the modern shop' => ['modern_ecommerce', '/shop'],
+    'a modern standalone page' => ['modern_ecommerce', '/about'],
 ]);
 
 it('404s a page whose route belongs to another theme, without running its controller', function () {
@@ -172,7 +175,7 @@ it('keeps the system routes on every theme, since they are not a themed page', f
     foreach (['invoices.public.show', 'invoices.public.download', 'vouchers.public.show', 'vouchers.public.download', 'admin.legacy', 'dashboard'] as $name) {
         expect(Route::has($name))->toBeTrue("{$name} must exist on the {$theme} theme");
     }
-})->with(['default', 'classic_ecommerce', 'portfolio']);
+})->with(['default', 'classic_ecommerce', 'modern_ecommerce', 'portfolio']);
 
 it('contributes no routes for a theme that ships no route file', function () {
     // The same rule as the templates: a theme contributes nothing it didn't ship.
