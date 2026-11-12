@@ -71,16 +71,43 @@
         <link rel="preload" href="{{ $adminFontPreload }}" as="font" type="font/woff2" crossorigin>
     @endif
 
-    <link rel="stylesheet" href="//unpkg.com/jodit@4.1.16/es2021/jodit.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    {{-- Connect to the CDN before the first byte of it is asked for. --}}
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    {{-- Pinned, not "latest": "latest" is a redirect to a version on every cold load. --}}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" crossorigin="anonymous"
         referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js" crossorigin="anonymous"
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js" crossorigin="anonymous"
         referrerpolicy="no-referrer"></script>
-    <script src="//unpkg.com/jodit@4.1.16/es2021/jodit.min.js"></script>
+    {{-- Jodit (~600 KB) is only needed on the three pages with a rich-text editor, so
+         it is fetched on demand by the editor component instead of blocking every
+         admin page. window.loadJodit() resolves once the script and its stylesheet
+         are in; calling it again returns the same promise. --}}
+    <script>
+        window.loadJodit = window.loadJodit || (function () {
+            let promise = null;
+            return function () {
+                if (window.Jodit) return Promise.resolve();
+                if (promise) return promise;
+                promise = new Promise(function (resolve, reject) {
+                    const css = document.createElement('link');
+                    css.rel = 'stylesheet';
+                    css.href = 'https://unpkg.com/jodit@4.1.16/es2021/jodit.min.css';
+                    document.head.appendChild(css);
+
+                    const js = document.createElement('script');
+                    js.src = 'https://unpkg.com/jodit@4.1.16/es2021/jodit.min.js';
+                    js.onload = resolve;
+                    js.onerror = function () { promise = null; reject(new Error('Could not load the editor.')); };
+                    document.head.appendChild(js);
+                });
+                return promise;
+            };
+        })();
+    </script>
 
     <style>
         .nav-group-items {
