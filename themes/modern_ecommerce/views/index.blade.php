@@ -24,7 +24,7 @@
         \App\Models\Setting::get('home_promo_banner_3'),
     ]));
 
-    $with = ['categories.page', 'brand', 'tags', 'page'];
+    $with = ['categories.page', 'brand', 'tags', 'page', 'flashDeals'];
 
     $newArrivals = \App\Models\Product::active()->with($with)->withSoldQuantity()->latest()->limit(8)->get();
 

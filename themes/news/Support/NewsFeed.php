@@ -18,7 +18,7 @@ use Illuminate\Support\Collection;
  */
 class NewsFeed
 {
-    private const RELATIONS = ['page', 'category.page', 'user:id,name'];
+    private const RELATIONS = ['page.slugRecord', 'category.page.slugRecord', 'user:id,name'];
 
     /**
      * @return array{lead: ?Post, secondary: Collection, latest: Collection, sections: Collection}

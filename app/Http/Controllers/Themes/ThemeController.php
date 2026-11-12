@@ -86,7 +86,7 @@ class ThemeController extends Controller
     protected function productQuery(): Builder
     {
         return Product::active()
-            ->with(['categories.page', 'brand', 'tags', 'page'])
+            ->with(['categories.page', 'brand', 'tags', 'page', 'flashDeals'])
             ->withSoldQuantity()
             ->orderBy('sort_order');
     }

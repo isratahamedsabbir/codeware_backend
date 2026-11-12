@@ -27,7 +27,7 @@ trait RendersProduct
     public function product(string $slug)
     {
         $product = Product::active()
-            ->with(['categories.page', 'brand', 'tags', 'gallery', 'page', 'faqs'])
+            ->with(['categories.page', 'brand', 'tags', 'gallery', 'page', 'faqs', 'flashDeals'])
             ->whereHas('page', fn ($q) => $q->where('slug', $slug))
             ->first();
 
@@ -38,14 +38,14 @@ trait RendersProduct
         // the public API's ProductController::show().
         $related = $product->relatedProducts()
             ->active()
-            ->with(['categories', 'brand', 'tags', 'page'])
+            ->with(['categories', 'brand', 'tags', 'page', 'flashDeals'])
             ->withSoldQuantity()
             ->limit(4)
             ->get();
 
         if ($related->isEmpty() && $product->categories->isNotEmpty()) {
             $related = Product::active()
-                ->with(['categories', 'brand', 'tags', 'page'])
+                ->with(['categories', 'brand', 'tags', 'page', 'flashDeals'])
                 ->withSoldQuantity()
                 ->whereHas('categories', fn ($q) => $q->whereIn('categories.id', $product->categories->pluck('id')))
                 ->where('id', '!=', $product->id)

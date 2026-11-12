@@ -69,7 +69,7 @@ trait RendersBlog
         $this->countView($post);
 
         $related = Post::published()
-            ->with('page')
+            ->with(['page', 'category.page', 'user:id,name'])
             ->whereHas('page')
             ->where('id', '!=', $post->id)
             ->orderByDesc('published_at')

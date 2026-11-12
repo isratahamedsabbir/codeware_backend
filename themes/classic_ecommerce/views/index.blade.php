@@ -22,7 +22,7 @@
 
     $featured = \App\Models\Product::active()
         ->featured()
-        ->with(['categories.page', 'brand', 'tags', 'page'])
+        ->with(['categories.page', 'brand', 'tags', 'page', 'flashDeals'])
         ->withSoldQuantity()
         ->orderBy('sort_order')
         ->limit(10)
@@ -34,7 +34,7 @@
             'page',
             'parent',
             'products' => fn ($q) => $q->active()
-                ->with(['categories.page', 'brand', 'tags', 'page'])
+                ->with(['categories.page', 'brand', 'tags', 'page', 'flashDeals'])
                 ->withSoldQuantity()
                 ->orderBy('sort_order')
                 ->limit(8),
@@ -51,7 +51,7 @@
         ->get();
 
     $newArrivals = \App\Models\Product::active()
-        ->with(['categories.page', 'brand', 'tags', 'page'])
+        ->with(['categories.page', 'brand', 'tags', 'page', 'flashDeals'])
         ->withSoldQuantity()
         ->latest()
         ->limit(8)
@@ -59,7 +59,7 @@
 
     // Ranked by total units sold on non-cancelled orders.
     $bestSellers = \App\Models\Product::active()
-        ->with(['categories.page', 'brand', 'tags', 'page'])
+        ->with(['categories.page', 'brand', 'tags', 'page', 'flashDeals'])
         ->withSoldQuantity()
         ->whereHas('orderItems', fn ($q) => $q->whereHas('order', fn ($o) => $o->where('status', '!=', 'cancelled')))
         ->orderByDesc('sold_quantity')

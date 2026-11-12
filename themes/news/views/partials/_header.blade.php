@@ -57,7 +57,7 @@
             </nav>
 
             <button type="button" class="{{ $linkBase }} text-zinc-700 md:hidden" x-on:click="open = ! open" :aria-expanded="open">
-                <span x-text="open ? '{{ __('Close') }}' : '{{ __('Menu') }}'"></span>
+                <span x-text="open ? '{{ __('Close') }}' : '{{ __('Menu') }}'">{{ __('Menu') }}</span>
             </button>
 
             @auth

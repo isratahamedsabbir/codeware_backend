@@ -1287,3 +1287,18 @@ html.dark body.admin-panel table > tbody > tr:hover {
         transition: none;
     }
 }
+
+/* Header action buttons on small screens. Index pages keep their buttons in a
+   `.page-header-actions` row (often itself inside a `shrink-0` wrapper) that is
+   as wide as the buttons side by side — four of them are wider than a phone, so
+   the whole page scrolled sideways. Below `sm` the row and its wrapper may
+   shrink and wrap instead. Unlayered, so it outranks the shrink-0 utility. */
+@media (max-width: 639px) {
+    .page-header-actions,
+    :has(> .page-header-actions):not(body):not(html) {
+        flex-wrap: wrap;
+        flex-shrink: 1;
+        min-width: 0;
+        max-width: 100%;
+    }
+}

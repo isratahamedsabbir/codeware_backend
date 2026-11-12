@@ -38,7 +38,9 @@ class Frontend
     {
         $rows = ContentCache::remember('nav-pages', fn () => Page::ofType('page')->published()->orderBy('sort_order')->get()->map->getAttributes()->all());
 
-        $pages = Page::hydrate($rows);
+        // slugRecord eager-loaded: every theme header prints each page's slug, which
+        // is one lookup per page on every storefront request if left lazy.
+        $pages = Page::hydrate($rows)->load('slugRecord');
 
         return Themes::has('page') ? $pages : $pages->take(0);
     }

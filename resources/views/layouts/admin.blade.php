@@ -567,7 +567,7 @@
                     <div>
                         @include('partials._admin-breadcrumbs')
                     </div> 
-                    <div class="flex items-center gap-2 shrink-0 page-header-actions empty:hidden">
+                    <div class="flex max-w-full flex-wrap items-center gap-2 sm:shrink-0 page-header-actions empty:hidden">
                         @stack('page-header-actions')
                     </div>
                 </div>
