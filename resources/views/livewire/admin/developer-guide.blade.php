@@ -1298,7 +1298,8 @@ $token = PuckEditor::token($user, "puck-builder-{$page->id}");   // scoped per p
 
         <p>
             <span class="font-mono text-xs">localizedCards()</span> projects each card down to exactly
-            image/title/description, so a stray column in the stored JSON cannot leak into a template.
+            image/title/description plus subtitle/button_label/button_url/text_color, so a stray column in the
+            stored JSON cannot leak into a template.
             <span class="font-mono text-xs">constantMap()</span> collapses the stored
             <span class="font-mono text-xs">[{key, value}]</span> list into a
             <span class="font-mono text-xs">key =&gt; value</span> map, skipping blank keys &mdash; both
@@ -1416,8 +1417,20 @@ $token = PuckEditor::token($user, "puck-builder-{$page->id}");   // scoped per p
                 <p class="font-semibold text-zinc-800 dark:text-zinc-100">Section cards, read from a template</p>
                 <p class="mt-1">
                     The <span class="font-mono text-xs">Cards</span> repeater is the most-used part of a section:
-                    an ordered list of image/title/description tiles. Give the section a name, add rows under it,
+                    an ordered list of tiles, each with an image, title, subtitle, description, a button
+                    (label + link) and a text colour. Give the section a name, add rows under it,
                     and a template renders the whole list from that one name.
+                </p>
+                <p class="mt-1">
+                    Cards can be edited in two places: the section form on the Pages screen, and
+                    <strong>Theme Settings &rarr; Page Settings</strong>, which lists the pages the theme serves
+                    (its <span class="font-mono text-xs">theme.json</span>
+                    <span class="font-mono text-xs">pages</span> list) and edits the picked page's title and each
+                    section's cards and constants with a single Save bar. The same card is
+                    <span class="font-mono text-xs">image, title, subtitle, description, button_label, button_url, text_color</span>
+                    (<span class="font-mono text-xs">text_color</span> is a hex such as
+                    <span class="font-mono text-xs">#1e7bc4</span>; anything else reads as
+                    <span class="font-mono text-xs">null</span>).
                 </p>
             </div>
 
@@ -1426,7 +1439,11 @@ $token = PuckEditor::token($user, "puck-builder-{$page->id}");   // scoped per p
 @@foreach (cms_cards('home', 'features') as $card)
     &lt;img src="@{{ $card['image'] }}" alt="@{{ $card['title'] }}"&gt;
     &lt;h3&gt;@{{ $card['title'] }}&lt;/h3&gt;
-    &lt;p&gt;@{{ $card['description'] }}&lt;/p&gt;
+    &lt;p&gt;@{{ $card['subtitle'] }}&lt;/p&gt;
+    &lt;p style="color: @{{ $card['text_color'] ?? 'inherit' }}"&gt;@{{ $card['description'] }}&lt;/p&gt;
+    @@if ($card['button_url'])
+        &lt;a href="@{{ $card['button_url'] }}"&gt;@{{ $card['button_label'] }}&lt;/a&gt;
+    @@endif
 @@endforeach
             </x-admin-doc-code>
 
@@ -1435,8 +1452,8 @@ $token = PuckEditor::token($user, "puck-builder-{$page->id}");   // scoped per p
                 missing page or section, so a
                 <span class="font-mono text-xs">@@foreach</span> over it is always safe) of rows already run
                 through <span class="font-mono text-xs">localizedCards()</span>, which projects each one down to
-                exactly image/title/description &mdash; so a stray key in the stored JSON cannot leak into a
-                template. Every field is nullable: a card with a blank title renders a blank
+                exactly image, title, subtitle, description, button_label, button_url and text_color &mdash; so a
+                stray key in the stored JSON cannot leak into a template. Every field is nullable: a card with a blank title renders a blank
                 <span class="font-mono text-xs">&lt;h3&gt;</span> rather than disappearing, which is why a
                 template should guard the section rather than trust it to be populated.
             </p>
@@ -1449,10 +1466,11 @@ $token = PuckEditor::token($user, "puck-builder-{$page->id}");   // scoped per p
             </x-admin-doc-note>
 
             <p class="text-xs text-zinc-500">
-                On the API the same list is
-                <span class="font-mono text-xs">data.cms[].cards</span>, projected inline rather than through
-                <span class="font-mono text-xs">localizedCards()</span> so a
-                <span class="font-mono text-xs">?locale=</span> request still returns translated text.
+                On the API the same list is <span class="font-mono text-xs">data.cms[].cards</span> on pages,
+                posts, products and product categories, all via
+                <span class="font-mono text-xs">localizedCards()</span> (all seven fields). The standalone
+                <span class="font-mono text-xs">/cms</span> endpoint still projects only
+                image/title/description inline.
             </p>
         </div>
 

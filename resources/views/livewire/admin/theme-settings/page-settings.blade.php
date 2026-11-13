@@ -63,7 +63,7 @@
                     <flux:field>
                         <flux:label>Which SEO should this page use?</flux:label>
                         <flux:select wire:model="seoSources.{{ $psSelected->id }}" wire:key="ps-seo-{{ $psSelected->id }}">
-                            <flux:select.option value="">This page's own SEO (default)</flux:select.option>
+                            <flux:select.option value="">{{ $psSeoOptions[$psSelected->id] ?? $psSelected->getTranslation('title', app()->getLocale(), true) ?: 'This page' }} (own SEO)</flux:select.option>
                             @foreach ($psSeoOptions as $optionId => $optionLabel)
                                 @continue($optionId === $psSelected->id)
                                 <flux:select.option value="{{ $optionId }}">{{ $optionLabel }}</flux:select.option>
