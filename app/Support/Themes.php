@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Setting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
@@ -1109,6 +1110,11 @@ class Themes
      * What it cannot undo is the theme's database migrations, which ran when the
      * theme was activated or installed and have no down path in a theme folder.
      * That is what the confirmation modal is for.
+     *
+     * A deploy that cached the route table cached this theme's controllers with
+     * it, so the cache goes too: without that, a route name the deleted theme
+     * was the last to register would still be dispatched to a class whose file
+     * has just been removed.
      */
     public static function delete(string $slug): bool
     {
@@ -1118,6 +1124,11 @@ class Themes
 
         File::deleteDirectory(static::path().'/'.$slug);
         static::forget();
+
+        if (app()->routesAreCached()) {
+            Artisan::call('route:clear');
+            app()->forgetInstance('routes.cached');
+        }
 
         return true;
     }

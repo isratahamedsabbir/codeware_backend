@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Admin\ThemeSettings\Index;
+use App\Models\Page;
 use App\Models\Setting;
 use App\Models\User;
 use App\Support\Plugins;
@@ -104,6 +105,49 @@ it('leaves the storefront and the admin working after a theme is deleted', funct
     $this->get('/')->assertOk();
     $this->get(route('admin.theme-settings'))->assertOk();
     $this->get(route('admin.dashboard'))->assertOk();
+});
+
+it('drops a deploy\'s cached route table when a theme is deleted', function () {
+    installDoomedTheme();
+
+    $cached = app()->getCachedRoutesPath();
+    File::ensureDirectoryExists(dirname($cached));
+    File::put($cached, '<?php return [];');
+
+    // Boot already asked whether routes were cached (it was not), so drop that
+    // memo before the file the test just wrote is visible to the check.
+    app()->forgetInstance('routes.cached');
+
+    try {
+        expect(app()->routesAreCached())->toBeTrue()
+            ->and(Themes::delete('doomed'))->toBeTrue()
+            ->and(file_exists($cached))->toBeFalse()
+            ->and(app()->routesAreCached())->toBeFalse();
+    } finally {
+        @unlink($cached);
+        app()->forgetInstance('routes.cached');
+    }
+});
+
+it('keeps theme-independent pages in the API after a theme is deleted', function () {
+    installDoomedTheme();
+
+    Page::factory()->published()->create([
+        'type' => 'page',
+        'title' => ['en' => 'About Us', 'bn' => ''],
+        'slug' => 'about',
+    ]);
+
+    Themes::delete('doomed');
+    Themes::forget();
+
+    // The row belongs to the CMS, not to the deleted theme: its API address
+    // survives the folder going away, exactly as it does on a theme switch.
+    $this->getJson('/api/v1/pages/about')
+        ->assertOk()
+        ->assertJsonPath('data.slug', 'about');
+
+    $this->get('/')->assertOk();
 });
 
 it('falls back to a live theme when the deleted theme was the one picked in Site Design', function () {
