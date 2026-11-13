@@ -45,6 +45,9 @@ trait ManagesPageSettings
     /** @var array<int, array<string, string>> page id => locale => title */
     public array $titles = [];
 
+    /** @var array<int, int|string> page id => id of the page whose SEO it uses ('' = its own) */
+    public array $seoSources = [];
+
     /** @var array<int, array<int, array<string, ?string>>> section id => cards */
     public array $cards = [];
 
@@ -115,6 +118,26 @@ trait ManagesPageSettings
         return $pages->unique('id')->values();
     }
 
+    /**
+     * Every page a page may borrow its SEO from, as id => title, for the SEO
+     * dropdown. Pages only: posts, products and categories are not listed.
+     *
+     * @return Collection<int, string>
+     */
+    private function seoOptions(): Collection
+    {
+        $primary = Locale::primary();
+
+        return Page::query()
+            ->ofType('page')
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get()
+            ->mapWithKeys(fn (Page $page) => [
+                $page->id => $page->getTranslation('title', $primary, true) ?: 'Untitled',
+            ]);
+    }
+
     /** @return Collection<int, CmsSection> */
     private function sectionsFor(Collection $pages): Collection
     {
@@ -129,6 +152,7 @@ trait ManagesPageSettings
         $pages = $this->pages();
 
         $this->titles = $pages->mapWithKeys(fn (Page $page) => [$page->id => $page->getTranslations('title')])->all();
+        $this->seoSources = $pages->mapWithKeys(fn (Page $page) => [$page->id => $page->seo_page_id ?? ''])->all();
 
         $sections = $this->sectionsFor($pages);
 
@@ -193,6 +217,7 @@ trait ManagesPageSettings
 
         $rules = [
             'titles.*' => ['array'],
+            'seoSources.*' => ['nullable', 'integer', \Illuminate\Validation\Rule::exists('pages', 'id')->where('type', 'page')],
             "titles.*.{$primary}" => ['required', 'string', 'max:255'],
             'cards.*.*.image' => ['nullable', 'string'],
             'cards.*.*.title' => ['nullable', 'string', 'max:255'],
@@ -234,6 +259,22 @@ trait ManagesPageSettings
             if ($title !== [] && $title !== $page->getTranslations('title')) {
                 $page->update(['title' => $title]);
                 AdminActivity::log('updated', "Page #{$page->id}: {$page->getTranslation('title', $primary, false)} (Page Settings)");
+            }
+        }
+
+        // The SEO each page uses: another page's, or (empty) its own and then the
+        // site-wide defaults. A page cannot name itself — that is the same as empty.
+        foreach ($pages as $page) {
+            if (! array_key_exists($page->id, $this->seoSources)) {
+                continue;
+            }
+
+            $chosen = filled($this->seoSources[$page->id]) ? (int) $this->seoSources[$page->id] : null;
+            $chosen = $chosen === $page->id ? null : $chosen;
+
+            if ($chosen !== ($page->seo_page_id ? (int) $page->seo_page_id : null)) {
+                $page->update(['seo_page_id' => $chosen]);
+                AdminActivity::log('updated', "Page #{$page->id}: SEO source ".($chosen ? "set to page #{$chosen}" : 'cleared').' (Page Settings)');
             }
         }
 
@@ -318,6 +359,7 @@ trait ManagesPageSettings
             'psSections' => $selected ? $this->sectionsFor(collect([$selected])) : collect(),
             'psLanguages' => Locale::translatable(),
             'psPrimary' => Locale::primary(),
+            'psSeoOptions' => $this->seoOptions(),
             'psTheme' => $this->pageTheme(),
             'psFeatureOn' => Features::enabled('pages'),
             'psBanners' => $this->hasBanners() ? Themes::viewNamespace($this->pageTheme()).'::page-settings' : null,

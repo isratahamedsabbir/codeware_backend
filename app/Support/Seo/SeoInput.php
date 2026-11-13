@@ -21,13 +21,15 @@ use App\Models\Seo;
  *     og_image, twitter_image                 a URL / media path
  *     no_index, no_follow                     boolean
  *     canonical_base, canonical_slug          string
+ *     seo_page_id                             id of the page whose SEO this one
+ *                                             uses (null: its own, then global)
  */
 final class SeoInput
 {
     /** Every key, in the order the API documents them. */
     public static function keys(): array
     {
-        return Seo::FIELDS;
+        return [...Seo::FIELDS, 'seo_page_id'];
     }
 
     /**
@@ -61,6 +63,8 @@ final class SeoInput
         }
 
         return $rules + [
+            // The page whose SEO this one uses; null goes back to its own.
+            'seo_page_id' => ['sometimes', 'nullable', 'integer', 'exists:pages,id'],
             'og_image' => 'sometimes|nullable|string|max:2048',
             'twitter_image' => 'sometimes|nullable|string|max:2048',
             'no_index' => 'sometimes|boolean',
@@ -94,7 +98,8 @@ final class SeoInput
     }
 
     /**
-     * A page's SEO as the admin API returns it: the translatable copy as a map
+     * A page's *own* SEO as the admin API returns it (what a PUT edits, not a borrowed
+     * source's): the translatable copy as a map
      * per language (null when never set), the rest as stored. Every key is always
      * present, so a client can show the form without guessing.
      *
@@ -105,15 +110,16 @@ final class SeoInput
         $out = [];
 
         foreach (Seo::TRANSLATABLE as $field) {
-            $out[$field] = $page?->getTranslations($field) ?: null;
+            $out[$field] = $page?->ownSeoTranslations($field) ?: null;
         }
 
         foreach (['og_image', 'twitter_image', 'canonical_base', 'canonical_slug'] as $field) {
-            $out[$field] = $page?->{$field};
+            $out[$field] = $page?->ownSeoAttribute($field);
         }
 
-        $out['no_index'] = (bool) $page?->no_index;
-        $out['no_follow'] = (bool) $page?->no_follow;
+        $out['no_index'] = (bool) $page?->ownSeoAttribute('no_index');
+        $out['no_follow'] = (bool) $page?->ownSeoAttribute('no_follow');
+        $out['seo_page_id'] = $page?->seo_page_id;
 
         return $out;
     }

@@ -47,6 +47,14 @@ return new class extends Migration
 
         $this->moveLegacyColumns();
         $this->giveEveryPageARow();
+
+        // Which page's SEO a page uses (Theme Settings → Page Settings → SEO).
+        // Empty means its own row, then the site-wide defaults.
+        if (! Schema::hasColumn('pages', 'seo_page_id')) {
+            Schema::table('pages', function (Blueprint $table) {
+                $table->foreignId('seo_page_id')->nullable()->after('category_id')->constrained('pages')->nullOnDelete();
+            });
+        }
     }
 
     /**
@@ -126,6 +134,12 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (Schema::hasColumn('pages', 'seo_page_id')) {
+            Schema::table('pages', function (Blueprint $table) {
+                $table->dropConstrainedForeignId('seo_page_id');
+            });
+        }
+
         Schema::dropIfExists('seos');
     }
 };

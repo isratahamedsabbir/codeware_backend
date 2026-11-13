@@ -24,7 +24,8 @@ it('renders Theme Settings + Page Settings for every theme', function (string $s
 })->with([
     'classic' => ['classic_ecommerce', ['Add slide', 'theme_classic_ecommerce_header_bg_color'], []],
     'default' => ['default', ['settings.theme_default_intro_heading', 'theme_default_font'], []],
-    'portfolio' => ['portfolio', ['theme_portfolio_projects', 'theme_portfolio_font'], ['About us']],
+    // About us is still an SEO option, but the portfolio serves no standalone pages, so it has no entry in the page list.
+    'portfolio' => ['portfolio', ['theme_portfolio_projects', 'theme_portfolio_font'], ['>/about<']],
     'modern' => ['modern_ecommerce', ['theme_modern_ecommerce_accent_color', 'About us'], []],
     'news' => ['news', ['theme_news_tagline', 'About us'], []],
 ]);

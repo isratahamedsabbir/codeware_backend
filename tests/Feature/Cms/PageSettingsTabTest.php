@@ -227,3 +227,53 @@ it('downloads a theme\'s saved settings as json, without the manifest', function
         ->and($json)->not->toHaveKey('name')
         ->and($json)->not->toHaveKey('version');
 });
+
+it('lists every page as an SEO option and saves the one chosen for a page', function () {
+    $source = Page::factory()->published()->create(['title' => ['en' => 'Shared SEO page', 'bn' => ''], 'slug' => 'shared-seo', 'type' => 'page', 'seo_title' => ['en' => 'Shared meta']]);
+
+    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])
+        ->assertSet("seoSources.{$this->about->id}", '')
+        ->assertSee('Shared SEO page')
+        ->set("seoSources.{$this->about->id}", $source->id)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $about = $this->about->fresh();
+
+    expect($about->seo_page_id)->toBe($source->id)
+        ->and($about->seo_title)->toBe('Shared meta');
+
+    // Empty goes back to the page's own SEO.
+    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])
+        ->assertSet("seoSources.{$this->about->id}", $source->id)
+        ->set("seoSources.{$this->about->id}", '')
+        ->call('save');
+
+    expect($this->about->fresh()->seo_page_id)->toBeNull()
+        ->and($this->about->fresh()->seo_title)->toBeNull();
+});
+
+it('treats a page naming itself as its SEO source as empty', function () {
+    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])
+        ->set("seoSources.{$this->about->id}", $this->about->id)
+        ->call('save');
+
+    expect($this->about->fresh()->seo_page_id)->toBeNull();
+});
+
+it('lists only pages as SEO options, not posts, products or categories', function () {
+    Page::factory()->published()->create(['title' => ['en' => 'A blog post page', 'bn' => ''], 'slug' => 'a-blog-post', 'type' => 'post']);
+    Page::factory()->published()->create(['title' => ['en' => 'A product page', 'bn' => ''], 'slug' => 'a-product', 'type' => 'product']);
+
+    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])
+        ->assertSee('About us')
+        ->assertDontSee('A blog post page')
+        ->assertDontSee('A product page');
+});
+
+it('rejects an SEO source that is not a page', function () {
+    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])
+        ->set("seoSources.{$this->about->id}", 999999)
+        ->call('save')
+        ->assertHasErrors(["seoSources.{$this->about->id}"]);
+});

@@ -266,3 +266,37 @@ it('serves the SEO that was written through the admin API on the public API', fu
         ->assertJsonPath('data.meta_data.seo_title', 'Press kit')
         ->assertJsonPath('data.meta_data.no_index', true);
 });
+
+// ---------------------------------------------------------------- Borrowed SEO
+
+it('sets and clears the page whose SEO a page uses through seo_page_id', function () {
+    $source = Page::factory()->published()->create(['seo_title' => ['en' => 'Source SEO']]);
+    $page = Page::factory()->published()->create(['seo_title' => ['en' => 'Own SEO']]);
+
+    $this->putJson("/api/v1/admin/pages/{$page->id}", ['seo_page_id' => $source->id])->assertOk();
+
+    expect($page->fresh()->seo_page_id)->toBe($source->id)
+        ->and($page->fresh()->seo_title)->toBe('Source SEO');
+
+    // The admin show returns the page's own SEO plus which page it borrows from.
+    $this->getJson("/api/v1/admin/pages/{$page->id}")
+        ->assertOk()
+        ->assertJsonPath('data.seo.seo_page_id', $source->id)
+        ->assertJsonPath('data.seo.seo_title.en', 'Own SEO');
+
+    // The public API presents the borrowed SEO.
+    $page->update(['status' => 'active']);
+    $this->getJson("/api/v1/pages/{$page->slug}")->assertOk()->assertJsonPath('data.meta_data.seo_title', 'Source SEO');
+
+    $this->putJson("/api/v1/admin/pages/{$page->id}", ['seo_page_id' => null])->assertOk();
+
+    expect($page->fresh()->seo_page_id)->toBeNull()
+        ->and($page->fresh()->seo_title)->toBe('Own SEO');
+});
+
+it('rejects an seo_page_id that is not a page', function () {
+    $page = Page::factory()->published()->create();
+
+    $this->putJson("/api/v1/admin/pages/{$page->id}", ['seo_page_id' => 999999])
+        ->assertUnprocessable()->assertJsonValidationErrors(['seo_page_id']);
+});

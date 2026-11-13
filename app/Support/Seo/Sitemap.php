@@ -258,7 +258,7 @@ final class Sitemap
         }
 
         return Post::published()
-            ->with(['page:id,post_id,updated_at', 'page.seo:id,page_id,no_index'])
+            ->with(['page:id,post_id,updated_at,seo_page_id', 'page.seo:id,page_id,no_index', 'page.seoSource.seo:id,page_id,no_index'])
             ->get()
             ->flatMap(fn (Post $post) => self::child(
                 \App\Support\UrlStructure::path('post', (string) ($post->page?->slug ?? '')),
@@ -279,7 +279,7 @@ final class Sitemap
         }
 
         return Product::active()
-            ->with(['page:id,product_id,updated_at', 'page.seo:id,page_id,no_index'])
+            ->with(['page:id,product_id,updated_at,seo_page_id', 'page.seo:id,page_id,no_index', 'page.seoSource.seo:id,page_id,no_index'])
             ->get()
             ->flatMap(fn (Product $product) => self::child(
                 \App\Support\UrlStructure::path('product', (string) ($product->page?->slug ?? '')),
@@ -300,7 +300,7 @@ final class Sitemap
         }
 
         return ProductCategory::where('status', 'active')
-            ->with(['page:id,category_id,updated_at', 'page.seo:id,page_id,no_index'])
+            ->with(['page:id,category_id,updated_at,seo_page_id', 'page.seo:id,page_id,no_index', 'page.seoSource.seo:id,page_id,no_index'])
             ->get()
             ->flatMap(fn (ProductCategory $category) => self::child(
                 'category/'.$category->page?->slug,

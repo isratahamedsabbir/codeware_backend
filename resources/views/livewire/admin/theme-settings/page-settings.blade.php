@@ -47,6 +47,23 @@
 
                 <hr class="border-zinc-200 dark:border-zinc-700">
 
+                {{-- Which SEO this page uses. Pick another page and its SEO (meta,
+                     Open Graph, Twitter, robots, canonical) is what search engines
+                     and social previews get for this one; leave it empty and the page
+                     uses its own SEO, and anything blank there falls back to the
+                     site-wide defaults (Admin → SEO). --}}
+                <flux:field>
+                    <flux:label>SEO<x-field-hint text="Pick the page whose SEO this page should use. Leave it empty to use this page's own SEO — and the site-wide defaults for anything it leaves blank." /></flux:label>
+                    <flux:select wire:model="seoSources.{{ $psSelected->id }}" wire:key="ps-seo-{{ $psSelected->id }}">
+                        <flux:select.option value="">Own SEO (site-wide defaults for what is blank)</flux:select.option>
+                        @foreach ($psSeoOptions as $optionId => $optionLabel)
+                            @continue($optionId === $psSelected->id)
+                            <flux:select.option value="{{ $optionId }}">{{ $optionLabel }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="seoSources.{{ $psSelected->id }}" />
+                </flux:field>
+
                 {{-- Title, one tab per language (the same tabs the Pages form uses). --}}
                 <x-admin-locale-tabs>
                     @foreach ($psLanguages as $language)

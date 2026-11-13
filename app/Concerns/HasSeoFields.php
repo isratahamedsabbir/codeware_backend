@@ -111,21 +111,27 @@ trait HasSeoFields
             return;
         }
 
-        $this->hydrateTranslatable($page, array_keys(self::seoTranslatableFields()));
+        // The page's own row, never a borrowed one: the form edits what this page
+        // stores, and saving it must not copy another page's SEO into it.
+        foreach (array_keys(self::seoTranslatableFields()) as $field) {
+            $this->$field = $page->ownSeoTranslations($field);
+        }
 
-        $this->og_image = $page->og_image ?? null;
-        $this->twitter_image = $page->twitter_image ?? null;
-        $this->no_index = (bool) $page->no_index;
-        $this->no_follow = (bool) $page->no_follow;
+        $this->og_image = $page->ownSeoAttribute('og_image');
+        $this->twitter_image = $page->ownSeoAttribute('twitter_image');
+        $this->no_index = (bool) $page->ownSeoAttribute('no_index');
+        $this->no_follow = (bool) $page->ownSeoAttribute('no_follow');
         $this->custom_code_id = (string) $page->custom_code_id;
-        $this->canonical_base = $page->canonical_base ?? '';
-        $this->canonical_slug = $page->canonical_slug ?? $page->slug;
+        $this->canonical_base = $page->ownSeoAttribute('canonical_base') ?? '';
+        $this->canonical_slug = $page->ownSeoAttribute('canonical_slug') ?? $page->slug;
 
         // A never-set (or still-matching) canonical_slug is still following the
         // slug — keep it auto-syncing. One saved as something else is a
         // deliberate override, so leave autoCanonicalSlug unmatchable ('') to
         // stop future title/slug edits from clobbering it.
-        if ($page->canonical_slug === null || $page->canonical_slug === $page->slug) {
+        $ownCanonicalSlug = $page->ownSeoAttribute('canonical_slug');
+
+        if ($ownCanonicalSlug === null || $ownCanonicalSlug === $page->slug) {
             $this->autoCanonicalSlug = $this->slug;
         }
     }

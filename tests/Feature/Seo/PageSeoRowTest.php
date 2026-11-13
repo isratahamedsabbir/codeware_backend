@@ -109,3 +109,54 @@ it('leaves noindex pages out of the indexable scope', function () {
 
     expect($ids)->toContain($open->id)->not->toContain($hidden->id);
 });
+
+// ---------------------------------------------------------------- Borrowed SEO
+
+it('presents the SEO of the page it borrows from, and its own when nothing is chosen', function () {
+    $source = seoPage('Source', 'source', ['seo_title' => ['en' => 'Source meta title'], 'no_index' => true, 'og_image' => 'media/source.jpg']);
+    $page = seoPage('Borrower', 'borrower', ['seo_title' => ['en' => 'Own meta title']]);
+
+    expect($page->fresh()->seo_title)->toBe('Own meta title');
+
+    $page->update(['seo_page_id' => $source->id]);
+    $page = $page->fresh();
+
+    expect($page->seo_title)->toBe('Source meta title')
+        ->and($page->no_index)->toBeTrue()
+        ->and($page->og_image)->toBe('media/source.jpg')
+        ->and($page->getTranslations('seo_title'))->toEqual(['en' => 'Source meta title'])
+        // The page's own row is untouched and comes straight back when un-chosen.
+        ->and($page->ownSeoAttribute('og_image'))->toBeNull()
+        ->and($page->ownSeoTranslations('seo_title'))->toEqual(['en' => 'Own meta title']);
+
+    $page->update(['seo_page_id' => null]);
+
+    expect($page->fresh()->seo_title)->toBe('Own meta title')
+        ->and($page->fresh()->no_index)->toBeFalse();
+});
+
+it('falls back to the page itself when the page it borrowed from is deleted', function () {
+    $source = seoPage('Gone source', 'gone-source', ['seo_title' => ['en' => 'Source']]);
+    $page = seoPage('Orphan', 'orphan', ['seo_title' => ['en' => 'Mine']]);
+    $page->update(['seo_page_id' => $source->id]);
+
+    $source->forceDelete();
+
+    expect($page->fresh()->seo_page_id)->toBeNull()
+        ->and($page->fresh()->seo_title)->toBe('Mine');
+});
+
+it('judges indexability by the SEO a page presents', function () {
+    $hidden = seoPage('Hidden source', 'hidden-source', ['no_index' => true]);
+    $open = seoPage('Open page', 'open-page');
+    $borrowsHidden = seoPage('Borrows hidden', 'borrows-hidden');
+    $borrowsHidden->update(['seo_page_id' => $hidden->id]);
+    // Its own row says noindex, but it borrows an indexable page's SEO.
+    $overridden = seoPage('Overridden', 'overridden', ['no_index' => true]);
+    $overridden->update(['seo_page_id' => $open->id]);
+
+    $ids = Page::indexable()->pluck('id');
+
+    expect($ids)->toContain($open->id)->toContain($overridden->id)
+        ->not->toContain($hidden->id)->not->toContain($borrowsHidden->id);
+});
