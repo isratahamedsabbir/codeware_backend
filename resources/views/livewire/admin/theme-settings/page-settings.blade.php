@@ -45,21 +45,26 @@
                     </div>
                 </div>
 
-                {{-- Title, every language. --}}
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <hr class="border-zinc-200 dark:border-zinc-700">
+
+                {{-- Title, one tab per language (the same tabs the Pages form uses). --}}
+                <x-admin-locale-tabs>
                     @foreach ($psLanguages as $language)
-                        <flux:field>
-                            <flux:label :badge="$language->code">
-                                Page title
-                                @if ($language->code === $psPrimary)<span class="ml-0.5 text-red-500">*</span>@endif
-                            </flux:label>
-                            <flux:input wire:model="titles.{{ $psSelected->id }}.{{ $language->code }}" />
-                            @if ($language->code === $psPrimary)
-                                <flux:error name="titles.{{ $psSelected->id }}.{{ $language->code }}" />
-                            @endif
-                        </flux:field>
+                        <x-admin-locale-panel :code="$language->code">
+                            <flux:field>
+                                <flux:label :badge="$language->code">
+                                    Page title
+                                    @if ($language->code === $psPrimary)<span class="ml-0.5 text-red-500">*</span>@endif
+                                </flux:label>
+                                <flux:input wire:model="titles.{{ $psSelected->id }}.{{ $language->code }}"
+                                    placeholder="{{ $language->code === $psPrimary ? 'Page title' : 'Page title ('.($language->native_name ?: $language->name).')' }}" />
+                                @if ($language->code === $psPrimary)
+                                    <flux:error name="titles.{{ $psSelected->id }}.{{ $language->code }}" />
+                                @endif
+                            </flux:field>
+                        </x-admin-locale-panel>
                     @endforeach
-                </div>
+                </x-admin-locale-tabs>
 
                 {{-- The theme's own built-in home sections (hero slider, promo tiles). --}}
                 @if ($psBanners && $psSelected->slug === 'home')

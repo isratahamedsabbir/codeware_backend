@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Admin\ThemeSettings;
 
+use App\Support\AdminActivity;
+use App\Support\ThemeSettings;
 use App\Support\Themes;
 
 /**
@@ -22,6 +24,25 @@ class Edit extends Index
         $this->settingsFor = $slug;
 
         parent::mount();
+    }
+
+    /**
+     * Downloads this theme's saved settings as {slug}-settings.json: every value in
+     * its theme.json except the manifest (name, version, author...), so the file is
+     * the settings alone and can be read, kept or diffed by itself. Unsaved edits on
+     * the form are not in it — it is what is on disk.
+     */
+    public function downloadSettings()
+    {
+        $slug = (string) $this->settingsFor;
+        $json = json_encode(ThemeSettings::settings($slug), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_FORCE_OBJECT);
+
+        AdminActivity::log('updated', "Theme \"{$slug}\" settings downloaded as json");
+
+        return response()->streamDownload(function () use ($json) {
+            echo $json."
+";
+        }, "{$slug}-settings.json", ['Content-Type' => 'application/json']);
     }
 
     public function render()

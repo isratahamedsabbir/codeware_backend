@@ -5,12 +5,19 @@
     the Theme Settings screen — see App\Livewire\Admin\ThemeSettings\Edit.
 --}}
 @push('page-header-actions')
+    {{-- Plain onclick, as on the theme list: this is rendered by the layout's header
+         through @stack, outside the component, so it cannot call $wire. The root
+         <div> below forwards the event to downloadSettings(). --}}
+    <flux:button variant="outline" size="sm" icon="arrow-down-tray"
+        onclick="window.dispatchEvent(new CustomEvent('download-theme-settings'))">
+        Download settings
+    </flux:button>
     <flux:button variant="outline" size="sm" icon="arrow-left" href="{{ route('admin.theme-settings') }}" wire:navigate>
         All themes
     </flux:button>
 @endpush
 
-<div class="space-y-5">
+<div class="space-y-5" x-on:download-theme-settings.window="$wire.downloadSettings()">
     {{-- ── Theme's own settings ──────────────────────────────────────────────
                  If the selected theme ships a settings.blade.php at its root, render it
                  inline (its fields bind to settings.theme_{slug}_* keys, which this

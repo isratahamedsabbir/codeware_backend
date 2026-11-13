@@ -214,3 +214,16 @@ it('links every theme card Settings button to that theme settings page', functio
         ->assertSeeHtml('href="'.route('admin.theme-settings.edit', 'news').'"')
         ->assertSeeHtml('href="'.route('admin.theme-settings.edit', 'classic_ecommerce').'"');
 });
+
+it('downloads a theme\'s saved settings as json, without the manifest', function () {
+    \App\Support\ThemeSettings::merge('news', ['theme_news_tagline' => 'All the news', 'theme_news_accent_color' => '#1d4ed8']);
+
+    $component = Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])->call('downloadSettings');
+
+    $component->assertFileDownloaded('news-settings.json');
+
+    $json = json_decode(\App\Support\ThemeSettings::text('news', 'theme_news_tagline') ? json_encode(\App\Support\ThemeSettings::settings('news')) : '{}', true);
+    expect($json)->toHaveKey('theme_news_tagline', 'All the news')
+        ->and($json)->not->toHaveKey('name')
+        ->and($json)->not->toHaveKey('version');
+});
