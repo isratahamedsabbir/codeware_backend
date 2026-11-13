@@ -57,7 +57,7 @@
                             @foreach ($section->localizedCards() as $card)
                                 <details class="group" @if ($loop->first) open @endif>
                                     <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-[15px] font-semibold text-sf-heading transition hover:bg-zinc-50 group-open:text-brand sm:px-6 [&::-webkit-details-marker]:hidden">
-                                        <span>{{ $card['title'] }}</span>
+                                        <span @if ($card['text_color']) style="color: {{ $card['text_color'] }}" @endif>{{ $card['title'] }}</span>
                                         <span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-500 transition group-open:rotate-45 group-open:bg-brand group-open:text-white" aria-hidden="true">
                                             <svg class="size-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z"/></svg>
                                         </span>
@@ -84,7 +84,7 @@
                             <dl class="relative grid grid-cols-2 gap-y-8 lg:grid-cols-4 lg:divide-x lg:divide-white/20">
                                 @foreach ($aboutCards as $card)
                                     <div class="px-4 text-center">
-                                        <dt class="text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl">{{ $card['title'] }}</dt>
+                                        <dt class="text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl" @if ($card['text_color']) style="color: {{ $card['text_color'] }}" @endif>{{ $card['title'] }}</dt>
                                         <dd class="mt-2 text-sm font-medium text-white/80">{{ $card['description'] }}</dd>
                                     </div>
                                 @endforeach
@@ -104,7 +104,7 @@
                                 @foreach (array_slice($aboutCards, 1) as $card)
                                     <div class="group rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-md">
                                         <span class="flex size-10 items-center justify-center rounded-xl bg-brand/10 text-sm font-bold text-brand transition group-hover:bg-brand group-hover:text-white">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>
-                                        <h3 class="mt-4 text-base font-bold text-sf-heading">{{ $card['title'] }}</h3>
+                                        <h3 class="mt-4 text-base font-bold text-sf-heading" @if ($card['text_color']) style="color: {{ $card['text_color'] }}" @endif>{{ $card['title'] }}</h3>
                                         <p class="mt-2 text-sm leading-6 text-zinc-600">{{ $card['description'] }}</p>
                                     </div>
                                 @endforeach

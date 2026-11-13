@@ -46,7 +46,7 @@
                             @foreach ($cards as $card)
                                 <details class="group" @if ($loop->first) open @endif>
                                     <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-4 text-[15px] font-bold text-[#1a1a1a] transition hover:bg-gray-50 group-open:text-[var(--me-accent)] [&::-webkit-details-marker]:hidden">
-                                        <span>{{ $card['title'] }}</span>
+                                        <span @if ($card['text_color']) style="color: {{ $card['text_color'] }}" @endif>{{ $card['title'] }}</span>
                                         <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition group-open:rotate-45 group-open:bg-[var(--me-accent)] group-open:text-white" aria-hidden="true">
                                             <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z"/></svg>
                                         </span>
@@ -67,7 +67,7 @@
                         <dl class="relative grid grid-cols-2 gap-y-8 lg:grid-cols-4 lg:divide-x lg:divide-white/10">
                             @foreach ($cards as $card)
                                 <div class="px-4 text-center">
-                                    <dt class="text-4xl font-black tracking-tight sm:text-5xl">{{ $card['title'] }}</dt>
+                                    <dt class="text-4xl font-black tracking-tight sm:text-5xl" @if ($card['text_color']) style="color: {{ $card['text_color'] }}" @endif>{{ $card['title'] }}</dt>
                                     <dd class="mt-2 text-sm font-medium text-white/60">{{ $card['description'] }}</dd>
                                 </div>
                             @endforeach

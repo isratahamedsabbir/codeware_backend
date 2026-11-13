@@ -298,3 +298,19 @@ it('opens the block that holds a validation error so the message is not hidden',
         ->assertHasErrors(["titles.{$this->about->id}.en"])
         ->assertSeeHtml('x-data="{ open: true }"');
 });
+
+it('applies a card\'s text colour in the FAQ and About layouts of the storefront themes', function (string $theme) {
+    Setting::set('site_theme', $theme);
+    Themes::forget();
+
+    $faq = Page::factory()->published()->create(['title' => ['en' => 'FAQ', 'bn' => ''], 'slug' => 'faq', 'type' => 'page']);
+    CmsSection::create(['page_id' => $faq->id, 'name' => 'questions', 'sort_order' => 1, 'status' => 'active',
+        'cards' => [['image' => null, 'title' => 'How do returns work?', 'description' => '30 days.', 'text_color' => '#123456']]]);
+
+    $metrics = Page::where('slug', 'about')->first();
+    CmsSection::create(['page_id' => $metrics->id, 'name' => 'impact', 'sort_order' => 2, 'status' => 'active',
+        'cards' => [['image' => null, 'title' => '12,000+', 'description' => 'Customers', 'text_color' => '#654321']]]);
+
+    $this->get('/faq')->assertOk()->assertSee('color: #123456', false);
+    $this->get('/about')->assertOk()->assertSee('color: #654321', false);
+})->with(['classic_ecommerce', 'modern_ecommerce']);

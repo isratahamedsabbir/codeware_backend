@@ -9,20 +9,47 @@
 <body class="bg-white text-gray-900 antialiased">
 
 @php
-    // Hero slides — placeholder content until a slide editor is added to this
-    // theme's settings.
-    $heroSlides = [
-        ['image' => 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=2070&auto=format&fit=crop', 'badge' => 'NEW ARRIVALS', 'title' => 'LEATHER BACKPACK', 'subtitle' => 'LEATHER BAG', 'button' => 'SHOP NOW'],
-        ['image' => 'https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=2070&auto=format&fit=crop', 'badge' => 'SPECIAL', 'title' => 'PREMIUM LOAFER', 'subtitle' => 'FOOTWEAR', 'button' => 'SHOP NOW'],
-        ['image' => 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=2070&auto=format&fit=crop', 'badge' => 'NEW ARRIVALS', 'title' => 'URBAN SNEAKERS', 'subtitle' => 'SNEAKERS', 'button' => 'DISCOVER'],
-    ];
-    $heroUrl = route('shop');
+    // Hero slides: the rows from Page Settings → Home (this theme's theme.json), or
+    // the sample slides below until there is one.
+    $heroSlides = collect(theme_rows('hero_slides', 'title'))
+        ->map(fn (array $row) => [
+            'image' => $row['image'] ?? '',
+            'badge' => $row['badge'] ?? '',
+            'title' => $row['title'] ?? '',
+            'subtitle' => $row['subtitle'] ?? '',
+            'button' => ($row['button'] ?? '') !== '' ? $row['button'] : __('Shop now'),
+            'link' => \App\Support\HeroSlides::safeUrl($row['link'] ?? '') ?: route('shop'),
+        ])
+        ->values()
+        ->all();
 
-    $promos = array_values(array_filter([
-        \App\Models\Setting::get('home_promo_banner_1'),
-        \App\Models\Setting::get('home_promo_banner_2'),
-        \App\Models\Setting::get('home_promo_banner_3'),
-    ]));
+    if ($heroSlides === []) {
+        $heroSlides = array_map(fn (array $slide) => $slide + ['link' => route('shop')], [
+            ['image' => 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=2070&auto=format&fit=crop', 'badge' => 'NEW ARRIVALS', 'title' => 'LEATHER BACKPACK', 'subtitle' => 'LEATHER BAG', 'button' => 'SHOP NOW'],
+            ['image' => 'https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=2070&auto=format&fit=crop', 'badge' => 'SPECIAL', 'title' => 'PREMIUM LOAFER', 'subtitle' => 'FOOTWEAR', 'button' => 'SHOP NOW'],
+            ['image' => 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=2070&auto=format&fit=crop', 'badge' => 'NEW ARRIVALS', 'title' => 'URBAN SNEAKERS', 'subtitle' => 'SNEAKERS', 'button' => 'DISCOVER'],
+        ]);
+    }
+
+    // Promo tiles: the rows from Page Settings → Home, else the home promo banner
+    // images from Settings (how this theme was fed before the editor existed).
+    $promos = collect(theme_rows('promos', 'alt'))
+        ->filter(fn (array $row) => filled($row['image'] ?? null))
+        ->map(fn (array $row) => [
+            'image' => $row['image'],
+            'alt' => $row['alt'] ?? '',
+            'link' => \App\Support\HeroSlides::safeUrl($row['link'] ?? '') ?: route('shop'),
+        ])
+        ->values()
+        ->all();
+
+    if ($promos === []) {
+        $promos = collect([
+            \App\Models\Setting::get('home_promo_banner_1'),
+            \App\Models\Setting::get('home_promo_banner_2'),
+            \App\Models\Setting::get('home_promo_banner_3'),
+        ])->filter()->map(fn ($image) => ['image' => $image, 'link' => route('shop')])->values()->all();
+    }
 
     $with = ['categories.page', 'brand', 'tags', 'page', 'flashDeals'];
 
@@ -67,7 +94,7 @@
                         {{ $slide['title'] }}<br><span style="color: var(--me-accent)">{{ $slide['subtitle'] }}</span>
                     </h1>
                     <p class="mb-9 text-sm font-bold uppercase tracking-[0.35em] text-gray-500">{{ __('Exclusive design') }}</p>
-                    <a href="{{ $heroUrl }}" class="inline-block bg-[#1a1a1a] px-10 py-4 text-sm font-bold uppercase tracking-widest text-white transition-all duration-300 hover:-translate-y-1 hover:bg-[var(--me-accent)]">{{ $slide['button'] }}</a>
+                    <a href="{{ $slide['link'] }}" class="inline-block bg-[#1a1a1a] px-10 py-4 text-sm font-bold uppercase tracking-widest text-white transition-all duration-300 hover:-translate-y-1 hover:bg-[var(--me-accent)]">{{ $slide['button'] }}</a>
                 </div>
             @endforeach
         </div>
@@ -95,8 +122,8 @@
         <section class="mx-auto max-w-[1400px] px-4 py-12 sm:px-8">
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-7">
                 @foreach ($promos as $promo)
-                    <a href="{{ route('shop') }}" class="group/promo relative block aspect-[16/9] overflow-hidden rounded-2xl transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl">
-                        <img src="{{ $promo }}" alt="{{ __('Promotion') }} {{ $loop->iteration }}" loading="lazy"
+                    <a href="{{ $promo['link'] }}" class="group/promo relative block aspect-[16/9] overflow-hidden rounded-2xl transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl">
+                        <img src="{{ $promo['image'] }}" alt="{{ ($promo['alt'] ?? '') !== '' ? $promo['alt'] : __('Promotion').' '.$loop->iteration }}" loading="lazy"
                             class="h-full w-full object-cover transition-transform duration-700 group-hover/promo:scale-110">
                         <span class="absolute inset-0 bg-black/5 transition-colors duration-300 group-hover/promo:bg-black/0"></span>
                     </a>

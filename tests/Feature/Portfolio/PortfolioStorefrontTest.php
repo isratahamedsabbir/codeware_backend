@@ -418,8 +418,10 @@ it('shows every declared portfolio list on one admin screen, and no separate CRU
     // Services are absent and that is correct: they moved to the Service model
     // and its own CRUD screen, since a bookable service has to be a row a
     // booking can point a foreign key at. Asserted further down.
-    $component = Livewire::test(Index::class)
-        ->set('settings.site_theme', 'portfolio');
+    //
+    // The lists are the home page's content, so they live under the theme's own
+    // settings page → Page Settings → Home (themes/portfolio/page-settings.blade.php).
+    $component = Livewire::test(\App\Livewire\Admin\ThemeSettings\Edit::class, ['slug' => 'portfolio']);
 
     foreach ([
         'theme_portfolio_projects' => 'title',

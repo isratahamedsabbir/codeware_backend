@@ -9,5 +9,7 @@
         "Fashion"
     ],
     "theme_modern_ecommerce_accent_color": "#e63946",
-    "theme_modern_ecommerce_font": ""
+    "theme_modern_ecommerce_font": "",
+    "theme_modern_ecommerce_hero_slides": [],
+    "theme_modern_ecommerce_promos": []
 }
