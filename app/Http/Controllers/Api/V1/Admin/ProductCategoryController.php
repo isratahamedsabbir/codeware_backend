@@ -7,6 +7,7 @@ use App\Models\Page;
 use App\Models\ProductCategory;
 use App\Support\PageCascade;
 use App\Support\Slug;
+use App\Support\Seo\SeoInput;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -15,7 +16,7 @@ class ProductCategoryController extends Controller
 {
     public function index(): JsonResponse
     {
-        $categories = ProductCategory::with('page')->orderBy('sort_order')->get();
+        $categories = ProductCategory::with('page.seo')->orderBy('sort_order')->get();
 
         return response()->json([
             'data' => $categories->map(fn ($cat) => [
@@ -24,6 +25,7 @@ class ProductCategoryController extends Controller
                 'slug' => $cat->slug,
                 'icon' => $cat->icon,
                 'sort_order' => $cat->sort_order,
+                'seo' => SeoInput::present($cat->page),
             ]),
         ]);
     }
@@ -37,11 +39,16 @@ class ProductCategoryController extends Controller
             'slug' => ['nullable', 'string', ...Slug::uniqueRules(null)],
             'icon' => 'nullable|string|max:50',
             'sort_order' => 'nullable|integer|min:0',
+            ...SeoInput::rules(),
         ]);
 
         // The slug lives on the paired Page only — the category has no column for it.
         $slug = $validated['slug'] ?? null;
         unset($validated['slug']);
+
+        // SEO keys the request sent go to the paired Page's seos row.
+        $seo = SeoInput::sent($validated);
+        $validated = SeoInput::without($validated);
 
         $category = ProductCategory::create($validated)->refresh();
 
@@ -50,13 +57,16 @@ class ProductCategoryController extends Controller
         // refresh() picks up DB-level defaults (e.g. status) the request didn't set.
         $page = Page::updateOrCreate(
             ['type' => 'product_category', 'category_id' => $category->id],
-            array_filter([
-                'user_id' => $request->user()?->id,
-                'title' => $category->getTranslations('name'),
-                'slug' => $slug,
-                'status' => $category->status,
-                'sort_order' => $category->sort_order,
-            ], fn ($value) => $value !== null)
+            [
+                ...array_filter([
+                    'user_id' => $request->user()?->id,
+                    'title' => $category->getTranslations('name'),
+                    'slug' => $slug,
+                    'status' => $category->status,
+                    'sort_order' => $category->sort_order,
+                ], fn ($value) => $value !== null),
+                ...$seo,
+            ]
         );
 
         return response()->json(['data' => ['id' => $category->id, 'slug' => $page->slug]], 201);
@@ -73,11 +83,15 @@ class ProductCategoryController extends Controller
             'slug' => ['nullable', 'string', ...Slug::uniqueRules($category->page?->id)],
             'icon' => 'sometimes|nullable|string|max:50',
             'sort_order' => 'sometimes|integer|min:0',
+            ...SeoInput::rules(),
         ]);
 
         // The slug lives on the paired Page only — the category has no column for it.
         $slug = $validated['slug'] ?? null;
         unset($validated['slug']);
+
+        $seo = SeoInput::sent($validated);
+        $validated = SeoInput::without($validated);
 
         $category->update($validated);
 
@@ -89,13 +103,16 @@ class ProductCategoryController extends Controller
         // instead of $category->slug, which would resolve the stale cached page.
         $page = Page::updateOrCreate(
             ['type' => 'product_category', 'category_id' => $category->id],
-            array_filter([
-                'user_id' => $request->user()?->id,
-                'title' => $category->getTranslations('name'),
-                'slug' => $slug,
-                'status' => $category->status,
-                'sort_order' => $category->sort_order,
-            ], fn ($value) => $value !== null)
+            [
+                ...array_filter([
+                    'user_id' => $request->user()?->id,
+                    'title' => $category->getTranslations('name'),
+                    'slug' => $slug,
+                    'status' => $category->status,
+                    'sort_order' => $category->sort_order,
+                ], fn ($value) => $value !== null),
+                ...$seo,
+            ]
         );
 
         return response()->json(['data' => ['id' => $category->id, 'slug' => $page->slug]]);

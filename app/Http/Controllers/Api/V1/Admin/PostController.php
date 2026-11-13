@@ -11,6 +11,7 @@ use App\Models\Type;
 use App\Support\PageCascade;
 use App\Support\Slug;
 use App\Support\Taxonomy;
+use App\Support\Seo\SeoInput;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -71,6 +72,7 @@ class PostController extends Controller
                 'reading_time' => $post->reading_time,
                 'published_at' => $post->published_at?->toIso8601String(),
                 'published_at_display' => $post->published_at?->toDisplay(),
+                'seo' => SeoInput::present($post->page),
                 'og_image' => $post->page?->og_image,
                 'seo_title' => $post->page?->seo_title,
                 'seo_description' => $post->page?->seo_description,
@@ -98,6 +100,7 @@ class PostController extends Controller
             'puck_data' => 'nullable|array',
             'tag_ids' => 'sometimes|array',
             'tag_ids.*' => Taxonomy::eachRule(Tag::class, Type::POST),
+            ...SeoInput::rules(),
         ]);
 
         $validated['user_id'] = $request->user()->id;
@@ -111,6 +114,11 @@ class PostController extends Controller
         $slug = $validated['slug'] ?? null;
         unset($validated['slug']);
 
+        // SEO keys the request sent go to the paired Page's seos row; keys it did
+        // not send leave the row alone.
+        $seo = SeoInput::sent($validated);
+        $validated = SeoInput::without($validated);
+
         $post = Post::create($validated)->refresh();
         $post->tags()->sync($validated['tag_ids'] ?? []);
 
@@ -118,13 +126,16 @@ class PostController extends Controller
         // admin form does — otherwise a page created later has a stale slug.
         Page::updateOrCreate(
             ['type' => 'post', 'post_id' => $post->id],
-            array_filter([
-                'user_id' => $request->user()->id,
-                'title' => $post->getTranslations('title'),
-                'slug' => $slug,
-                'status' => $post->status,
-                'puck_data' => $puckData,
-            ])
+            [
+                ...array_filter([
+                    'user_id' => $request->user()->id,
+                    'title' => $post->getTranslations('title'),
+                    'slug' => $slug,
+                    'status' => $post->status,
+                    'puck_data' => $puckData,
+                ]),
+                ...$seo,
+            ]
         );
 
         return response()->json(['data' => ['id' => $post->id, 'slug' => $post->slug]], 201);
@@ -141,9 +152,7 @@ class PostController extends Controller
             'content' => 'sometimes|array',
             'content.en' => 'nullable|string',
             'content.bn' => 'nullable|string',
-            'og_image' => 'sometimes|nullable|string',
-            'seo_title' => 'sometimes|nullable|string|max:255',
-            'seo_description' => 'sometimes|nullable|string',
+            ...SeoInput::rules(),
             'status' => 'sometimes|in:active,inactive',
             'featured_image' => 'sometimes|nullable|string',
             'puck_data' => 'sometimes|nullable|array',
@@ -155,8 +164,10 @@ class PostController extends Controller
 
         // SEO fields, OG image, and the puck-builder content all live on the paired
         // Page, not on the post itself.
-        $pageFields = collect($validated)->only(['og_image', 'seo_title', 'seo_description', 'puck_data'])->all();
-        unset($validated['og_image'], $validated['seo_title'], $validated['seo_description'], $validated['puck_data']);
+        $seo = SeoInput::sent($validated);
+        $pageFields = collect($validated)->only(['puck_data'])->all();
+        $validated = SeoInput::without($validated);
+        unset($validated['puck_data']);
 
         // The slug lives on the paired Page only — the post has no column for it.
         $slug = $validated['slug'] ?? null;
@@ -173,13 +184,16 @@ class PostController extends Controller
         // instead of $post->slug, which would resolve the stale cached page.
         $page = Page::updateOrCreate(
             ['type' => 'post', 'post_id' => $post->id],
-            array_filter([
-                'user_id' => $request->user()?->id,
-                'title' => $post->getTranslations('title'),
-                'slug' => $slug,
-                'status' => $post->status,
-                ...$pageFields,
-            ])
+            [
+                ...array_filter([
+                    'user_id' => $request->user()?->id,
+                    'title' => $post->getTranslations('title'),
+                    'slug' => $slug,
+                    'status' => $post->status,
+                    ...$pageFields,
+                ]),
+                ...$seo,
+            ]
         );
 
         return response()->json(['data' => ['id' => $post->id, 'slug' => $page->slug]]);

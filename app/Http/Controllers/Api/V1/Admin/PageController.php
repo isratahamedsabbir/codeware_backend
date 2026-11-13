@@ -7,6 +7,7 @@ use App\Models\Page;
 use App\Support\CustomCode;
 use App\Support\PageCascade;
 use App\Support\Slug;
+use App\Support\Seo\SeoInput;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -49,6 +50,7 @@ class PageController extends Controller
                 'status' => $page->status,
                 'template' => $page->template,
                 'sort_order' => $page->sort_order,
+                'seo' => SeoInput::present($page),
                 'seo_title' => $page->seo_title,
                 'seo_description' => $page->seo_description,
                 'og_title' => $page->og_title,
@@ -84,6 +86,7 @@ class PageController extends Controller
             'constant.*.key' => ['nullable', 'string', 'max:255', 'regex:/^[A-Za-z0-9_]*$/'],
             'constant.*.type' => 'nullable|in:textarea,file',
             'constant.*.value' => 'nullable|string|max:1000',
+            ...SeoInput::rules(),
         ]);
 
         $validated['user_id'] = $request->user()->id;
@@ -106,16 +109,6 @@ class PageController extends Controller
             'content' => 'sometimes|array',
             'content.en' => 'nullable|string',
             'content.bn' => 'nullable|string',
-            'seo_title' => 'sometimes|nullable|string|max:255',
-            'seo_description' => 'sometimes|nullable|string',
-            'og_title' => 'sometimes|nullable|string|max:255',
-            'og_description' => 'sometimes|nullable|string',
-            'og_image' => 'sometimes|nullable|string',
-            'twitter_title' => 'sometimes|nullable|string|max:255',
-            'twitter_description' => 'sometimes|nullable|string',
-            'twitter_image' => 'sometimes|nullable|string',
-            'no_index' => 'sometimes|boolean',
-            'no_follow' => 'sometimes|boolean',
             'custom_code_id' => ['sometimes', 'nullable', 'string', Rule::in(array_keys(CustomCode::options()))],
             'puck_data' => 'sometimes|nullable|array',
             'status' => 'sometimes|in:active,inactive',
@@ -125,6 +118,7 @@ class PageController extends Controller
             'constant.*.key' => ['nullable', 'string', 'max:255', 'regex:/^[A-Za-z0-9_]*$/'],
             'constant.*.type' => 'nullable|in:textarea,file',
             'constant.*.value' => 'nullable|string|max:1000',
+            ...SeoInput::rules(),
         ]);
 
         $page->update($validated);

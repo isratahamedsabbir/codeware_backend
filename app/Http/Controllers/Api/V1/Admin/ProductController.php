@@ -10,6 +10,7 @@ use App\Models\ProductCategory;
 use App\Support\PageCascade;
 use App\Support\Slug;
 use App\Support\Taxonomy;
+use App\Support\Seo\SeoInput;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -76,9 +77,7 @@ class ProductController extends Controller
             'is_featured' => 'sometimes|boolean',
             'is_upcoming' => 'sometimes|boolean',
             'sort_order' => 'nullable|integer|min:0',
-            'og_image' => 'nullable|string',
-            'seo_title' => 'nullable|string|max:255',
-            'seo_description' => 'nullable|string',
+            ...SeoInput::rules(),
             'faq' => 'nullable|array',
             'faq.*.question' => 'required_with:faq|string|max:255',
             'faq.*.answer' => 'nullable|string',
@@ -99,8 +98,10 @@ class ProductController extends Controller
 
         // SEO fields, OG image, and the puck-builder content all live on the paired
         // Page, not on the product itself.
-        $pageFields = collect($validated)->only(['og_image', 'seo_title', 'seo_description', 'puck_data'])->all();
-        unset($validated['og_image'], $validated['seo_title'], $validated['seo_description'], $validated['puck_data']);
+        $seo = SeoInput::sent($validated);
+        $pageFields = collect($validated)->only(['puck_data'])->all();
+        $validated = SeoInput::without($validated);
+        unset($validated['puck_data']);
 
         // The slug lives on the paired Page only — the product has no column for it.
         $slug = $validated['slug'] ?? null;
@@ -126,15 +127,18 @@ class ProductController extends Controller
         // syncs unconditionally too, so the two paths can't drift apart.
         $page = Page::updateOrCreate(
             ['type' => 'product', 'product_id' => $product->id],
-            array_filter([
-                'user_id' => $request->user()?->id,
-                'title' => $product->getTranslations('name'),
-                'slug' => $slug,
-                'status' => $product->status,
-                'sort_order' => $product->sort_order,
-                'description' => $product->getTranslations('description') ?: null,
-                ...$pageFields,
-            ])
+            [
+                ...array_filter([
+                    'user_id' => $request->user()?->id,
+                    'title' => $product->getTranslations('name'),
+                    'slug' => $slug,
+                    'status' => $product->status,
+                    'sort_order' => $product->sort_order,
+                    'description' => $product->getTranslations('description') ?: null,
+                    ...$pageFields,
+                ]),
+                ...$seo,
+            ]
         );
 
         return response()->json(['data' => ['id' => $product->id, 'slug' => $page->slug]], 201);
@@ -163,9 +167,7 @@ class ProductController extends Controller
             'is_featured' => 'sometimes|boolean',
             'is_upcoming' => 'sometimes|boolean',
             'sort_order' => 'sometimes|integer|min:0',
-            'og_image' => 'sometimes|nullable|string',
-            'seo_title' => 'sometimes|nullable|string|max:255',
-            'seo_description' => 'sometimes|nullable|string',
+            ...SeoInput::rules(),
             'faq' => 'sometimes|nullable|array',
             'faq.*.question' => 'required_with:faq|string|max:255',
             'faq.*.answer' => 'nullable|string',
@@ -186,8 +188,10 @@ class ProductController extends Controller
 
         // SEO fields, OG image, and the puck-builder content all live on the paired
         // Page, not on the product itself.
-        $pageFields = collect($validated)->only(['og_image', 'seo_title', 'seo_description', 'puck_data'])->all();
-        unset($validated['og_image'], $validated['seo_title'], $validated['seo_description'], $validated['puck_data']);
+        $seo = SeoInput::sent($validated);
+        $pageFields = collect($validated)->only(['puck_data'])->all();
+        $validated = SeoInput::without($validated);
+        unset($validated['puck_data']);
 
         // The slug lives on the paired Page only — the product has no column for it.
         $slug = $validated['slug'] ?? null;
@@ -218,15 +222,18 @@ class ProductController extends Controller
         // instead of $product->slug, which would resolve the stale cached page.
         $page = Page::updateOrCreate(
             ['type' => 'product', 'product_id' => $product->id],
-            array_filter([
-                'user_id' => $request->user()?->id,
-                'title' => $product->getTranslations('name'),
-                'slug' => $slug,
-                'status' => $product->status,
-                'sort_order' => $product->sort_order,
-                'description' => $product->getTranslations('description') ?: null,
-                ...$pageFields,
-            ])
+            [
+                ...array_filter([
+                    'user_id' => $request->user()?->id,
+                    'title' => $product->getTranslations('name'),
+                    'slug' => $slug,
+                    'status' => $product->status,
+                    'sort_order' => $product->sort_order,
+                    'description' => $product->getTranslations('description') ?: null,
+                    ...$pageFields,
+                ]),
+                ...$seo,
+            ]
         );
 
         return response()->json(['data' => ['id' => $product->id, 'slug' => $page->slug]]);

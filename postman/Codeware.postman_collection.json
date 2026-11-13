@@ -22,6 +22,7 @@
 		{ "key": "post_id", "value": "", "type": "string" },
 		{ "key": "page_slug", "value": "", "type": "string" },
 		{ "key": "page_id", "value": "", "type": "string" },
+		{ "key": "revision_id", "value": "", "type": "string" },
 		{ "key": "media_id", "value": "", "type": "string" },
 		{ "key": "contact_id", "value": "", "type": "string" },
 		{ "key": "order_number", "value": "", "type": "string" },
@@ -807,10 +808,11 @@
 								"header": [{ "key": "Content-Type", "value": "application/json" }],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"name\": { \"en\": \"Blue Running Shoes\", \"bn\": \"নীল দৌড়ের জুতা\" },\n    \"product_category_id\": {{category_id}},\n    \"description\": { \"en\": \"Lightweight running shoes.\", \"bn\": \"\" },\n    \"status\": \"active\",\n    \"price\": 2499.00,\n    \"is_featured\": false,\n    \"sort_order\": 0,\n    \"og_image\": \"\",\n    \"seo_title\": \"Blue Running Shoes\",\n    \"seo_description\": \"Lightweight running shoes for everyday training.\",\n    \"faq\": [\n        { \"question\": { \"en\": \"What sizes?\", \"bn\": \"\" }, \"answer\": { \"en\": \"7 to 12.\", \"bn\": \"\" } }\n    ],\n    \"puck_data\": null\n}",
+									"raw": "{\n    \"name\": { \"en\": \"Blue Running Shoes\", \"bn\": \"নীল দৌড়ের জুতা\" },\n    \"product_category_id\": {{category_id}},\n    \"description\": { \"en\": \"Lightweight running shoes.\", \"bn\": \"\" },\n    \"status\": \"active\",\n    \"price\": 2499.00,\n    \"is_featured\": false,\n    \"sort_order\": 0,\n    \"seo_title\": \"Blue Running Shoes\",\n    \"seo_description\": { \"en\": \"Lightweight running shoes for everyday training.\", \"bn\": \"\" },\n    \"og_image\": \"\",\n    \"twitter_title\": \"Blue Running Shoes\",\n    \"no_index\": false,\n    \"faq\": [\n        { \"question\": { \"en\": \"What sizes?\", \"bn\": \"\" }, \"answer\": { \"en\": \"7 to 12.\", \"bn\": \"\" } }\n    ],\n    \"puck_data\": null\n}",
 									"options": { "raw": { "language": "json" } }
 								},
-								"url": "{{base_url}}/admin/products"
+								"url": "{{base_url}}/admin/products",
+								"description": "Creates the product and its paired page; the page's SEO record is created with it.\n\n**SEO keys — all optional.** Send a key to set it, leave it out to keep what is stored, send `null` to clear it. A request with no SEO keys never touches the page's SEO.\n\n| Key | Value |\n|---|---|\n| `seo_title`, `seo_description` | meta title / description |\n| `og_title`, `og_description` | Open Graph (social share) copy |\n| `twitter_title`, `twitter_description` | Twitter / X card copy |\n| `og_image`, `twitter_image` | image URL or media path |\n| `no_index`, `no_follow` | boolean robots switches (`false` turns one off) |\n| `canonical_base`, `canonical_slug` | canonical URL parts |\n\nThe six copy keys take a string (written for the current language) or an object per language, `{ \"en\": \"...\", \"bn\": \"...\" }`. Everything is stored in the page's own `seos` row; products, posts and categories keep it on their paired page."
 							}
 						},
 						{
@@ -820,10 +822,11 @@
 								"header": [{ "key": "Content-Type", "value": "application/json" }],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"status\": \"active\",\n    \"seo_title\": \"Updated SEO Title\",\n    \"puck_data\": { \"root\": { \"props\": {} }, \"content\": [] }\n}",
+									"raw": "{\n    \"status\": \"active\",\n    \"seo_title\": { \"en\": \"Updated SEO Title\", \"bn\": \"\" },\n    \"og_image\": \"/storage/media/shoes-og.jpg\",\n    \"no_follow\": false,\n    \"puck_data\": { \"root\": { \"props\": {} }, \"content\": [] }\n}",
 									"options": { "raw": { "language": "json" } }
 								},
-								"url": "{{base_url}}/admin/products/{{product_id}}"
+								"url": "{{base_url}}/admin/products/{{product_id}}",
+								"description": "Partial update: send only what changes. SEO keys not in the body keep their stored value.\n\n**SEO keys — all optional.** Send a key to set it, leave it out to keep what is stored, send `null` to clear it. A request with no SEO keys never touches the page's SEO.\n\n| Key | Value |\n|---|---|\n| `seo_title`, `seo_description` | meta title / description |\n| `og_title`, `og_description` | Open Graph (social share) copy |\n| `twitter_title`, `twitter_description` | Twitter / X card copy |\n| `og_image`, `twitter_image` | image URL or media path |\n| `no_index`, `no_follow` | boolean robots switches (`false` turns one off) |\n| `canonical_base`, `canonical_slug` | canonical URL parts |\n\nThe six copy keys take a string (written for the current language) or an object per language, `{ \"en\": \"...\", \"bn\": \"...\" }`. Everything is stored in the page's own `seos` row; products, posts and categories keep it on their paired page."
 							}
 						},
 						{
@@ -841,7 +844,11 @@
 					"item": [
 						{
 							"name": "List Product Categories",
-							"request": { "method": "GET", "url": "{{base_url}}/admin/product-categories" }
+							"request": {
+								"method": "GET",
+								"url": "{{base_url}}/admin/product-categories",
+								"description": "Each category carries a `seo` object with every SEO field of its paired page (copy keys as `{ \"en\": ..., \"bn\": ... }`)."
+							}
 						},
 						{
 							"name": "Create Product Category",
@@ -864,10 +871,11 @@
 								"header": [{ "key": "Content-Type", "value": "application/json" }],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"name\": { \"en\": \"Footwear\", \"bn\": \"জুতা\" },\n    \"description\": { \"en\": \"\", \"bn\": \"\" },\n    \"icon\": \"shoe\",\n    \"sort_order\": 0\n}",
+									"raw": "{\n    \"name\": { \"en\": \"Footwear\", \"bn\": \"জুতা\" },\n    \"description\": { \"en\": \"\", \"bn\": \"\" },\n    \"icon\": \"shoe\",\n    \"sort_order\": 0,\n    \"seo_title\": \"Footwear — shoes for every day\",\n    \"seo_description\": { \"en\": \"Running, walking and everyday shoes.\", \"bn\": \"\" },\n    \"og_image\": \"/storage/media/footwear-og.jpg\"\n}",
 									"options": { "raw": { "language": "json" } }
 								},
-								"url": "{{base_url}}/admin/product-categories"
+								"url": "{{base_url}}/admin/product-categories",
+								"description": "Creates the category and its paired page; the page's SEO record is created with it.\n\n**SEO keys — all optional.** Send a key to set it, leave it out to keep what is stored, send `null` to clear it. A request with no SEO keys never touches the page's SEO.\n\n| Key | Value |\n|---|---|\n| `seo_title`, `seo_description` | meta title / description |\n| `og_title`, `og_description` | Open Graph (social share) copy |\n| `twitter_title`, `twitter_description` | Twitter / X card copy |\n| `og_image`, `twitter_image` | image URL or media path |\n| `no_index`, `no_follow` | boolean robots switches (`false` turns one off) |\n| `canonical_base`, `canonical_slug` | canonical URL parts |\n\nThe six copy keys take a string (written for the current language) or an object per language, `{ \"en\": \"...\", \"bn\": \"...\" }`. Everything is stored in the page's own `seos` row; products, posts and categories keep it on their paired page."
 							}
 						},
 						{
@@ -877,10 +885,11 @@
 								"header": [{ "key": "Content-Type", "value": "application/json" }],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"name\": { \"en\": \"Footwear & Shoes\", \"bn\": \"\" }\n}",
+									"raw": "{\n    \"name\": { \"en\": \"Footwear & Shoes\", \"bn\": \"\" },\n    \"seo_title\": { \"en\": \"Footwear & Shoes\", \"bn\": \"\" },\n    \"no_index\": false\n}",
 									"options": { "raw": { "language": "json" } }
 								},
-								"url": "{{base_url}}/admin/product-categories/{{category_id}}"
+								"url": "{{base_url}}/admin/product-categories/{{category_id}}",
+								"description": "Partial update: send only what changes. SEO keys not in the body keep their stored value.\n\n**SEO keys — all optional.** Send a key to set it, leave it out to keep what is stored, send `null` to clear it. A request with no SEO keys never touches the page's SEO.\n\n| Key | Value |\n|---|---|\n| `seo_title`, `seo_description` | meta title / description |\n| `og_title`, `og_description` | Open Graph (social share) copy |\n| `twitter_title`, `twitter_description` | Twitter / X card copy |\n| `og_image`, `twitter_image` | image URL or media path |\n| `no_index`, `no_follow` | boolean robots switches (`false` turns one off) |\n| `canonical_base`, `canonical_slug` | canonical URL parts |\n\nThe six copy keys take a string (written for the current language) or an object per language, `{ \"en\": \"...\", \"bn\": \"...\" }`. Everything is stored in the page's own `seos` row; products, posts and categories keep it on their paired page."
 							}
 						},
 						{
@@ -932,15 +941,20 @@
 								"header": [{ "key": "Content-Type", "value": "application/json" }],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"title\": { \"en\": \"My First Blog Post\", \"bn\": \"\" },\n    \"status\": \"active\",\n    \"tag_ids\": []\n}",
+									"raw": "{\n    \"title\": { \"en\": \"My First Blog Post\", \"bn\": \"\" },\n    \"content\": { \"en\": \"<p>Post body...</p>\", \"bn\": \"\" },\n    \"status\": \"active\",\n    \"tag_ids\": [],\n    \"seo_title\": \"My First Blog Post\",\n    \"seo_description\": { \"en\": \"An introduction post.\", \"bn\": \"\" },\n    \"og_image\": \"/storage/media/post-og.jpg\",\n    \"no_index\": false\n}",
 									"options": { "raw": { "language": "json" } }
 								},
-								"url": "{{base_url}}/admin/posts"
+								"url": "{{base_url}}/admin/posts",
+								"description": "Creates the post and its paired page; the page's SEO record is created with it.\n\n**SEO keys — all optional.** Send a key to set it, leave it out to keep what is stored, send `null` to clear it. A request with no SEO keys never touches the page's SEO.\n\n| Key | Value |\n|---|---|\n| `seo_title`, `seo_description` | meta title / description |\n| `og_title`, `og_description` | Open Graph (social share) copy |\n| `twitter_title`, `twitter_description` | Twitter / X card copy |\n| `og_image`, `twitter_image` | image URL or media path |\n| `no_index`, `no_follow` | boolean robots switches (`false` turns one off) |\n| `canonical_base`, `canonical_slug` | canonical URL parts |\n\nThe six copy keys take a string (written for the current language) or an object per language, `{ \"en\": \"...\", \"bn\": \"...\" }`. Everything is stored in the page's own `seos` row; products, posts and categories keep it on their paired page."
 							}
 						},
 						{
 							"name": "Get Post by ID",
-							"request": { "method": "GET", "url": "{{base_url}}/admin/posts/{{post_id}}" }
+							"request": {
+								"method": "GET",
+								"url": "{{base_url}}/admin/posts/{{post_id}}",
+								"description": "Returns the post, with a `seo` object holding every SEO field of its paired page (copy keys as `{ \"en\": ..., \"bn\": ... }`). The flat `og_image`, `seo_title`, `seo_description` keys are still returned."
+							}
 						},
 						{
 							"name": "Update Post",
@@ -949,10 +963,11 @@
 								"header": [{ "key": "Content-Type", "value": "application/json" }],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"title\": { \"en\": \"My First Blog Post (Updated)\" },\n    \"content\": { \"en\": \"<p>Post body...</p>\", \"bn\": \"\" },\n    \"seo_title\": \"My First Blog Post\",\n    \"seo_description\": \"An introduction post.\",\n    \"puck_data\": { \"root\": { \"props\": {} }, \"content\": [] }\n}",
+									"raw": "{\n    \"title\": { \"en\": \"My First Blog Post (Updated)\" },\n    \"content\": { \"en\": \"<p>Post body...</p>\", \"bn\": \"\" },\n    \"seo_title\": { \"en\": \"My First Blog Post\", \"bn\": \"\" },\n    \"seo_description\": \"An introduction post.\",\n    \"og_title\": \"My First Blog Post\",\n    \"no_follow\": true,\n    \"puck_data\": { \"root\": { \"props\": {} }, \"content\": [] }\n}",
 									"options": { "raw": { "language": "json" } }
 								},
-								"url": "{{base_url}}/admin/posts/{{post_id}}"
+								"url": "{{base_url}}/admin/posts/{{post_id}}",
+								"description": "Partial update: send only what changes. SEO keys not in the body keep their stored value.\n\n**SEO keys — all optional.** Send a key to set it, leave it out to keep what is stored, send `null` to clear it. A request with no SEO keys never touches the page's SEO.\n\n| Key | Value |\n|---|---|\n| `seo_title`, `seo_description` | meta title / description |\n| `og_title`, `og_description` | Open Graph (social share) copy |\n| `twitter_title`, `twitter_description` | Twitter / X card copy |\n| `og_image`, `twitter_image` | image URL or media path |\n| `no_index`, `no_follow` | boolean robots switches (`false` turns one off) |\n| `canonical_base`, `canonical_slug` | canonical URL parts |\n\nThe six copy keys take a string (written for the current language) or an object per language, `{ \"en\": \"...\", \"bn\": \"...\" }`. Everything is stored in the page's own `seos` row; products, posts and categories keep it on their paired page."
 							}
 						},
 						{
@@ -992,15 +1007,20 @@
 								"header": [{ "key": "Content-Type", "value": "application/json" }],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"title\": { \"en\": \"About Us\", \"bn\": \"\" },\n    \"status\": \"draft\",\n    \"template\": \"puck\"\n}",
+									"raw": "{\n    \"title\": { \"en\": \"About Us\", \"bn\": \"আমাদের সম্পর্কে\" },\n    \"status\": \"inactive\",\n    \"template\": \"puck\",\n    \"seo_title\": { \"en\": \"About Us\", \"bn\": \"আমাদের সম্পর্কে\" },\n    \"seo_description\": \"Learn more about our company.\",\n    \"og_image\": \"/storage/media/about-og.jpg\",\n    \"no_index\": false\n}",
 									"options": { "raw": { "language": "json" } }
 								},
-								"url": "{{base_url}}/admin/pages"
+								"url": "{{base_url}}/admin/pages",
+								"description": "Creates a page (`status`: `active` or `inactive`). Every page gets its own SEO record the moment it exists — blank unless you send SEO keys here.\n\n**SEO keys — all optional.** Send a key to set it, leave it out to keep what is stored, send `null` to clear it. A request with no SEO keys never touches the page's SEO.\n\n| Key | Value |\n|---|---|\n| `seo_title`, `seo_description` | meta title / description |\n| `og_title`, `og_description` | Open Graph (social share) copy |\n| `twitter_title`, `twitter_description` | Twitter / X card copy |\n| `og_image`, `twitter_image` | image URL or media path |\n| `no_index`, `no_follow` | boolean robots switches (`false` turns one off) |\n| `canonical_base`, `canonical_slug` | canonical URL parts |\n\nThe six copy keys take a string (written for the current language) or an object per language, `{ \"en\": \"...\", \"bn\": \"...\" }`. Everything is stored in the page's own `seos` row; products, posts and categories keep it on their paired page."
 							}
 						},
 						{
 							"name": "Get Page by ID",
-							"request": { "method": "GET", "url": "{{base_url}}/admin/pages/{{page_id}}" }
+							"request": {
+								"method": "GET",
+								"url": "{{base_url}}/admin/pages/{{page_id}}",
+								"description": "Returns the page plus a `seo` object holding **every** SEO field — the six copy keys as `{ \"en\": ..., \"bn\": ... }` (or `null` when never written), the rest as stored. The flat `seo_title`, `seo_description`, `og_*`, `twitter_*`, `no_index`, `no_follow` keys are still returned for existing clients."
+							}
 						},
 						{
 							"name": "Update Page",
@@ -1009,10 +1029,35 @@
 								"header": [{ "key": "Content-Type", "value": "application/json" }],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"seo_title\": \"About Us\",\n    \"seo_description\": \"Learn more about our company.\",\n    \"og_title\": \"About Us\",\n    \"og_description\": \"Learn more about our company.\",\n    \"no_index\": false,\n    \"no_follow\": false,\n    \"puck_data\": { \"root\": { \"props\": {} }, \"content\": [] },\n    \"status\": \"published\"\n}",
+									"raw": "{\n    \"status\": \"active\",\n    \"seo_title\": { \"en\": \"About Us | Codeware\", \"bn\": \"আমাদের সম্পর্কে | কোডওয়্যার\" },\n    \"seo_description\": \"Learn more about our company.\",\n    \"og_title\": \"About Us\",\n    \"og_description\": \"Learn more about our company.\",\n    \"twitter_title\": null,\n    \"no_index\": false,\n    \"no_follow\": false,\n    \"canonical_slug\": \"about-us\",\n    \"puck_data\": { \"root\": { \"props\": {} }, \"content\": [] }\n}",
 									"options": { "raw": { "language": "json" } }
 								},
-								"url": "{{base_url}}/admin/pages/{{page_id}}"
+								"url": "{{base_url}}/admin/pages/{{page_id}}",
+								"description": "Partial update: only the keys you send change. Here `twitter_title` is sent as `null`, which clears it; keys left out (for example `og_image`) keep their value.\n\n**SEO keys — all optional.** Send a key to set it, leave it out to keep what is stored, send `null` to clear it. A request with no SEO keys never touches the page's SEO.\n\n| Key | Value |\n|---|---|\n| `seo_title`, `seo_description` | meta title / description |\n| `og_title`, `og_description` | Open Graph (social share) copy |\n| `twitter_title`, `twitter_description` | Twitter / X card copy |\n| `og_image`, `twitter_image` | image URL or media path |\n| `no_index`, `no_follow` | boolean robots switches (`false` turns one off) |\n| `canonical_base`, `canonical_slug` | canonical URL parts |\n\nThe six copy keys take a string (written for the current language) or an object per language, `{ \"en\": \"...\", \"bn\": \"...\" }`. Everything is stored in the page's own `seos` row; products, posts and categories keep it on their paired page."
+							}
+						},
+						{
+							"name": "List Page Revisions",
+							"request": {
+								"method": "GET",
+								"url": "{{base_url}}/admin/pages/{{page_id}}/revisions",
+								"description": "The page's publish history (its content / layout), newest first."
+							}
+						},
+						{
+							"name": "Get Page Revision",
+							"request": {
+								"method": "GET",
+								"url": "{{base_url}}/admin/pages/{{page_id}}/revisions/{{revision_id}}",
+								"description": "One revision, with the content / layout it holds."
+							}
+						},
+						{
+							"name": "Restore Page Revision",
+							"request": {
+								"method": "POST",
+								"url": "{{base_url}}/admin/pages/{{page_id}}/revisions/{{revision_id}}/restore",
+								"description": "Writes a revision's content / layout back onto the page (the restore is itself saved as a new revision). Does not change the page's SEO."
 							}
 						},
 						{
