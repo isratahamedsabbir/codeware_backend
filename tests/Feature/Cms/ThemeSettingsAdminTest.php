@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Admin\DeveloperGuide;
+use App\Livewire\Admin\ThemeSettings\Edit as ThemeSettingsEdit;
 use App\Livewire\Admin\ThemeSettings\Index as ThemeSettingsScreen;
 use App\Models\MenuItem;
 use App\Models\Setting;
@@ -463,8 +464,7 @@ it('renders the selected theme settings blade when the theme ships one', functio
         ->and(Themes::hasSettings('default'))->toBeTrue()
         ->and(Themes::hasSettings('portfolio'))->toBeTrue();
 
-    Livewire::test(ThemeSettingsScreen::class)
-        ->set('settings.site_theme', 'classic_ecommerce')
+    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'classic_ecommerce'])
         // The ecommerce card is the global look only: colors and typography.
         // The homepage banners are page content, edited under Page Settings.
         ->assertSee("tab === 'colors'", false)
@@ -483,8 +483,7 @@ it('navigates a theme\'s settings sections by menu beside the form, not a tab st
     // directions are asserted because the two are interchangeable in the markup
     // — only one of them is the layout this screen is supposed to have.
     $expectMenu = function (string $slug, int $sections) {
-        $html = Livewire::test(ThemeSettingsScreen::class)
-            ->set('settings.site_theme', $slug)
+        $html = Livewire::test(ThemeSettingsEdit::class, ['slug' => $slug])
             ->html();
 
         // Exactly one *vertical* tablist, one entry per section, each wired to
@@ -570,8 +569,7 @@ it('keys each theme settings panel by slug so switching themes cannot leave a st
     // A per-slug wire:key makes the node unique, so Livewire is forced to
     // replace it and Alpine re-initialises with the incoming theme's scope.
     foreach (['default', 'portfolio', 'classic_ecommerce'] as $slug) {
-        $html = Livewire::test(ThemeSettingsScreen::class)
-            ->set('settings.site_theme', $slug)
+        $html = Livewire::test(ThemeSettingsEdit::class, ['slug' => $slug])
             ->html();
 
         expect($html)->toContain('wire:key="theme-settings-'.$slug.'"');
@@ -674,8 +672,7 @@ it('omits the theme settings card when the selected theme has none', function ()
 
     expect(Themes::hasSettings('retro'))->toBeFalse();
 
-    Livewire::test(ThemeSettingsScreen::class)
-        ->set('settings.site_theme', 'retro')
+    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'retro'])
         ->assertDontSee('Theme Settings</h')
         ->assertDontSee('theme_retro_');
 });

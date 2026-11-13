@@ -61,7 +61,9 @@ trait ManagesPageSettings
     {
         $this->load();
 
-        $this->selectedPageId ??= $this->pages()->first()?->id;
+        if (! $this->pages()->contains('id', $this->selectedPageId)) {
+            $this->selectedPageId = $this->pages()->first()?->id;
+        }
     }
 
     public function selectPage(int $pageId): void
@@ -71,10 +73,19 @@ trait ManagesPageSettings
         }
     }
 
-    /** Whether the live theme ships its own home-page banner editor. */
+    /**
+     * The theme whose pages are being edited: the one a card's Settings button
+     * opened, or the live theme while no settings dialog is open.
+     */
+    private function pageTheme(): string
+    {
+        return $this->settingsFor && Themes::isInstalled($this->settingsFor) ? $this->settingsFor : Themes::active();
+    }
+
+    /** Whether the theme being edited ships its own home-page banner editor. */
     private function hasBanners(): bool
     {
-        return is_file(Themes::path().'/'.Themes::active().'/page-settings.blade.php');
+        return is_file(Themes::path().'/'.$this->pageTheme().'/page-settings.blade.php');
     }
 
     /** @return Collection<int, Page> */
@@ -84,7 +95,7 @@ trait ManagesPageSettings
             return collect();
         }
 
-        $theme = Themes::active();
+        $theme = $this->pageTheme();
         $pages = collect();
 
         if (Themes::hasTemplateFor($theme, 'index')) {
@@ -134,7 +145,7 @@ trait ManagesPageSettings
 
         if ($this->hasBanners()) {
             $this->heroSlides = HeroSlides::stored() ?: [HeroSlides::blank()];
-            $theme = Themes::active();
+            $theme = $this->pageTheme();
             $this->promo = [
                 ['image' => (string) Setting::get('home_promo_banner_1', ''), 'link' => ThemeSettings::text($theme, 'theme_'.$theme.'_promo_1_link')],
                 ['image' => (string) Setting::get('home_promo_banner_2', ''), 'link' => ThemeSettings::text($theme, 'theme_'.$theme.'_promo_2_link')],
@@ -275,7 +286,7 @@ trait ManagesPageSettings
         Setting::set('home_hero_slides', json_encode($slides));
         Setting::set('home_hero_image', $slides[0]['image'] ?? '');
 
-        $theme = Themes::active();
+        $theme = $this->pageTheme();
 
         Setting::set('home_promo_banner_1', (string) ($this->promo[0]['image'] ?? ''));
         Setting::set('home_promo_banner_2', (string) ($this->promo[1]['image'] ?? ''));
@@ -307,9 +318,9 @@ trait ManagesPageSettings
             'psSections' => $selected ? $this->sectionsFor(collect([$selected])) : collect(),
             'psLanguages' => Locale::translatable(),
             'psPrimary' => Locale::primary(),
-            'psTheme' => Themes::active(),
+            'psTheme' => $this->pageTheme(),
             'psFeatureOn' => Features::enabled('pages'),
-            'psBanners' => $this->hasBanners() ? Themes::viewNamespace(Themes::active()).'::page-settings' : null,
+            'psBanners' => $this->hasBanners() ? Themes::viewNamespace($this->pageTheme()).'::page-settings' : null,
         ];
     }
 }

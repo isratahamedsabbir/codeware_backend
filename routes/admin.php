@@ -174,6 +174,7 @@ Route::middleware(['auth', 'admin', 'activity-log', 'mfa'])->group(function () {
         // theme's settings (site_theme plus homepage copy/imagery), separate from
         // the general Settings page.
         Route::get('/theme-settings', App\Livewire\Admin\ThemeSettings\Index::class)->name('theme-settings');
+        Route::get('/theme-settings/{slug}', App\Livewire\Admin\ThemeSettings\Edit::class)->where('slug', '[A-Za-z0-9_-]+')->name('theme-settings.edit');
         Route::get('/seo', App\Livewire\Admin\Seo\Index::class)->name('seo');
         Route::get('/social', App\Livewire\Admin\Social\Index::class)->name('social');
         Route::get('/mobile-apps', App\Livewire\Admin\MobileApps\Index::class)->name('mobile-apps');

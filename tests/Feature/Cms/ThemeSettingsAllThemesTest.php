@@ -1,4 +1,5 @@
 <?php
+use App\Livewire\Admin\ThemeSettings\Edit;
 use App\Livewire\Admin\ThemeSettings\Index as S;
 use App\Models\Page;
 use App\Models\Setting;
@@ -13,7 +14,10 @@ it('renders Theme Settings + Page Settings for every theme', function (string $s
     Page::factory()->published()->create(['title' => ['en' => 'Home', 'bn' => ''], 'slug' => 'home', 'type' => 'page']);
     Page::factory()->published()->create(['title' => ['en' => 'About us', 'bn' => ''], 'slug' => 'about', 'type' => 'page']);
     Setting::set('site_theme', $slug); Themes::forget();
-    $c = Livewire::test(S::class)->assertOk()->assertSee('Page Settings');
+    // Closed by default: the settings live in the dialog a card's Settings button opens.
+    Livewire::test(S::class)->assertOk()->assertDontSee('Page Settings');
+
+    $c = Livewire::test(Edit::class, ['slug' => $slug])->assertOk()->assertSee('Page Settings');
     foreach ($mustSee as $t) $c->assertSee($t, false);
     foreach ($mustNotSee as $t) $c->assertDontSee($t, false);
     $c->call('save')->assertHasNoErrors();

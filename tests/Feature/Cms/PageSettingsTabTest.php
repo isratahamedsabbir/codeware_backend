@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Admin\ThemeSettings\Edit as ThemeSettingsEdit;
 use App\Livewire\Admin\ThemeSettings\Index as ThemeSettingsScreen;
 use App\Models\CmsSection;
 use App\Models\Page;
@@ -37,7 +38,7 @@ beforeEach(function () {
 });
 
 it('lists the pages the live theme serves, with their sections', function () {
-    Livewire::test(ThemeSettingsScreen::class)
+    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])
         ->assertSee('About us')
         ->assertSee('team')
         ->assertSet("titles.{$this->about->id}.en", 'About us')
@@ -165,3 +166,51 @@ it('renders a card\'s subtitle, button and text colour on every theme that serve
 
     $this->get('/offers')->assertOk()->assertSee('Ends Sunday')->assertSee('Shop now')->assertSee('color: #ff0000', false);
 })->with(['classic_ecommerce', 'modern_ecommerce', 'default', 'news']);
+
+it('shows a theme settings page with Theme Settings and Page Settings, not the theme list', function () {
+    Livewire::test(ThemeSettingsScreen::class)
+        ->assertDontSee('Page Settings')
+        ->assertDontSee('theme_portfolio_font', false);
+
+    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'portfolio'])
+        ->assertSet('settingsFor', 'portfolio')
+        ->assertSee('Page Settings')
+        ->assertSee('theme_portfolio_font', false)
+        // The portfolio serves no standalone pages, so the About page is not listed.
+        ->assertDontSee('About us');
+});
+
+it('lists the pages of the theme being edited, not the live one', function () {
+    Setting::set('site_theme', 'portfolio');
+    Themes::forget();
+
+    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])
+        ->assertSet("titles.{$this->about->id}.en", 'About us')
+        ->assertSee('About us');
+});
+
+it('does not change the live theme when another theme is saved', function () {
+    Setting::set('site_theme', 'portfolio');
+    Themes::forget();
+
+    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])
+        ->set('settings.theme_news_tagline', 'All the news')
+        ->call('save');
+
+    expect(Setting::get('site_theme'))->toBe('portfolio')
+        ->and(\App\Support\ThemeSettings::text('news', 'theme_news_tagline'))->toBe('All the news');
+});
+
+it('serves an installed theme settings page and 404s one that is not installed', function () {
+    // Mfa::isRequiredFor() reads the role flag, not the config switch.
+    \Illuminate\Support\Facades\DB::table('roles')->update(['mfa_enabled' => false]);
+
+    $this->get(route('admin.theme-settings.edit', 'news'))->assertOk()->assertSee('Page Settings');
+    $this->get(route('admin.theme-settings.edit', 'no-such-theme'))->assertNotFound();
+});
+
+it('links every theme card Settings button to that theme settings page', function () {
+    Livewire::test(ThemeSettingsScreen::class)
+        ->assertSeeHtml('href="'.route('admin.theme-settings.edit', 'news').'"')
+        ->assertSeeHtml('href="'.route('admin.theme-settings.edit', 'classic_ecommerce').'"');
+});

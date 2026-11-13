@@ -23,6 +23,12 @@ class Index extends Component
     use ManagesPageSettings;
     use WithFileUploads;
 
+    /**
+     * The theme whose Theme Settings + Page Settings are being edited — set by the
+     * Edit screen (a card's Settings button), null on the theme list.
+     */
+    public ?string $settingsFor = null;
+
     /** Most hero slides the home slider takes. */
     public const MAX_HERO_SLIDES = HeroSlides::MAX;
 
@@ -1201,6 +1207,13 @@ class Index extends Component
 
     public function render()
     {
+        return view('livewire.admin.theme-settings.index', $this->viewData())
+            ->layout('layouts.admin', ['title' => 'Theme Settings']);
+    }
+
+    /** @return array<string, mixed> everything the screen's views read */
+    protected function viewData(): array
+    {
         $themes = Themes::all();
         $selectedSlug = $this->selectedSlug();
 
@@ -1232,7 +1245,7 @@ class Index extends Component
             })
             ->all();
 
-        return view('livewire.admin.theme-settings.index', $this->pageSettingsData() + [
+        return $this->pageSettingsData() + [
             'themes' => $themes,
             'themeCards' => $themeCards,
             'activeTheme' => Themes::active(),
@@ -1247,7 +1260,7 @@ class Index extends Component
             // field can say what it will become instead of leaving the owner to
             // save and find out.
             'nextSn' => Themes::nextSn(),
-        ])->layout('layouts.admin', ['title' => 'Theme Settings']);
+        ];
     }
 
     /**
@@ -1439,6 +1452,10 @@ class Index extends Component
      */
     private function selectedSlug(): string
     {
+        if ($this->settingsFor && Themes::isInstalled($this->settingsFor)) {
+            return $this->settingsFor;
+        }
+
         $selected = (string) ($this->settings['site_theme'] ?? '');
 
         return array_key_exists($selected, Themes::all()) ? $selected : Themes::active();
