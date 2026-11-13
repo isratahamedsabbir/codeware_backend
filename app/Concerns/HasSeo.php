@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * `$page->update([...])` — exactly as when they were columns, so no caller had to
  * change. Reads come from the related row; writes are held until the page is
  * saved, then land on its row (created on first write). A page that was never
- * given SEO copy has no row at all.
+ * given SEO copy has a blank row (created with the page).
  *
  * The model using this must call seoAttribute() from getAttribute(), queueSeo()
  * from setAttribute() and persistSeo() from its `saved` event (see Page): the
@@ -71,7 +71,8 @@ trait HasSeo
             return in_array($key, ['no_index', 'no_follow'], true) ? false : null;
         }
 
-        return $record->{$key};
+        // A row just created in this request has not read its column defaults back.
+        return in_array($key, ['no_index', 'no_follow'], true) ? (bool) $record->{$key} : $record->{$key};
     }
 
     /** @return array<string, string|null> a translatable SEO field, by locale */
@@ -89,26 +90,24 @@ trait HasSeo
         $this->pendingSeo[$key] = $value;
     }
 
-    /** Writes the queued SEO values to the page's row. Called from the saved event. */
+    /**
+     * Gives a newly created page its `seos` row (blank until someone fills it in)
+     * and writes any queued SEO values onto it. Called from the saved event.
+     *
+     * Every page owns a row from the moment it exists — whatever made it: the
+     * page form, a post, a product, a category, an import, a seeder — so the SEO
+     * screen lists every page and nothing has to guess whether one is missing.
+     */
     public function persistSeo(): void
     {
-        if ($this->pendingSeo === []) {
+        if ($this->pendingSeo === [] && ! $this->wasRecentlyCreated) {
             return;
         }
 
         $pending = $this->pendingSeo;
         $this->pendingSeo = [];
 
-        $record = $this->seoRecord();
-
-        // A page with no row stays without one until something is actually set:
-        // a form or factory that writes only empty values must not leave a blank
-        // row behind for every page.
-        if (! $record && $this->allSeoValuesEmpty($pending)) {
-            return;
-        }
-
-        $record ??= new Seo(['page_id' => $this->getKey()]);
+        $record = $this->seoRecord() ?? new Seo(['page_id' => $this->getKey()]);
 
         foreach ($pending as $key => $value) {
             if (static::isTranslatableSeoField($key) && is_array($value)) {
@@ -120,20 +119,6 @@ trait HasSeo
 
         $record->save();
         $this->setRelation('seo', $record);
-    }
-
-    /** @param  array<string, mixed>  $values */
-    private function allSeoValuesEmpty(array $values): bool
-    {
-        foreach ($values as $value) {
-            $filled = is_array($value) ? array_filter($value, 'filled') !== [] : filled($value) || $value === true;
-
-            if ($filled) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /** Pages that may be indexed: no row, or a row that does not say noindex. */

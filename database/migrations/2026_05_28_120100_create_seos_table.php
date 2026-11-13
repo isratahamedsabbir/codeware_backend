@@ -21,9 +21,9 @@ return new class extends Migration
      * Run the migrations.
      *
      * One row of search/social metadata per page (a product's, post's or category's
-     * page included — they all own a `pages` row). The page owns the relation;
-     * a page with no row simply has no SEO copy of its own, and the site-wide
-     * defaults in Settings apply.
+     * page included — they all own a `pages` row). The page owns the relation and
+     * creates the row with itself; a blank row means "no SEO copy of its own", and
+     * the site-wide defaults in Settings apply.
      */
     public function up(): void
     {
@@ -46,6 +46,28 @@ return new class extends Migration
         });
 
         $this->moveLegacyColumns();
+        $this->giveEveryPageARow();
+    }
+
+    /**
+     * Every page owns a row, filled or blank (the Page model creates one with each
+     * new page). An install that already has pages gets a blank row for each one
+     * the legacy copy above did not fill.
+     */
+    protected function giveEveryPageARow(): void
+    {
+        DB::table('pages')->orderBy('id')->select('id')->chunkById(200, function ($pages) {
+            $have = DB::table('seos')->whereIn('page_id', $pages->pluck('id'))->pluck('page_id')->all();
+
+            $rows = $pages->reject(fn ($page) => in_array($page->id, $have, true))
+                ->map(fn ($page) => ['page_id' => $page->id, 'created_at' => now(), 'updated_at' => now()])
+                ->values()
+                ->all();
+
+            if ($rows !== []) {
+                DB::table('seos')->insert($rows);
+            }
+        });
     }
 
     /**

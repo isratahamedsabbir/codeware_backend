@@ -74,6 +74,22 @@ class Seo extends Model
         }
     }
 
+    /**
+     * Gives every page that has no row a blank one — the safety net behind "every
+     * page owns a seos row", for pages written around the model (a raw insert, a
+     * restore from an old dump). Returns how many rows it added.
+     */
+    public static function ensureForAllPages(): int
+    {
+        $missing = Page::query()->whereDoesntHave('seo')->pluck('id');
+
+        foreach ($missing->chunk(200) as $ids) {
+            static::insert($ids->map(fn ($id) => ['page_id' => $id, 'created_at' => now(), 'updated_at' => now()])->all());
+        }
+
+        return $missing->count();
+    }
+
     public function page(): BelongsTo
     {
         return $this->belongsTo(Page::class);
