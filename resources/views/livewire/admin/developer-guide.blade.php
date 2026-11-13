@@ -1620,7 +1620,7 @@ $this->group('Library & System', 15, [
     ['Plugin Settings', 'squares-plus', 'admin.plugin-settings'],
     ['Developer Tools', 'command-line', 'admin.env'],
     ['Developer Guide', 'book-open', 'admin.developer-guide'],
-    ['Global SEO', 'magnifying-glass', 'admin.seo'],
+    ['SEO', 'magnifying-glass', 'admin.seo'],
 ]);
 
 // then: php artisan db:seed --class=AdminMenuSeeder

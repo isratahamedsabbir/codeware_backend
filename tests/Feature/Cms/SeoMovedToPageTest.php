@@ -155,8 +155,8 @@ it('writes NULL, not empty json, when every locale is cleared', function () {
     $page->update(['seo_title' => ['en' => '', 'bn' => '']]);
     $page->refresh();
 
-    expect($page->getRawOriginal('seo_title'))->toBeNull()
-        ->and(Page::whereNull('seo_title')->whereKey($page->id)->exists())->toBeTrue()
+    expect($page->seo->getRawOriginal('seo_title'))->toBeNull()
+        ->and(\App\Models\Seo::whereNull('seo_title')->where('page_id', $page->id)->exists())->toBeTrue()
         ->and($page->seo_title)->toBeNull();
 });
 

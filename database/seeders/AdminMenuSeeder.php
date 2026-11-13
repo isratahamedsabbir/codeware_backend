@@ -93,7 +93,7 @@ class AdminMenuSeeder extends Seeder
             ['Plugin Settings', 'squares-plus', 'admin.plugin-settings'],
             ['Developer Tools', 'command-line', 'admin.env'],
             ['Developer Guide', 'book-open', 'admin.developer-guide'],
-            ['Global SEO', 'magnifying-glass', 'admin.seo'],
+            ['SEO', 'magnifying-glass', 'admin.seo'],
             ['Social Links', 'share', 'admin.social'],
             ['Mobile Apps', 'device-phone-mobile', 'admin.mobile-apps'],
             ['Payment Gateways', 'credit-card', 'admin.payment-gateways'],

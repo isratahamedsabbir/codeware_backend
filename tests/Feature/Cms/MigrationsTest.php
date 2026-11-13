@@ -54,10 +54,19 @@ it('posts table has required columns', function () {
 });
 
 it('pages table has required columns', function () {
+    // The slug lives in `slugs` and the SEO copy in `seos`; neither is a pages column.
     expect(Schema::hasColumns('pages', [
-        'id', 'user_id', 'title', 'slug', 'content',
-        'status', 'template', 'sort_order',
-        'seo_title', 'seo_description',
+        'id', 'user_id', 'title', 'content',
+        'status', 'template', 'sort_order', 'custom_code_id',
+    ]))->toBeTrue()
+        ->and(Schema::hasColumn('pages', 'seo_title'))->toBeFalse();
+});
+
+it('seos table holds one row of SEO copy per page', function () {
+    expect(Schema::hasColumns('seos', [
+        'id', 'page_id', 'seo_title', 'seo_description', 'og_title', 'og_description',
+        'twitter_title', 'twitter_description', 'og_image', 'twitter_image',
+        'no_index', 'no_follow', 'canonical_base', 'canonical_slug',
     ]))->toBeTrue();
 });
 

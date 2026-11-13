@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Concerns\CachesContent;
 use App\Concerns\HasCreator;
+use App\Concerns\HasSeo;
 use App\Concerns\HasSlug;
 use App\Support\CustomCode;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,7 +16,13 @@ use Spatie\Translatable\HasTranslations;
 
 class Page extends Model
 {
-    use CachesContent, HasCreator, HasFactory, HasSlug, HasTranslations;
+    use CachesContent, HasCreator, HasFactory, HasSeo, HasSlug;
+    use HasTranslations {
+        getTranslatableAttributes as private translatedAttributeNames;
+        getTranslation as private translatedGetTranslation;
+        getTranslations as private translatedGetTranslations;
+        setAttribute as private translatedSetAttribute;
+    }
 
     /**
      * The SEO copy is per-locale alongside the content it describes, so a
@@ -24,11 +31,7 @@ class Page extends Model
      * / canonical_base / canonical_slug are deliberately absent: a URL has one
      * spelling, and translating it would only produce hreflang pointing nowhere.
      */
-    public array $translatable = [
-        'title', 'content', 'description',
-        'seo_title', 'seo_description', 'og_title', 'og_description',
-        'twitter_title', 'twitter_description',
-    ];
+    public array $translatable = ['title', 'content', 'description'];
 
     protected $fillable = [
         'user_id', 'title', 'slug', 'content', 'description', 'puck_data', 'status',
@@ -41,17 +44,14 @@ class Page extends Model
     protected $casts = [
         'puck_data' => 'array',
         'constant' => 'array',
-        'no_index' => 'boolean',
-        'no_follow' => 'boolean',
     ];
 
     protected static function booted(): void
     {
-        static::saving(function (Page $page) {
-            // The slug (generated from the title when blank, unique across the whole
-            // slugs table) is written by HasSlug once the page is saved.
-            $page->collapseEmptySeoTranslations();
-        });
+        // The SEO fields are proxied to the page's `seos` row (HasSeo); the row is
+        // written once the page itself is. The slug (generated from the title when
+        // blank, unique across the whole slugs table) is written by HasSlug.
+        static::saved(fn (Page $page) => $page->persistSeo());
 
         // Every save that changes the body — a Puck publish from the frontend,
         // a content edit, a restore — writes one revision holding the body as
@@ -100,33 +100,59 @@ class Page extends Model
     }
 
     /**
-     * Turns a translatable SEO attribute that is empty in every locale back into
-     * a real NULL.
-     *
-     * spatie/laravel-translatable writes a cleared field as `[]` or
-     * `{"en":null}` — json that is present but says nothing. That is a different
-     * thing from NULL to `whereNull()`, to a `$page->seo_title` null check, and
-     * to an admin screen asking whether this page was ever given a meta title.
-     * These columns were plain strings until SEO became translatable, and the
-     * rest of the application (and its tests) still expects the old shape for
-     * "unset", so the storage normalisation belongs here rather than in each of
-     * the four admin forms that write these fields.
+     * SEO fields are not columns: they live on the page's `seos` row (HasSeo). The
+     * overrides below keep `$page->seo_title`, `fill()` and the translation helpers
+     * working on them exactly as they did on columns.
      */
-    protected function collapseEmptySeoTranslations(): void
+    public function getAttribute($key)
     {
-        foreach (['seo_title', 'seo_description', 'og_title', 'og_description', 'twitter_title', 'twitter_description'] as $field) {
-            $raw = $this->attributes[$field] ?? null;
+        return is_string($key) && static::isSeoField($key)
+            ? $this->seoAttribute($key)
+            : parent::getAttribute($key);
+    }
 
-            if (! is_string($raw) || $raw === '') {
-                continue;
-            }
+    public function setAttribute($key, $value)
+    {
+        if (is_string($key) && static::isSeoField($key)) {
+            $this->queueSeo($key, $value);
 
-            $decoded = json_decode($raw, true);
-
-            if (! is_array($decoded) || array_filter($decoded, 'filled') === []) {
-                $this->attributes[$field] = null;
-            }
+            return $this;
         }
+
+        return $this->translatedSetAttribute($key, $value);
+    }
+
+    public function getTranslatableAttributes(): array
+    {
+        return [...$this->translatedAttributeNames(), ...Seo::TRANSLATABLE];
+    }
+
+    public function isTranslatableAttribute(string $key): bool
+    {
+        return in_array($key, $this->getTranslatableAttributes(), true);
+    }
+
+    public function getTranslation(string $key, string $locale, bool $useFallbackLocale = true): mixed
+    {
+        if (! static::isTranslatableSeoField($key)) {
+            return $this->translatedGetTranslation($key, $locale, $useFallbackLocale);
+        }
+
+        $translations = $this->seoTranslations($key);
+
+        return $translations[$locale]
+            ?? ($useFallbackLocale ? ($translations[config('app.fallback_locale')] ?? null) : null);
+    }
+
+    public function getTranslations(?string $key = null, ?array $allowedLocales = null): array
+    {
+        if ($key === null || ! static::isTranslatableSeoField($key)) {
+            return $this->translatedGetTranslations($key, $allowedLocales);
+        }
+
+        $translations = $this->seoTranslations($key);
+
+        return $allowedLocales === null ? $translations : array_intersect_key($translations, array_flip($allowedLocales));
     }
 
     public function user(): BelongsTo
