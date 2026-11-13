@@ -24,9 +24,11 @@ use Illuminate\Support\Collection;
  * subtitle, description, button and text colour, plus the values of the
  * section's constants.
  *
- * Which pages: the home page when the theme ships an index template, and every
- * standalone page (About, Contact, ...) when it ships a `page` template — the
- * same rule the storefront uses to answer or 404 a URL.
+ * Which pages: the ones the theme names in its theme.json `pages` list (by slug,
+ * in that order) — a news site has Home / About / Contact / FAQ, a portfolio has
+ * only Home, the default theme has only its Default page. A theme that names none
+ * falls back to what its templates can serve: the home page when it ships an
+ * index template, and every standalone page when it ships a `page` template.
  *
  * A theme can add its own built-in home sections (a hero slider, promo tiles)
  * by shipping page-settings.blade.php at its root; that fragment binds to
@@ -99,6 +101,17 @@ trait ManagesPageSettings
         }
 
         $theme = $this->pageTheme();
+        $named = Themes::manifest($theme)['pages'];
+
+        if ($named !== null) {
+            return Page::ofType('page')
+                ->with('slugRecord')
+                ->whereHas('slugRecord', fn ($q) => $q->whereIn('slug', $named))
+                ->get()
+                ->sortBy(fn (Page $page) => array_search($page->slug, $named, true))
+                ->values();
+        }
+
         $pages = collect();
 
         if (Themes::hasTemplateFor($theme, 'index')) {
@@ -119,8 +132,9 @@ trait ManagesPageSettings
     }
 
     /**
-     * Every page a page may borrow its SEO from, as id => title, for the SEO
-     * dropdown. Pages only: posts, products and categories are not listed.
+     * The pages a page of this theme may borrow its SEO from, as id => title, for
+     * the SEO dropdown: this theme's own pages, plus the seeded Default page —
+     * never another theme's pages, and never posts, products or categories.
      *
      * @return Collection<int, string>
      */
@@ -128,11 +142,11 @@ trait ManagesPageSettings
     {
         $primary = Locale::primary();
 
-        return Page::query()
-            ->ofType('page')
-            ->orderBy('sort_order')
-            ->orderBy('id')
-            ->get()
+        $default = Page::ofType('page')->whereHas('slugRecord', fn ($q) => $q->where('slug', 'default'))->first();
+
+        return $this->pages()
+            ->when($default, fn (Collection $pages) => $pages->push($default))
+            ->unique('id')
             ->mapWithKeys(fn (Page $page) => [
                 $page->id => $page->getTranslation('title', $primary, true) ?: 'Untitled',
             ]);
@@ -359,6 +373,7 @@ trait ManagesPageSettings
             'psSections' => $selected ? $this->sectionsFor(collect([$selected])) : collect(),
             'psLanguages' => Locale::translatable(),
             'psPrimary' => Locale::primary(),
+            'psHomeSlug' => Themes::manifest($this->pageTheme())['home_page'],
             'psSeoOptions' => $this->seoOptions(),
             'psTheme' => $this->pageTheme(),
             'psFeatureOn' => Features::enabled('pages'),

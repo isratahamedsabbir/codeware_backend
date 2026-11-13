@@ -79,7 +79,7 @@ class ThemeSettings
      * way: this class already asks Themes for a manifest, and Themes knowing
      * about this class's constants to answer that question would be a circle.
      */
-    public const MANIFEST_KEYS = ['name', 'description', 'version', 'author', 'tags', 'no_index', 'default', 'sn'];
+    public const MANIFEST_KEYS = ['name', 'description', 'version', 'author', 'tags', 'no_index', 'default', 'sn', 'pages', 'home_page'];
 
     /**
      * What every settings key in a theme's file starts with, before the theme's

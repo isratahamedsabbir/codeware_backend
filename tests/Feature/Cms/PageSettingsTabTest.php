@@ -95,7 +95,7 @@ it('edits a card subtitle, button and text colour, and the storefront renders th
 
     // The generic card grid. About and FAQ have bespoke layouts (a story, a Q&A
     // list) that only use a card's title and description.
-    $page = Page::factory()->published()->create(['title' => ['en' => 'Offers', 'bn' => ''], 'slug' => 'offers', 'type' => 'page']);
+    $page = Page::factory()->published()->create(['title' => ['en' => 'Contact us', 'bn' => ''], 'slug' => 'contact', 'type' => 'page']);
     $section = CmsSection::create([
         'page_id' => $page->id, 'name' => 'deals', 'sort_order' => 1, 'status' => 'active',
         'cards' => [['image' => null, 'title' => 'Winter sale', 'description' => 'Warm things']],
@@ -113,7 +113,7 @@ it('edits a card subtitle, button and text colour, and the storefront renders th
     expect($card['subtitle'])->toBe('Ends Sunday')
         ->and($card['text_color'])->toBe('#ff0000');
 
-    $this->get('/offers')
+    $this->get('/contact')
         ->assertOk()
         ->assertSee('Ends Sunday')
         ->assertSee('Join us')
@@ -229,7 +229,8 @@ it('downloads a theme\'s saved settings as json, without the manifest', function
 });
 
 it('lists every page as an SEO option and saves the one chosen for a page', function () {
-    $source = Page::factory()->published()->create(['title' => ['en' => 'Shared SEO page', 'bn' => ''], 'slug' => 'shared-seo', 'type' => 'page', 'seo_title' => ['en' => 'Shared meta']]);
+    // A page the news theme has (its theme.json lists home, about, contact, faq).
+    $source = Page::factory()->published()->create(['title' => ['en' => 'Shared SEO page', 'bn' => ''], 'slug' => 'contact', 'type' => 'page', 'seo_title' => ['en' => 'Shared meta']]);
 
     Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])
         ->assertSet("seoSources.{$this->about->id}", '')
@@ -314,3 +315,66 @@ it('applies a card\'s text colour in the FAQ and About layouts of the storefront
     $this->get('/faq')->assertOk()->assertSee('color: #123456', false);
     $this->get('/about')->assertOk()->assertSee('color: #654321', false);
 })->with(['classic_ecommerce', 'modern_ecommerce']);
+
+// ---------------------------------------------------------------- Which pages a theme has
+
+it('lists only the pages a theme names in its theme.json', function (string $theme, array $slugs) {
+    foreach (['home', 'contact', 'faq', 'default'] as $slug) {
+        Page::factory()->published()->create(['title' => ['en' => ucfirst($slug).' page', 'bn' => ''], 'slug' => $slug, 'type' => 'page']);
+    }
+
+    $component = Livewire::test(ThemeSettingsEdit::class, ['slug' => $theme]);
+    $listed = collect($component->get('titles'))->keys()->map(fn ($id) => Page::find($id)->slug)->sort()->values()->all();
+
+    expect($listed)->toBe(collect($slugs)->sort()->values()->all());
+})->with([
+    'news' => ['news', ['home', 'about', 'contact', 'faq']],
+    'classic' => ['classic_ecommerce', ['home', 'about', 'contact', 'faq']],
+    'portfolio' => ['portfolio', ['home']],
+    'default' => ['default', ['default']],
+]);
+
+it('lists the pages in the order the theme names them', function () {
+    Page::factory()->published()->create(['title' => ['en' => 'Faq page', 'bn' => ''], 'slug' => 'faq', 'type' => 'page', 'sort_order' => 0]);
+    Page::factory()->published()->create(['title' => ['en' => 'Home page', 'bn' => ''], 'slug' => 'home', 'type' => 'page', 'sort_order' => 9]);
+
+    $ids = collect(Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])->get('titles'))->keys()
+        ->map(fn ($id) => Page::find($id)->slug)->all();
+
+    // theme.json says home, about, contact, faq — not the sort_order of the rows.
+    expect(array_search('home', $ids))->toBeLessThan(array_search('faq', $ids));
+});
+
+it('offers a theme\'s own pages and the Default page as SEO options, never another theme\'s', function () {
+    Page::factory()->published()->create(['title' => ['en' => 'Home', 'bn' => ''], 'slug' => 'home', 'type' => 'page']);
+    Page::factory()->create(['title' => ['en' => 'Default', 'bn' => ''], 'slug' => 'default', 'type' => 'page', 'status' => 'inactive']);
+
+    // The portfolio has only Home, so About (a news page) is not one of its options.
+    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'portfolio'])
+        ->assertViewHas('psSeoOptions', fn ($options) => $options->values()->sort()->values()->all() === ['Default', 'Home'] || $options->values()->sort()->values()->all() === ['Default']);
+
+    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])
+        ->assertViewHas('psSeoOptions', fn ($options) => $options->contains('About us') && $options->contains('Default') && $options->contains('Home'));
+});
+
+it('shows the default theme\'s settings on its Default page, not on Home', function () {
+    Page::factory()->published()->create(['title' => ['en' => 'Home', 'bn' => ''], 'slug' => 'home', 'type' => 'page']);
+    Page::factory()->create(['title' => ['en' => 'Default', 'bn' => ''], 'slug' => 'default', 'type' => 'page', 'status' => 'inactive']);
+
+    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'default'])
+        ->assertViewHas('psHomeSlug', 'default')
+        ->assertSee('settings.theme_default_intro_heading', false)
+        ->assertDontSee('About us')
+        ->assertDontSee('/contact');
+});
+
+it('seeds the Default page: inactive, with an SEO row, out of the nav', function () {
+    $this->seed(\Database\Seeders\PageSeeder::class);
+
+    $page = Page::where('type', 'page')->where('slug', 'default')->first();
+
+    expect($page)->not->toBeNull()
+        ->and($page->status)->toBe('inactive')
+        ->and(\App\Models\Seo::where('page_id', $page->id)->exists())->toBeTrue()
+        ->and(\App\Support\Frontend::navPages()->pluck('slug')->all())->not->toContain('default');
+});

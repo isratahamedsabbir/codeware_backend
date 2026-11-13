@@ -1,0 +1,7 @@
+{
+  "title": "Default",
+  "description": "Default search and social metadata, used by every page that chooses it.",
+  "root": { "props": {} },
+  "content": [],
+  "cms": []
+}

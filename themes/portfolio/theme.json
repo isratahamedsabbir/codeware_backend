@@ -1,0 +1,20 @@
+{
+    "pages": ["home"],
+    "home_page": "home",
+    "theme_portfolio_font": "",
+    "theme_portfolio_photo": "",
+    "theme_portfolio_name": "",
+    "theme_portfolio_hero_title": "",
+    "theme_portfolio_hero_tagline": "",
+    "theme_portfolio_location": "",
+    "theme_portfolio_availability": "",
+    "theme_portfolio_resume_url": "",
+    "theme_portfolio_resume_label": "",
+    "theme_portfolio_stats": [],
+    "theme_portfolio_projects": [],
+    "theme_portfolio_experiences": [],
+    "theme_portfolio_skills": [],
+    "theme_portfolio_testimonials": [],
+    "theme_portfolio_education": [],
+    "theme_portfolio_certifications": []
+}

@@ -40,7 +40,9 @@
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <h3 class="text-base font-semibold text-zinc-800 dark:text-zinc-100">{{ $psSelected->getTranslation('title', $psPrimary, false) ?: 'Untitled' }}</h3>
                     <div class="flex items-center gap-2">
-                        <flux:button size="sm" variant="ghost" icon="arrow-top-right-on-square" href="{{ $psSelected->slug === 'home' ? url('/') : url('/'.$psSelected->slug) }}" target="_blank">View</flux:button>
+                        @if ($psSelected->status === 'active')
+                            <flux:button size="sm" variant="ghost" icon="arrow-top-right-on-square" href="{{ $psSelected->slug === 'home' ? url('/') : url('/'.$psSelected->slug) }}" target="_blank">View</flux:button>
+                        @endif
                         <flux:button size="sm" variant="ghost" icon="pencil-square" href="{{ route('admin.pages.edit', $psSelected->id) }}" wire:navigate>Full editor</flux:button>
                     </div>
                 </div>
@@ -56,17 +58,22 @@
                      leave it empty and the page uses its own SEO, and anything blank there
                      falls back to the site-wide defaults (Admin → SEO). --}}
                 <x-admin-collapse-section icon="magnifying-glass" title="SEO"
-                    description="Which page's search and social metadata this page uses."
+                    description="The title and description search engines and social media show for this page."
                     :open="$errors->has('seoSources.'.$psSelected->id)">
                     <flux:field>
-                        <flux:label>Use the SEO of<x-field-hint text="Pick the page whose SEO this page should use. Leave it empty to use this page's own SEO — and the site-wide defaults for anything it leaves blank." /></flux:label>
+                        <flux:label>Which SEO should this page use?</flux:label>
                         <flux:select wire:model="seoSources.{{ $psSelected->id }}" wire:key="ps-seo-{{ $psSelected->id }}">
-                            <flux:select.option value="">Own SEO (site-wide defaults for what is blank)</flux:select.option>
+                            <flux:select.option value="">This page's own SEO (default)</flux:select.option>
                             @foreach ($psSeoOptions as $optionId => $optionLabel)
                                 @continue($optionId === $psSelected->id)
                                 <flux:select.option value="{{ $optionId }}">{{ $optionLabel }}</flux:select.option>
                             @endforeach
                         </flux:select>
+                        <flux:description>
+                            Keep the default to use this page's own SEO, which you edit on the page itself.
+                            Or pick another page to show that page's SEO here instead.
+                            Anything left blank falls back to the site-wide SEO in <a href="{{ route('admin.seo') }}" wire:navigate class="font-medium text-primary hover:underline">Admin → SEO</a>.
+                        </flux:description>
                         <flux:error name="seoSources.{{ $psSelected->id }}" />
                     </flux:field>
                 </x-admin-collapse-section>
@@ -95,7 +102,7 @@
                 </x-admin-collapse-section>
 
                 {{-- The theme's own built-in home sections (hero slider, promo tiles). --}}
-                @if ($psBanners && $psSelected->slug === 'home')
+                @if ($psBanners && $psSelected->slug === $psHomeSlug)
                     <x-admin-collapse-section icon="photo" title="Banners"
                         description="The home page's hero slider and promo tiles.">
                         @include($psBanners, ['heroSlides' => $heroSlides, 'promo' => $promo])
@@ -216,7 +223,7 @@
                         </div>
                     </div>
                 @empty
-                    @unless ($psBanners && $psSelected->slug === 'home')
+                    @unless ($psBanners && $psSelected->slug === $psHomeSlug)
                         <p class="rounded-lg border border-dashed border-zinc-300 p-4 text-center text-sm text-zinc-400">
                             This page has no sections yet.
                             <a href="{{ route('admin.cms', ['pageId' => $psSelected->id]) }}" wire:navigate class="font-medium text-primary hover:underline">Add one in CMS</a>

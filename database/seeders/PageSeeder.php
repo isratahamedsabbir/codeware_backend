@@ -20,6 +20,10 @@ class PageSeeder extends Seeder
         // SEO title/description are editable from /admin/pages; kept inactive so
         // it never shows up in navPages() as a site-nav link.
         ['file' => 'login',   'sort_order' => 4, 'status' => 'inactive'],
+        // The Default page: not a page anyone visits (inactive, never in the nav) but
+        // the one SEO record every theme can point a page at, and the only page the
+        // "default" theme lists in its Page Settings. Its SEO is the default SEO.
+        ['file' => 'default', 'sort_order' => 5, 'status' => 'inactive'],
     ];
 
     public function run(): void

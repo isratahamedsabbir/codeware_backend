@@ -13,6 +13,8 @@ it('renders Theme Settings + Page Settings for every theme', function (string $s
     $this->actingAs(User::factory()->admin()->create());
     Page::factory()->published()->create(['title' => ['en' => 'Home', 'bn' => ''], 'slug' => 'home', 'type' => 'page']);
     Page::factory()->published()->create(['title' => ['en' => 'About us', 'bn' => ''], 'slug' => 'about', 'type' => 'page']);
+    // The default theme's one page is the seeded Default page (inactive, never in the nav).
+    Page::factory()->create(['title' => ['en' => 'Default', 'bn' => ''], 'slug' => 'default', 'type' => 'page', 'status' => 'inactive']);
     Setting::set('site_theme', $slug); Themes::forget();
     // Closed by default: the settings live in the dialog a card's Settings button opens.
     Livewire::test(S::class)->assertOk()->assertDontSee('Page Settings');

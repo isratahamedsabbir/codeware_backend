@@ -1,4 +1,6 @@
 {
+    "pages": ["default"],
+    "home_page": "default",
     "default": true,
     "theme_default_intro_heading": "",
     "theme_default_intro_text": "",

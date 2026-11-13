@@ -561,7 +561,7 @@ class Themes
      * keys out of a larger file and everything else in it is none of this
      * method's business.
      *
-     * @return array{name: string, description: string, version: string, author: string, tags: array<int, string>, no_index: bool, sn: int}
+     * @return array{name: string, description: string, version: string, author: string, tags: array<int, string>, no_index: bool, sn: int, pages: ?array<int, string>, home_page: string}
      */
     public static function manifest(string $slug): array
     {
@@ -574,6 +574,13 @@ class Themes
             'no_index' => false,
             'default' => false,
             'sn' => 0,
+            // The slugs of the pages this theme has, in the order Page Settings lists
+            // them; null when the theme does not say (every page its templates can
+            // serve is then offered). See App\Livewire\Admin\ThemeSettings.
+            'pages' => null,
+            // The slug of the page that carries the theme's home-page editor
+            // (page-settings.blade.php): "home" unless the theme says otherwise.
+            'home_page' => 'home',
         ];
 
         $file = self::path().'/'.$slug.'/theme.json';
@@ -614,6 +621,10 @@ class Themes
                 // leave a bundled theme quietly deletable.
                 'default' => ($data['default'] ?? null) === true,
                 'sn' => static::readSn($data['sn'] ?? null),
+                'pages' => is_array($data['pages'] ?? null)
+                    ? collect($data['pages'])->filter(fn ($page) => is_string($page) && $page !== '')->values()->all()
+                    : null,
+                'home_page' => is_string($data['home_page'] ?? null) && $data['home_page'] !== '' ? $data['home_page'] : 'home',
             ];
         }
 
