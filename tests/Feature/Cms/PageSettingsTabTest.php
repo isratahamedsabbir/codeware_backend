@@ -277,3 +277,24 @@ it('rejects an SEO source that is not a page', function () {
         ->call('save')
         ->assertHasErrors(["seoSources.{$this->about->id}"]);
 });
+
+it('keeps every block of a page — SEO, title, banners and each section — collapsed until opened', function () {
+    Setting::set('site_theme', 'classic_ecommerce');
+    Themes::forget();
+
+    $html = Livewire::test(ThemeSettingsEdit::class, ['slug' => 'classic_ecommerce'])
+        ->call('selectPage', Page::where('slug', 'home')->value('id') ?? $this->about->id)
+        ->html();
+
+    // SEO + title (+ banners on the home page) + the section: all closed.
+    expect(substr_count($html, 'x-data="{ open: false }"'))->toBeGreaterThanOrEqual(3)
+        ->and($html)->not->toContain('x-data="{ open: true }"');
+});
+
+it('opens the block that holds a validation error so the message is not hidden', function () {
+    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])
+        ->set("titles.{$this->about->id}.en", '')
+        ->call('save')
+        ->assertHasErrors(["titles.{$this->about->id}.en"])
+        ->assertSeeHtml('x-data="{ open: true }"');
+});

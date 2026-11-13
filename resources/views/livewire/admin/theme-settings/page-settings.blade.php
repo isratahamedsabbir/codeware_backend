@@ -47,61 +47,76 @@
 
                 <hr class="border-zinc-200 dark:border-zinc-700">
 
-                {{-- Which SEO this page uses. Pick another page and its SEO (meta,
-                     Open Graph, Twitter, robots, canonical) is what search engines
-                     and social previews get for this one; leave it empty and the page
-                     uses its own SEO, and anything blank there falls back to the
-                     site-wide defaults (Admin → SEO). --}}
-                <flux:field>
-                    <flux:label>SEO<x-field-hint text="Pick the page whose SEO this page should use. Leave it empty to use this page's own SEO — and the site-wide defaults for anything it leaves blank." /></flux:label>
-                    <flux:select wire:model="seoSources.{{ $psSelected->id }}" wire:key="ps-seo-{{ $psSelected->id }}">
-                        <flux:select.option value="">Own SEO (site-wide defaults for what is blank)</flux:select.option>
-                        @foreach ($psSeoOptions as $optionId => $optionLabel)
-                            @continue($optionId === $psSelected->id)
-                            <flux:select.option value="{{ $optionId }}">{{ $optionLabel }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
-                    <flux:error name="seoSources.{{ $psSelected->id }}" />
-                </flux:field>
+                {{-- Every block of the page is its own collapsed section: SEO, the title, the
+                     theme's banners, then each CMS section. Closed unless something inside
+                     it has a validation error, so the message is never hidden. --}}
+
+                {{-- SEO. Pick another page and its SEO (meta, Open Graph, Twitter, robots,
+                     canonical) is what search engines and social previews get for this one;
+                     leave it empty and the page uses its own SEO, and anything blank there
+                     falls back to the site-wide defaults (Admin → SEO). --}}
+                <x-admin-collapse-section icon="magnifying-glass" title="SEO"
+                    description="Which page's search and social metadata this page uses."
+                    :open="$errors->has('seoSources.'.$psSelected->id)">
+                    <flux:field>
+                        <flux:label>Use the SEO of<x-field-hint text="Pick the page whose SEO this page should use. Leave it empty to use this page's own SEO — and the site-wide defaults for anything it leaves blank." /></flux:label>
+                        <flux:select wire:model="seoSources.{{ $psSelected->id }}" wire:key="ps-seo-{{ $psSelected->id }}">
+                            <flux:select.option value="">Own SEO (site-wide defaults for what is blank)</flux:select.option>
+                            @foreach ($psSeoOptions as $optionId => $optionLabel)
+                                @continue($optionId === $psSelected->id)
+                                <flux:select.option value="{{ $optionId }}">{{ $optionLabel }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:error name="seoSources.{{ $psSelected->id }}" />
+                    </flux:field>
+                </x-admin-collapse-section>
 
                 {{-- Title, one tab per language (the same tabs the Pages form uses). --}}
-                <x-admin-locale-tabs>
-                    @foreach ($psLanguages as $language)
-                        <x-admin-locale-panel :code="$language->code">
-                            <flux:field>
-                                <flux:label :badge="$language->code">
-                                    Page title
-                                    @if ($language->code === $psPrimary)<span class="ml-0.5 text-red-500">*</span>@endif
-                                </flux:label>
-                                <flux:input wire:model="titles.{{ $psSelected->id }}.{{ $language->code }}"
-                                    placeholder="{{ $language->code === $psPrimary ? 'Page title' : 'Page title ('.($language->native_name ?: $language->name).')' }}" />
-                                @if ($language->code === $psPrimary)
-                                    <flux:error name="titles.{{ $psSelected->id }}.{{ $language->code }}" />
-                                @endif
-                            </flux:field>
-                        </x-admin-locale-panel>
-                    @endforeach
-                </x-admin-locale-tabs>
+                <x-admin-collapse-section icon="language" title="Page title"
+                    description="The page's name, in every language."
+                    :open="$errors->has('titles.'.$psSelected->id.'.'.$psPrimary)">
+                    <x-admin-locale-tabs>
+                        @foreach ($psLanguages as $language)
+                            <x-admin-locale-panel :code="$language->code">
+                                <flux:field>
+                                    <flux:label :badge="$language->code">
+                                        Page title
+                                        @if ($language->code === $psPrimary)<span class="ml-0.5 text-red-500">*</span>@endif
+                                    </flux:label>
+                                    <flux:input wire:model="titles.{{ $psSelected->id }}.{{ $language->code }}"
+                                        placeholder="{{ $language->code === $psPrimary ? 'Page title' : 'Page title ('.($language->native_name ?: $language->name).')' }}" />
+                                    @if ($language->code === $psPrimary)
+                                        <flux:error name="titles.{{ $psSelected->id }}.{{ $language->code }}" />
+                                    @endif
+                                </flux:field>
+                            </x-admin-locale-panel>
+                        @endforeach
+                    </x-admin-locale-tabs>
+                </x-admin-collapse-section>
 
                 {{-- The theme's own built-in home sections (hero slider, promo tiles). --}}
                 @if ($psBanners && $psSelected->slug === 'home')
-                    <div class="space-y-3">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Banners</p>
+                    <x-admin-collapse-section icon="photo" title="Banners"
+                        description="The home page's hero slider and promo tiles.">
                         @include($psBanners, ['heroSlides' => $heroSlides, 'promo' => $promo])
-                    </div>
+                    </x-admin-collapse-section>
                 @endif
 
                 {{-- Sections --}}
                 @forelse ($psSections as $section)
                     @php $constants = array_values($section->constant ?? []); @endphp
 
-                    <div wire:key="ps-section-{{ $section->id }}" x-data="{ open: {{ $loop->first && ! ($psBanners && $psSelected->slug === 'home') ? 'true' : 'false' }} }"
-                        class="overflow-hidden rounded-[5px] border border-zinc-200 dark:border-zinc-700">
-                        <button type="button" x-on:click="open = ! open"
-                            class="flex w-full items-center justify-between gap-3 bg-zinc-50 px-4 py-3 text-left dark:bg-zinc-800/60">
-                            <span class="flex min-w-0 items-center gap-2">
-                                <flux:icon.rectangle-group class="size-4 shrink-0 text-zinc-400" />
-                                <span class="truncate text-sm font-semibold text-zinc-800 dark:text-zinc-100">{{ $section->name }}</span>
+                    @php
+                        $sectionHasError = collect($errors->keys())->contains(fn ($key) => str_starts_with($key, "cards.{$section->id}.") || str_starts_with($key, "values.{$section->id}."));
+                    @endphp
+
+                    <div wire:key="ps-section-{{ $section->id }}" x-data="{ open: {{ $sectionHasError ? 'true' : 'false' }} }"
+                        class="overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700">
+                        <button type="button" x-on:click="open = ! open" :aria-expanded="open"
+                            class="flex w-full items-center justify-between gap-3 bg-zinc-50/70 px-4 py-3 text-left transition hover:bg-zinc-50 dark:bg-zinc-800/40 dark:hover:bg-zinc-800/60">
+                            <span class="flex min-w-0 items-center gap-3">
+                                <span class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500 dark:bg-zinc-800"><flux:icon.rectangle-group class="size-4" /></span>
+                                <span class="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ $section->name }}</span>
                                 <span class="shrink-0 font-mono text-[10px] text-zinc-400">
                                     {{ count($cards[$section->id] ?? []) }} {{ \Illuminate\Support\Str::plural('card', count($cards[$section->id] ?? [])) }}
                                     @if ($constants !== [])· {{ count($constants) }} {{ \Illuminate\Support\Str::plural('constant', count($constants)) }}@endif
