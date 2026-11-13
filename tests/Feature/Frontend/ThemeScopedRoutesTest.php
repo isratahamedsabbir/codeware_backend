@@ -55,7 +55,6 @@ it('serves a page from the active theme own route file', function (string $theme
     $this->get($uri)->assertOk();
 })->with([
     'the default home' => ['default', '/'],
-    'a default standalone page' => ['default', '/about'],
     'the ecommerce home' => ['classic_ecommerce', '/'],
     'the ecommerce shop' => ['classic_ecommerce', '/shop'],
     'the portfolio home' => ['portfolio', '/'],
@@ -79,7 +78,7 @@ it('404s a page whose route belongs to another theme, without running its contro
     $this->get('/account')->assertNotFound();
 
     // The portfolio ships no page template, so it registers no standalone-page
-    // route; /about belongs to the other two themes and is a 404 here too.
+    // route; /about belongs to the themes that ship one and is a 404 here too.
     $this->get('/about')->assertNotFound();
 });
 
@@ -95,13 +94,15 @@ it('404s the blog on a theme that ships no blog template', function () {
     $this->get('/blog/anything-at-all')->assertNotFound();
 });
 
-it('404s a shop page on the default theme, in the default theme own design', function () {
+it('404s anything but the homepage on the default theme, in its own design', function () {
     Setting::set('site_theme', 'default');
 
-    $this->get('/shop')
-        ->assertNotFound()
-        ->assertSee(__('Sorry, page not found'))
-        ->assertSee('rounded-lg bg-primary', escape: false);
+    foreach (['/shop', '/about', '/contact', '/faq'] as $path) {
+        $this->get($path)
+            ->assertNotFound()
+            ->assertSee(__('Sorry, page not found'))
+            ->assertSee('rounded-lg bg-primary', escape: false);
+    }
 });
 
 it('gives an account page a 404 on a theme without an account area, rather than the login page', function () {

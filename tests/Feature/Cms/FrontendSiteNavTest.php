@@ -29,12 +29,10 @@ beforeEach(function () {
 });
 
 it('renders every standalone page on the themes that ship a page template', function () {
-    foreach (['default', 'classic_ecommerce'] as $theme) {
-        Setting::set('site_theme', $theme);
+    Setting::set('site_theme', 'classic_ecommerce');
 
-        foreach (['/', '/about', '/contact', '/faq'] as $path) {
-            $this->get($path)->assertOk();
-        }
+    foreach (['/', '/about', '/contact', '/faq'] as $path) {
+        $this->get($path)->assertOk();
     }
 });
 
@@ -52,13 +50,16 @@ it('404s every standalone page on the portfolio theme, which is a one-pager', fu
     }
 });
 
-it('drives the default theme nav from the pages list, not the frontend menu', function () {
+it('serves only the homepage on the default theme', function () {
     Setting::set('site_theme', 'default');
-    MenuItem::where('group', 'frontend')->update(['label' => 'RENAMED']);
 
-    // The default theme's homepage is a bare login/dashboard card with no nav
-    // — the pages-list-driven nav lives on its other pages (about/contact/faq).
-    $this->get('/about')->assertOk()->assertSee('About Us')->assertDontSee('RENAMED');
+    $this->get('/')->assertOk();
+
+    // It is the site's sign-in screen, not a CMS site: the published page rows
+    // have nowhere to render, so every address but / is a 404.
+    foreach (['/about', '/contact', '/faq'] as $path) {
+        $this->get($path)->assertNotFound();
+    }
 });
 
 it('drives the ecommerce theme nav from the frontend menu, not the pages list', function () {
@@ -154,14 +155,21 @@ it('shows only featured product categories in the storefront shop-by-category gr
     Page::factory()->published()->create(['type' => 'product_category', 'category_id' => $featured->id, 'title' => ['en' => 'Mustard Oil', 'bn' => ''], 'slug' => 'mustard-oil']);
     Page::factory()->published()->create(['type' => 'product_category', 'category_id' => $plain->id, 'title' => ['en' => 'Plain Category', 'bn' => ''], 'slug' => 'plain-category']);
 
-    $html = $this->get('/')->assertOk()->assertSee('Shop by category')->getContent();
+    $featuredProduct = Product::factory()->published()->create();
+    pairPageFor($featuredProduct, 'product', 'mustard-oil-bottle', User::factory()->create()->id);
+    $featuredProduct->categories()->attach($featured);
 
-    // Only the featured category is rendered as a grid card below the heading
-    // — the header category dropdown intentionally still lists every active
-    // category, so scope the assertion to the grid section itself.
-    $grid = Str::after($html, 'Shop by category');
-    expect($grid)->toContain('category/mustard-oil')
-        ->and($grid)->not->toContain('category/plain-category');
+    $plainProduct = Product::factory()->published()->create();
+    pairPageFor($plainProduct, 'product', 'plain-product', User::factory()->create()->id);
+    $plainProduct->categories()->attach($plain);
+
+    $html = $this->get('/')->assertOk()->getContent();
+
+    // A featured category gets its own carousel with a "View all" link into the
+    // filtered shop — the header dropdown lists every active category, so that
+    // link is what tells the two sections apart.
+    expect($html)->toContain(route('shop', ['category' => $featured->slug]))
+        ->and($html)->not->toContain(route('shop', ['category' => $plain->slug]));
 });
 
 it('applies the ecommerce theme primary & secondary colors to the storefront', function () {

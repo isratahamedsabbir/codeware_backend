@@ -1,5 +1,10 @@
 {
-    "pages": ["home", "about", "contact", "faq"],
+    "pages": [
+        "home",
+        "about",
+        "contact",
+        "faq"
+    ],
     "home_page": "home",
     "name": "Modern Ecommerce",
     "description": "A clean, bold storefront with a sliding hero, promo tiles and product rows.",

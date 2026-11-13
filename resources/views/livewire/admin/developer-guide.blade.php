@@ -1276,7 +1276,7 @@ $token = PuckEditor::token($user, "puck-builder-{$page->id}");   // scoped per p
             </p>
         </div>
 
-        <x-admin-doc-code label="Reading sections in a theme template" file="themes/default/views/page.blade.php">
+        <x-admin-doc-code label="Reading sections in a theme template" file="themes/classic_ecommerce/views/page.blade.php">
 @verbatim
 @foreach ($sections as $section)
     @continue(blank($section->localizedCards()))   {{-- skip sections with no cards #}}

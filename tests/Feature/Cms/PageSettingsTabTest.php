@@ -165,7 +165,7 @@ it('renders a card\'s subtitle, button and text colour on every theme that serve
     ]);
 
     $this->get('/offers')->assertOk()->assertSee('Ends Sunday')->assertSee('Shop now')->assertSee('color: #ff0000', false);
-})->with(['classic_ecommerce', 'modern_ecommerce', 'default', 'news']);
+})->with(['classic_ecommerce', 'modern_ecommerce', 'news']);
 
 it('shows a theme settings page with Theme Settings and Page Settings, not the theme list', function () {
     Livewire::test(ThemeSettingsScreen::class)

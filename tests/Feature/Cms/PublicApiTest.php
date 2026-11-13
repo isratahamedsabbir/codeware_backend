@@ -103,6 +103,28 @@ it('returns a single published page by numeric id as well as by slug', function 
         ->assertJsonPath('data.slug', $page->slug);
 });
 
+it('keeps pages in the API while the active theme has no address for them', function () {
+    Page::factory()->published()->create([
+        'type' => 'page',
+        'title' => ['en' => 'About Us', 'bn' => ''],
+        'slug' => 'about',
+    ]);
+
+    // The default theme ships no page template: the CMS page exists, but /about
+    // is not part of that theme's site.
+    Setting::set('site_theme', 'default');
+    $this->get('/about')->assertNotFound();
+
+    // The same row stays visible to API consumers, which manage content rather
+    // than one theme's pages.
+    $this->getJson('/api/v1/pages')->assertOk()->assertJsonFragment(['slug' => 'about']);
+    $this->getJson('/api/v1/pages/about')->assertOk()->assertJsonPath('data.slug', 'about');
+
+    // A theme that ships the page template gives the row an address again.
+    Setting::set('site_theme', 'classic_ecommerce');
+    $this->get('/about')->assertOk();
+});
+
 it('includes puck_data in both the pages listing and a single page', function () {
     $puckData = ['root' => ['props' => []], 'content' => [['type' => 'Hero']]];
     $page = Page::factory()->published()->create(['puck_data' => $puckData]);

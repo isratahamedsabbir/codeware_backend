@@ -79,8 +79,10 @@ it('renders each theme own home and page templates rather than one shared fallba
     Setting::set('site_theme', 'classic_ecommerce');
     $this->get('/about')->assertOk()->assertDontSee('pf-');
 
+    // The default theme is the site's sign-in screen: it ships no page
+    // template, so CMS pages do not exist on it.
     Setting::set('site_theme', 'default');
-    $this->get('/about')->assertOk()->assertDontSee('pf-');
+    $this->get('/about')->assertNotFound();
 
     // The portfolio is a one-pager — it ships no page template, so it neither
     // renders CMS pages of its own nor borrows another theme's.
@@ -228,9 +230,9 @@ it('drops a nav link the active theme cannot render, and keeps it on a theme tha
     MenuItem::create(['group' => 'frontend', 'label' => 'Shop', 'url' => '/shop', 'sort_order' => 0, 'is_active' => true]);
     MenuItem::create(['group' => 'frontend', 'label' => 'About', 'url' => '/about', 'sort_order' => 1, 'is_active' => true]);
 
-    // The default theme has page.blade.php but no shop one.
+    // The default theme has neither a shop nor a page template, so both links go.
     Setting::set('site_theme', 'default');
-    expect(Frontend::menuItems()->pluck('label')->all())->toBe(['About']);
+    expect(Frontend::menuItems()->pluck('label')->all())->toBe([]);
 
     Setting::set('site_theme', 'classic_ecommerce');
     expect(Frontend::menuItems()->pluck('label')->all())->toBe(['Shop', 'About']);

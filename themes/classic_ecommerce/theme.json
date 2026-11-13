@@ -1,5 +1,10 @@
 {
-    "pages": ["home", "about", "contact", "faq"],
+    "pages": [
+        "home",
+        "about",
+        "contact",
+        "faq"
+    ],
     "home_page": "home",
     "theme_classic_ecommerce_primary_color": "#045b30",
     "theme_classic_ecommerce_secondary_color": "#7cc242",
