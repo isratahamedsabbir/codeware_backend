@@ -27,7 +27,7 @@ class ProductController extends Controller
         $perPage = max(1, min((int) $request->query('per_page', Setting::perPage()), 100));
 
         $products = Product::active()
-            ->with(['categories.page', 'brand', 'tags', 'page'])
+            ->with(['categories.page', 'brand', 'tags', 'page.seo', 'page.seoSource.seo', 'flashDeals'])
             ->orderBy('sort_order')
             ->when($request->query('category'), fn ($q, $slug) => $q->whereHas('categories.page', fn ($c) => $c->where('slug', $slug)))
             ->when($request->query('search'), fn ($q, $search) => $q->where("name->{$locale}", 'like', "%{$search}%"))
@@ -72,7 +72,7 @@ class ProductController extends Controller
         $locale = $this->resolveLocale($request);
 
         $product = Product::active()
-            ->with(['categories.page', 'brand', 'tags', 'gallery', 'page', 'faqs', 'relatedProducts.page'])
+            ->with(['categories.page', 'brand', 'tags', 'gallery', 'page.seo', 'page.seoSource.seo', 'faqs', 'flashDeals', 'relatedProducts.page.seo', 'relatedProducts.categories.page', 'relatedProducts.brand', 'relatedProducts.tags', 'relatedProducts.flashDeals'])
             ->whereHas('page', fn ($q) => $q->where('slug', $slug))
             ->firstOrFail();
 
@@ -87,7 +87,7 @@ class ProductController extends Controller
 
             $related = $categoryIds->isNotEmpty()
                 ? Product::active()
-                    ->with(['categories', 'tags', 'page'])
+                    ->with(['categories.page', 'brand', 'tags', 'page.seo', 'flashDeals'])
                     ->whereHas('categories', fn ($q) => $q->whereIn('categories.id', $categoryIds))
                     ->where('id', '!=', $product->id)
                     ->orderBy('sort_order')

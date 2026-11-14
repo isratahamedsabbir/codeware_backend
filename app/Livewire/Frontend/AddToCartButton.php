@@ -76,10 +76,22 @@ class AddToCartButton extends Component
             return;
         }
 
-        $product = Product::find($productId);
+        $product = $this->product();
 
         $this->inStock = $product?->inStock() ?? false;
         $this->isUpcoming = (bool) ($product?->is_upcoming ?? false);
+    }
+
+    /** Request-scoped memo: mount(), add() and render() all read the same product row. */
+    private ?Product $loaded = null;
+
+    /**
+     * The product with its flash deals eager-loaded — visibleVariations() and
+     * inStock() price against them, which was one lazy query per card.
+     */
+    private function product(): ?Product
+    {
+        return $this->loaded ??= Product::with('flashDeals')->find($this->productId);
     }
 
     public function increase(): void
@@ -112,7 +124,7 @@ class AddToCartButton extends Component
             return;
         }
 
-        $product = Product::find($this->productId);
+        $product = $this->product();
 
         if (! $product) {
             return;
@@ -190,7 +202,7 @@ class AddToCartButton extends Component
         // on the detail page the picker is rendered inline, and on product cards
         // an options product opens a picker modal instead of the old link.
         $product = $this->requiresOptions || $this->showPicker
-            ? Product::find($this->productId)
+            ? $this->product()
             : null;
 
         $variations = $product?->visibleVariations() ?? [];

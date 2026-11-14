@@ -25,7 +25,10 @@ class PageController extends Controller
 
         $rows = ContentCache::remember('api:pages', fn () => Page::orderBy('sort_order')->get()->map->getAttributes()->all());
 
+        // slug and every SEO field live in their own tables: load them for the
+        // whole list at once instead of two lazy queries per page.
         $pages = Page::hydrate($rows)
+            ->load(['slugRecord', 'seo', 'seoSource.seo'])
             ->map(fn ($page) => $this->formatPage($page, $locale))
             ->values();
 
