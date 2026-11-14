@@ -8,7 +8,10 @@ use App\Models\Product;
 use App\Models\Review;
 use App\Models\Setting;
 use App\Support\Locale;
+use App\Support\UrlStructure;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Route as RoutingRoute;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Route;
 
 /**
@@ -47,18 +50,78 @@ final class Schema
      */
     public static function document(SeoData $seo, ?Page $page, ?Request $request = null): ?string
     {
-        $graph = self::graph($seo, $page, $request);
+        $payload = self::payload($seo, $page, $request);
 
-        if ($graph === []) {
+        if ($payload === null) {
             return null;
         }
 
         // JSON_HEX_TAG so a closing script tag typed into any admin field can
         // never end the element early, and the slashes are left readable.
-        return json_encode(
-            ['@context' => 'https://schema.org', '@graph' => $graph],
-            JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG
-        );
+        return json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG);
+    }
+
+    /**
+     * The same document as a PHP array — what a JSON API embeds, so the client
+     * can print it into a <script type="application/ld+json"> as it is.
+     *
+     * @return array{'@context': string, '@graph': array<int, array<string, mixed>>}|null
+     */
+    public static function payload(SeoData $seo, ?Page $page, ?Request $request = null): ?array
+    {
+        $graph = self::graph($seo, $page, $request);
+
+        return $graph === [] ? null : ['@context' => 'https://schema.org', '@graph' => $graph];
+    }
+
+    /**
+     * The document for a page as the public API serves it, or null when the page
+     * should carry none.
+     *
+     * The API request itself says nothing useful about the page — its route is
+     * api.v1.*, its path api/v1/... — so the SEO is resolved against a request
+     * that looks like the *public* URL of the record, named by the route the
+     * storefront would render it through. That is what keeps the API's graph
+     * identical to the one in the storefront's <head>: same canonical, same
+     *
+     * @ids, same robots decision.
+     *
+     * The locale is switched for the duration, because every label in the graph
+     * is read through Locale::current() and the API picks its language from
+     * ?locale rather than from the application's.
+     *
+     * @return array{'@context': string, '@graph': array<int, array<string, mixed>>}|null
+     */
+    public static function forPage(?Page $page, string $locale): ?array
+    {
+        if (! $page) {
+            return null;
+        }
+
+        [$route, $path] = match (true) {
+            $page->type === 'product' => ['products.show', UrlStructure::path('product', $page->slug)],
+            $page->type === 'post' => ['blog.post', UrlStructure::path('post', $page->slug)],
+            $page->slug === 'home' => ['home', '/'],
+            default => ['page', $page->slug],
+        };
+
+        $previous = App::getLocale();
+        App::setLocale($locale);
+
+        try {
+            $request = Request::create(Url::url($path));
+            $named = (new RoutingRoute(['GET'], $path, []))->name($route);
+            $request->setRouteResolver(fn () => $named);
+
+            $title = self::label($page->getTranslation('title', $locale, useFallbackLocale: true));
+
+            return self::payload(SeoResolver::resolve($request, $page, $title), $page, $request);
+        } finally {
+            // The memo is keyed by request object id, and this request is about
+            // to be freed: leave it and the next one could inherit this answer.
+            SeoResolver::flush();
+            App::setLocale($previous);
+        }
     }
 
     /**

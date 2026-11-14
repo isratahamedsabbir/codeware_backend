@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\Setting;
 use App\Support\Locale;
 use App\Support\ProductCatalog;
+use App\Support\Seo\Schema;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -97,7 +98,9 @@ class ProductController extends Controller
         }
 
         return response()->json([
-            'data' => $this->formatProduct($product, $locale, withDetail: true, related: $related),
+            'data' => $this->formatProduct($product, $locale, withDetail: true, related: $related)
+                // schema.org JSON-LD, ready to print into a ld+json script.
+                + ['schema' => Schema::forPage($product->page, $locale)],
         ]);
     }
 

@@ -8,6 +8,7 @@ use App\Models\Page;
 use App\Models\Post;
 use App\Models\Setting;
 use App\Support\Locale;
+use App\Support\Seo\Schema;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -53,7 +54,9 @@ class PostController extends Controller
             ->firstOrFail();
 
         return response()->json([
-            'data' => $this->formatPost($post, $locale, withContent: true),
+            'data' => $this->formatPost($post, $locale, withContent: true)
+                // schema.org JSON-LD, ready to print into a ld+json script.
+                + ['schema' => Schema::forPage($post->page, $locale)],
         ]);
     }
 

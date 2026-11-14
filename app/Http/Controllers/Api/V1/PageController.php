@@ -7,6 +7,7 @@ use App\Models\CmsSection;
 use App\Models\Page;
 use App\Support\ContentCache;
 use App\Support\Locale;
+use App\Support\Seo\Schema;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -72,6 +73,8 @@ class PageController extends Controller
         ];
 
         if ($withContent) {
+            // schema.org JSON-LD, ready to print into a ld+json script.
+            $data['schema'] = Schema::forPage($page, $locale);
             $data['content'] = $page->getTranslation('content', $locale, useFallbackLocale: true);
             $data['constant'] = $page->constantMap();
             $data['cms'] = CmsSection::cachedForPage($page->id)->map(fn (CmsSection $cms) => [
