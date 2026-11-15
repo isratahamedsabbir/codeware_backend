@@ -5,6 +5,7 @@
 /public/storage
 /storage/*.key
 /storage/pail
+/storage/themes
 /vendor
 /crystalvalet
 /crystalvalet-fronend

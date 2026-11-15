@@ -37,7 +37,6 @@ it('treats a null in the file as absent rather than as a value', function () {
 });
 
 it('reads an unparseable or non-map file as no values rather than as an error', function () {
-    ThemeSettings::merge('default', ['theme_default_hero_title' => 'Before']);
     file_put_contents(ThemeSettings::file('default'), '{"theme_default_hero_title": "Before"');
     ThemeSettings::forget();
 
@@ -134,7 +133,8 @@ it('leaves the rest of the file byte-for-byte readable after a save', function (
 });
 
 it('sees a file that was replaced from outside the app', function () {
-    ThemeSettings::merge('default', ['theme_default_hero_title' => 'First']);
+    file_put_contents(ThemeSettings::file('default'), json_encode(['theme_default_hero_title' => 'First']));
+    ThemeSettings::forget();
     expect(ThemeSettings::get('default', 'theme_default_hero_title'))->toBe('First');
 
     // No forget(), no merge(): an editor or a git checkout, mid-request.
@@ -249,7 +249,11 @@ it('writes theme.json as manifest, global and pages, and still reads it as flat 
             'theme_portfolio_home_seo' => '7',
         ]);
 
-        $disk = json_decode((string) file_get_contents($file), true);
+        // Saved values go to storage, not into the theme folder.
+        expect(json_decode($original, true))->not->toHaveKey('theme_portfolio_hero_title')
+            ->and(file_get_contents($file))->toBe($original);
+
+        $disk = json_decode((string) file_get_contents(ThemeSettings::overlayFile('portfolio')), true);
 
         expect($disk['global'])->toHaveKey('font', 'inter')
             ->and($disk['pages']['home']['label'])->toBe('Home')
@@ -282,4 +286,43 @@ it('reads a theme.json still written with flat theme_ keys', function () {
         file_put_contents($file, $original);
         ThemeSettings::forget('default');
     }
+});
+
+it('keeps saved values in storage, so replacing theme.json in a deploy does not lose them', function () {
+    $file = ThemeSettings::file('default');
+
+    ThemeSettings::merge('default', ['theme_default_hero_title' => 'Owner wrote this']);
+
+    // A deploy puts the repository's theme.json back.
+    file_put_contents($file, json_encode(['name' => 'Default', 'global' => ['hero_title' => 'Shipped default', 'font' => 'system']]));
+    ThemeSettings::forget();
+
+    expect(ThemeSettings::text('default', 'hero_title'))->toBe('Owner wrote this')   // saved wins
+        ->and(ThemeSettings::text('default', 'font'))->toBe('system');               // untouched default
+
+    ThemeSettings::deleteSaved('default');
+
+    expect(ThemeSettings::text('default', 'hero_title'))->toBe('Shipped default');
+});
+
+it('sends manifest keys to theme.json and everything else to the saved file', function () {
+    ThemeSettings::merge('default', ['sn' => 42, 'theme_default_hero_title' => 'Hi']);
+
+    expect(json_decode((string) file_get_contents(ThemeSettings::file('default')), true))->toHaveKey('sn', 42)
+        ->and(json_decode((string) file_get_contents(ThemeSettings::overlayFile('default')), true))->not->toHaveKey('sn')
+        ->and(ThemeSettings::text('default', 'hero_title'))->toBe('Hi');
+});
+
+it('packs a downloaded theme with its saved values inside theme.json', function () {
+    ThemeSettings::merge('default', ['theme_default_hero_title' => 'Exported']);
+
+    expect(json_decode(ThemeSettings::export('default'), true)['global'])->toHaveKey('hero_title', 'Exported');
+});
+
+it('does not lose either of two saves made one after the other', function () {
+    ThemeSettings::merge('default', ['theme_default_font' => 'roboto']);
+    ThemeSettings::merge('default', ['theme_default_hero_title' => 'Second']);
+
+    expect(ThemeSettings::text('default', 'font'))->toBe('roboto')
+        ->and(ThemeSettings::text('default', 'hero_title'))->toBe('Second');
 });

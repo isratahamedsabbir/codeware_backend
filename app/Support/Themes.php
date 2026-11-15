@@ -1164,6 +1164,7 @@ class Themes
         }
 
         File::deleteDirectory(static::path().'/'.$slug);
+        ThemeSettings::deleteSaved($slug);
         static::forget();
 
         if (app()->routesAreCached()) {
@@ -1217,6 +1218,13 @@ class Themes
         }
 
         static::addToZip($zip, static::path().'/'.$slug, $slug);
+
+        // The owner's saved values live outside the folder; the archive carries them
+        // inside its theme.json so it installs with the settings it left with.
+        if (ThemeSettings::exists($slug)) {
+            $zip->addFromString($slug.'/'.ThemeSettings::FILE, ThemeSettings::export($slug));
+        }
+
         $zip->close();
 
         return $path;

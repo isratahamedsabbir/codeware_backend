@@ -45,10 +45,16 @@ pest()->extend(TestCase::class)
         config(['services.recaptcha.site_key' => null, 'services.recaptcha.secret_key' => null, 'services.turnstile.site_key' => null, 'services.turnstile.secret_key' => null]);
         // Admin 2FA is on by default; tests that are not about it must not be redirected to enrolment.
         config(['security.require_admin_mfa' => false]);
+        // The owner's saved theme values live in storage/themes; tests write to a
+        // throwaway folder instead, emptied around every test.
+        $saved = sys_get_temp_dir().DIRECTORY_SEPARATOR.'theme-saved-'.getmypid();
+        \Illuminate\Support\Facades\File::deleteDirectory($saved);
+        ThemeSettings::useOverlayPath($saved);
         $snapshot = themeSettingsSnapshot();
     })
     ->afterEach(function () use (&$snapshot) {
         themeSettingsRestore($snapshot ?? []);
+        \Illuminate\Support\Facades\File::deleteDirectory(sys_get_temp_dir().DIRECTORY_SEPARATOR.'theme-saved-'.getmypid());
         Cache::flush();
     })
     ->in('Feature');

@@ -191,7 +191,6 @@ it('reads a theme json that is missing or unreadable as no values at all', funct
         ->and(theme_rows('projects'))->toBe([])
         ->and(theme_color('accent_color', '#000000'))->toBe('#000000');
 
-    ThemeSettings::merge('default', ['theme_default_hero_title' => 'Welcome']);
     file_put_contents(ThemeSettings::file('default'), '{"theme_default_hero_title": "Welcome"');
     ThemeSettings::forget();
 

@@ -100,6 +100,9 @@ class ThemeSettings
      */
     private static array $memo = [];
 
+    /** Folder holding the owner's saved values; null = storage/themes. */
+    private static ?string $overlayPath = null;
+
     /**
      * Where a theme's settings file lives.
      *
@@ -164,8 +167,10 @@ class ThemeSettings
 
         $memoKey = static::memoKey();
         $present = is_file($file);
+        $overlay = static::overlayFile($slug);
+        $overlayPresent = $overlay !== null && is_file($overlay);
 
-        // Keyed on the file's mtime and size as well as the slug, so a file
+        // Keyed on both files' mtime and size as well as the slug, so a file
         // replaced from outside the app (an editor, a deploy, a git checkout) is
         // re-read within the same second rather than served from a memo written
         // before it. The leading flag is what tells a zero-byte file apart from
@@ -173,24 +178,16 @@ class ThemeSettings
         // timestamps, and only one of them is a file the owner can edit.
         $stamp = ($present ? 'file' : 'none')
             .':'.($present ? (int) filemtime($file) : 0)
-            .':'.($present ? (int) filesize($file) : 0);
+            .':'.($present ? (int) filesize($file) : 0)
+            .'|'.($overlayPresent ? 'saved:'.(int) filemtime($overlay).':'.(int) filesize($overlay) : 'none');
 
         if ((static::$memo[$memoKey][$slug]['stamp'] ?? null) === $stamp) {
             return static::$memo[$memoKey][$slug]['values'];
         }
 
-        $values = [];
-
-        if ($present && is_readable($file)) {
-            $decoded = json_decode((string) file_get_contents($file), true);
-
-            // A hand-written file that is a non-empty list rather than a
-            // key => value map has no keys to look anything up by, so there is
-            // nothing to read. An empty {} is both, and is just no values.
-            if (is_array($decoded) && ($decoded === [] || ! array_is_list($decoded))) {
-                $values = static::flatten($slug, $decoded);
-            }
-        }
+        // What the theme ships (theme.json, in git), then what the owner saved on
+        // top of it (storage/themes/{slug}.json, never in git).
+        $values = array_merge(static::readDefaults($slug), static::readSaved($slug));
 
         // Assigned, then returned separately: `return $memo[...] = [...]` returns
         // the memo *entry* on a miss, so the first read of a file in a request
@@ -199,6 +196,179 @@ class ThemeSettings
         static::$memo[$memoKey][$slug] = ['stamp' => $stamp, 'values' => $values];
 
         return $values;
+    }
+
+    /**
+     * What the theme ships: theme.json as the flat map, manifest included. An
+     * absent, empty or unparseable file — or a JSON list or scalar — reads as
+     * nothing rather than an error; the owner can open this file in an editor and
+     * whatever they put in it must not be able to take the storefront down.
+     *
+     * @return array<string, mixed>
+     */
+    private static function readDefaults(string $slug): array
+    {
+        $file = static::file($slug);
+
+        if ($file === null || ! is_file($file) || ! is_readable($file)) {
+            return [];
+        }
+
+        $decoded = json_decode((string) file_get_contents($file), true);
+
+        return is_array($decoded) && ($decoded === [] || ! array_is_list($decoded)) ? static::flatten($slug, $decoded) : [];
+    }
+
+    /**
+     * What the owner saved from the admin screen, as the flat map — settings only,
+     * never manifest keys.
+     *
+     * @return array<string, mixed>
+     */
+    private static function readSaved(string $slug): array
+    {
+        $file = static::overlayFile($slug);
+
+        if ($file === null || ! is_file($file) || ! is_readable($file)) {
+            return [];
+        }
+
+        $decoded = json_decode((string) file_get_contents($file), true);
+
+        if (! is_array($decoded) || ($decoded !== [] && array_is_list($decoded))) {
+            return [];
+        }
+
+        return array_diff_key(static::flatten($slug, $decoded), array_flip(self::MANIFEST_KEYS));
+    }
+
+    /**
+     * Where the owner's saved values live: storage/themes/{slug}.json.
+     *
+     * Kept out of the theme folder on purpose. theme.json is the theme's own
+     * defaults and manifest and travels with the code (git, deploys, the zip), so a
+     * deploy may replace it freely; the values the owner typed into the admin
+     * screen are site data, which a deploy must never touch and which the web
+     * server should be able to write without write access to the code directory.
+     * On several servers, point storage/ at a shared disk.
+     */
+    public static function overlayFile(string $slug): ?string
+    {
+        if (! static::isValidSlug($slug)) {
+            return null;
+        }
+
+        return (static::$overlayPath ?? storage_path('themes')).'/'.$slug.'.json';
+    }
+
+    /** Redirect the saved-values folder (the test suite points it at a temp dir). */
+    public static function useOverlayPath(?string $path): void
+    {
+        static::$overlayPath = $path;
+        static::forget();
+    }
+
+    /**
+     * Save settings into the owner's saved-values file. It is read, changed and
+     * rewritten under an exclusive lock, so two admins saving at once cannot drop
+     * each other's changes.
+     *
+     * @param  array<string, mixed>  $values
+     */
+    private static function writeSaved(string $slug, array $values): bool
+    {
+        $file = static::overlayFile($slug);
+
+        if ($file === null) {
+            return false;
+        }
+
+        $directory = dirname($file);
+
+        if (! File::isDirectory($directory) && ! @File::makeDirectory($directory, 0755, true, true)) {
+            return false;
+        }
+
+        if (! is_writable($directory) || (is_file($file) && ! is_writable($file))) {
+            return false;
+        }
+
+        $lock = @fopen($file.'.lock', 'c');
+
+        if ($lock === false) {
+            return false;
+        }
+
+        try {
+            flock($lock, LOCK_EX);
+
+            $flat = array_merge(static::readSaved($slug), $values);
+            $groups = static::readDefaults($slug)['pages'] ?? null;
+
+            if ($groups !== null) {
+                $flat['pages'] = $groups;
+            }
+
+            $nested = static::nest($slug, $flat);
+
+            // Only the group object belongs in the saved file; a plain list of page
+            // slugs is the theme's own manifest.
+            if (! isset($nested['pages']) || ! is_object($nested['pages'])) {
+                unset($nested['pages']);
+            }
+
+            $json = json_encode((object) $nested, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+            if ($json === false) {
+                return false;
+            }
+
+            $temp = $file.'.'.uniqid('', true).'.tmp';
+
+            if (@file_put_contents($temp, $json."\n", LOCK_EX) === false) {
+                return false;
+            }
+
+            if (! @rename($temp, $file)) {
+                File::delete($temp);
+
+                return false;
+            }
+        } finally {
+            flock($lock, LOCK_UN);
+            fclose($lock);
+        }
+
+        static::forget($slug);
+
+        return true;
+    }
+
+    /**
+     * Copy every value currently in theme.json into the saved-values file, once.
+     * Run on a server before the first deploy that ships this layout, so what the
+     * owner configured there is not lost when theme.json is replaced.
+     */
+    public static function moveToSaved(string $slug): bool
+    {
+        $overlay = static::overlayFile($slug);
+
+        if ($overlay === null || is_file($overlay)) {
+            return false;
+        }
+
+        $settings = array_diff_key(static::readDefaults($slug), array_flip(self::MANIFEST_KEYS));
+
+        return $settings === [] ? false : static::writeSaved($slug, $settings);
+    }
+
+    /**
+     * The whole theme as one theme.json — defaults and saved values merged — for
+     * the zip a downloaded theme is packed into, so it installs with its settings.
+     */
+    public static function export(string $slug): string
+    {
+        return (string) json_encode((object) static::nest($slug, static::all($slug)), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)."\n";
     }
 
     /**
@@ -386,11 +556,27 @@ class ThemeSettings
      */
     public static function merge(string $slug, array $values): bool
     {
-        if ($values === [] || ! static::isValidSlug($slug)) {
+        // A slug that is not an installed theme folder is not a theme this class gets
+        // to describe — saving would otherwise leave data for a theme nobody installed.
+        if ($values === [] || ! static::isValidSlug($slug) || ! File::isDirectory(Themes::path().'/'.$slug)) {
             return false;
         }
 
-        return static::write($slug, array_merge(static::all($slug), $values));
+        // Manifest keys (name, version, sn…) describe the theme and go back into
+        // theme.json; everything else is the owner's data and goes to storage.
+        $manifest = array_intersect_key($values, array_flip(self::MANIFEST_KEYS));
+        $settings = array_diff_key($values, array_flip(self::MANIFEST_KEYS));
+        $ok = true;
+
+        if ($manifest !== []) {
+            $ok = static::write($slug, array_merge(static::readDefaults($slug), $manifest));
+        }
+
+        if ($settings !== []) {
+            $ok = static::writeSaved($slug, $settings) && $ok;
+        }
+
+        return $ok;
     }
 
     /**
@@ -431,6 +617,18 @@ class ThemeSettings
         return static::write($slug, array_merge($manifest, $values));
     }
 
+    /** Remove a theme's saved values (its theme.json is left alone). */
+    public static function deleteSaved(string $slug): void
+    {
+        $file = static::overlayFile($slug);
+
+        if ($file !== null && is_file($file)) {
+            File::delete($file);
+        }
+
+        static::forget($slug);
+    }
+
     /**
      * Remove a theme's file outright, manifest and all.
      *
@@ -446,6 +644,8 @@ class ThemeSettings
         if ($file === null || ! is_file($file)) {
             return false;
         }
+
+        static::deleteSaved($slug);
 
         return File::delete($file);
     }
