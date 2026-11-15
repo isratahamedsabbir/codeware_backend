@@ -562,7 +562,7 @@ class Themes
      * keys out of a larger file and everything else in it is none of this
      * method's business.
      *
-     * @return array{name: string, description: string, version: string, author: string, tags: array<int, string>, no_index: bool, sn: int, pages: ?array<int, string>, home_page: string}
+     * @return array{name: string, description: string, version: string, author: string, tags: array<int, string>, no_index: bool, sn: int, pages: ?array<int, string>, groups: ?array<int, array{key: string, name: string}>, home_page: string}
      */
     public static function manifest(string $slug): array
     {
@@ -579,6 +579,12 @@ class Themes
             // them; null when the theme does not say (every page its templates can
             // serve is then offered). See App\Livewire\Admin\ThemeSettings.
             'pages' => null,
+            // Named groups of settings for Page Settings ("Home", "About", "FAQ"):
+            // theme.json's `pages` entries written as {"key": "home", "name": "Home"}.
+            // They are not rows of the pages table — each is only a name that holds
+            // one form (themes/{slug}/pages/{key}.blade.php) and its saved values.
+            // Null when the theme still lists plain page slugs (or nothing).
+            'groups' => null,
             // The slug of the page that carries the theme's home-page editor
             // (page-settings.blade.php): "home" unless the theme says otherwise.
             'home_page' => 'home',
@@ -625,6 +631,7 @@ class Themes
                 'pages' => is_array($data['pages'] ?? null)
                     ? collect($data['pages'])->filter(fn ($page) => is_string($page) && $page !== '')->values()->all()
                     : null,
+                'groups' => static::readGroups($data['pages'] ?? null),
                 'home_page' => is_string($data['home_page'] ?? null) && $data['home_page'] !== '' ? $data['home_page'] : 'home',
             ];
         }
@@ -632,6 +639,32 @@ class Themes
         self::$manifests[$memoKey][$slug] = ['stamp' => $stamp, 'manifest' => $manifest];
 
         return $manifest;
+    }
+
+    /**
+     * The {key, name} entries of a theme.json `pages` list, or null when it has
+     * none. A key is a slug-like word (it names the form file and the stored
+     * values); a missing name falls back to the key.
+     *
+     * @return ?array<int, array{key: string, name: string}>
+     */
+    private static function readGroups(mixed $pages): ?array
+    {
+        if (! is_array($pages)) {
+            return null;
+        }
+
+        $groups = collect($pages)
+            ->filter(fn ($page) => is_array($page) && is_string($page['key'] ?? null) && preg_match('/^[a-z0-9_]+$/', $page['key']))
+            ->map(fn (array $page) => [
+                'key' => $page['key'],
+                'name' => is_string($page['name'] ?? null) && $page['name'] !== '' ? $page['name'] : ucwords(str_replace('_', ' ', $page['key'])),
+            ])
+            ->unique('key')
+            ->values()
+            ->all();
+
+        return $groups === [] ? null : $groups;
     }
 
     /**

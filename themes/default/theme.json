@@ -1,8 +1,10 @@
 {
     "pages": [
-        "default"
+        {
+            "key": "home",
+            "name": "Home"
+        }
     ],
-    "home_page": "default",
     "default": true,
     "no_index": true,
     "theme_default_intro_heading": "",
@@ -10,5 +12,6 @@
     "theme_default_font": "system",
     "theme_default_promo_1_link": "",
     "theme_default_promo_2_link": "",
-    "theme_default_hero_title": "Welcome home"
+    "theme_default_hero_title": "Welcome home",
+    "theme_default_page_home_seo": "11"
 }

@@ -41,7 +41,6 @@ it('lists the pages the live theme serves, with their sections', function () {
     Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])
         ->assertSee('About us')
         ->assertSee('team')
-        ->assertSet("titles.{$this->about->id}.en", 'About us')
         ->assertSet("cards.{$this->section->id}.0.title", 'Alex');
 });
 
@@ -54,7 +53,6 @@ it('shows only the home page for a theme with no page template', function () {
 
 it('updates a page title and a section\'s cards and constant values', function () {
     Livewire::test(ThemeSettingsScreen::class)
-        ->set("titles.{$this->about->id}.en", 'About the newsroom')
         ->set("cards.{$this->section->id}.0.title", 'Sam')
         ->call('addCard', $this->section->id)
         ->set("cards.{$this->section->id}.1.title", 'Jo')
@@ -62,20 +60,13 @@ it('updates a page title and a section\'s cards and constant values', function (
         ->call('save')
         ->assertHasNoErrors();
 
-    expect($this->about->fresh()->getTranslation('title', 'en'))->toBe('About the newsroom');
+    expect($this->about->fresh()->getTranslation('title', 'en'))->toBe('About us');
 
     $section = $this->section->fresh();
     expect($section->cards)->toHaveCount(2)
         ->and($section->cards[0]['title'])->toBe('Sam')
         ->and($section->constant[0]['key'])->toBe('HEADLINE')
         ->and($section->constant[0]['value'])->toBe('Say hello');
-});
-
-it('requires a primary-language title', function () {
-    Livewire::test(ThemeSettingsScreen::class)
-        ->set("titles.{$this->about->id}.en", '')
-        ->call('save')
-        ->assertHasErrors(["titles.{$this->about->id}.en"]);
 });
 
 it('ignores a section that is not one of the theme\'s pages', function () {
@@ -185,7 +176,6 @@ it('lists the pages of the theme being edited, not the live one', function () {
     Themes::forget();
 
     Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])
-        ->assertSet("titles.{$this->about->id}.en", 'About us')
         ->assertSee('About us');
 });
 
@@ -254,6 +244,13 @@ it('lists every page as an SEO option and saves the one chosen for a page', func
         ->and($this->about->fresh()->seo_title)->toBeNull();
 });
 
+it('selects the Default page as the SEO source of a page that never picked one', function () {
+    $default = Page::factory()->create(['title' => ['en' => 'Default', 'bn' => ''], 'slug' => 'default', 'type' => 'page', 'status' => 'inactive']);
+
+    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])
+        ->assertSet("seoSources.{$this->about->id}", $default->id);
+});
+
 it('treats a page naming itself as its SEO source as empty', function () {
     Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])
         ->set("seoSources.{$this->about->id}", $this->about->id)
@@ -279,7 +276,7 @@ it('rejects an SEO source that is not a page', function () {
         ->assertHasErrors(["seoSources.{$this->about->id}"]);
 });
 
-it('keeps every block of a page — SEO, title, banners and each section — collapsed until opened', function () {
+it('keeps every block of a page — SEO, banners and each section — collapsed until opened', function () {
     Setting::set('site_theme', 'classic_ecommerce');
     Themes::forget();
 
@@ -287,16 +284,16 @@ it('keeps every block of a page — SEO, title, banners and each section — col
         ->call('selectPage', Page::where('slug', 'home')->value('id') ?? $this->about->id)
         ->html();
 
-    // SEO + title (+ banners on the home page) + the section: all closed.
-    expect(substr_count($html, 'x-data="{ open: false }"'))->toBeGreaterThanOrEqual(3)
+    // SEO (+ banners on the home page) + the section: all closed.
+    expect(substr_count($html, 'x-data="{ open: false }"'))->toBeGreaterThanOrEqual(2)
         ->and($html)->not->toContain('x-data="{ open: true }"');
 });
 
 it('opens the block that holds a validation error so the message is not hidden', function () {
     Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])
-        ->set("titles.{$this->about->id}.en", '')
+        ->set("seoSources.{$this->about->id}", 999999)
         ->call('save')
-        ->assertHasErrors(["titles.{$this->about->id}.en"])
+        ->assertHasErrors(["seoSources.{$this->about->id}"])
         ->assertSeeHtml('x-data="{ open: true }"');
 });
 
@@ -324,22 +321,20 @@ it('lists only the pages a theme names in its theme.json', function (string $the
     }
 
     $component = Livewire::test(ThemeSettingsEdit::class, ['slug' => $theme]);
-    $listed = collect($component->get('titles'))->keys()->map(fn ($id) => Page::find($id)->slug)->sort()->values()->all();
+    $listed = $component->viewData('psPages')->pluck('slug')->sort()->values()->all();
 
     expect($listed)->toBe(collect($slugs)->sort()->values()->all());
 })->with([
     'news' => ['news', ['home', 'about', 'contact', 'faq']],
     'classic' => ['classic_ecommerce', ['home', 'about', 'contact', 'faq']],
     'portfolio' => ['portfolio', ['home']],
-    'default' => ['default', ['default']],
 ]);
 
 it('lists the pages in the order the theme names them', function () {
     Page::factory()->published()->create(['title' => ['en' => 'Faq page', 'bn' => ''], 'slug' => 'faq', 'type' => 'page', 'sort_order' => 0]);
     Page::factory()->published()->create(['title' => ['en' => 'Home page', 'bn' => ''], 'slug' => 'home', 'type' => 'page', 'sort_order' => 9]);
 
-    $ids = collect(Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])->get('titles'))->keys()
-        ->map(fn ($id) => Page::find($id)->slug)->all();
+    $ids = Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])->viewData('psPages')->pluck('slug')->all();
 
     // theme.json says home, about, contact, faq — not the sort_order of the rows.
     expect(array_search('home', $ids))->toBeLessThan(array_search('faq', $ids));
@@ -357,15 +352,36 @@ it('offers a theme\'s own pages and the Default page as SEO options, never anoth
         ->assertViewHas('psSeoOptions', fn ($options) => $options->contains('About us') && $options->contains('Default') && $options->contains('Home'));
 });
 
-it('shows the default theme\'s settings on its Default page, not on Home', function () {
-    Page::factory()->published()->create(['title' => ['en' => 'Home', 'bn' => ''], 'slug' => 'home', 'type' => 'page']);
-    Page::factory()->create(['title' => ['en' => 'Default', 'bn' => ''], 'slug' => 'default', 'type' => 'page', 'status' => 'inactive']);
+it('lists the default theme\'s settings groups by name, without touching the pages table', function () {
+    $before = Page::count();
 
     Livewire::test(ThemeSettingsEdit::class, ['slug' => 'default'])
-        ->assertViewHas('psHomeSlug', 'default')
-        ->assertSee('settings.theme_default_intro_heading', false)
-        ->assertDontSee('About us')
-        ->assertDontSee('/contact');
+        ->assertViewHas('psGroups', fn ($groups) => $groups->pluck('key')->all() === ['home'])
+        ->assertSee('Intro Heading')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(Page::count())->toBe($before);
+});
+
+it('selects the Default page as a group\'s SEO source and saves the one picked', function () {
+    $default = Page::factory()->create(['title' => ['en' => 'Default', 'bn' => ''], 'slug' => 'default', 'type' => 'page', 'status' => 'inactive']);
+    $other = Page::factory()->published()->create(['title' => ['en' => 'Shared SEO', 'bn' => ''], 'slug' => 'shared-seo', 'type' => 'page']);
+
+    $original = file_get_contents(base_path('themes/default/theme.json'));
+
+    try {
+        Livewire::test(ThemeSettingsEdit::class, ['slug' => 'default'])
+            ->assertSet('groupSeo.home', $default->id)
+            ->set('groupSeo.home', $other->id)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        expect(\App\Support\ThemeSettings::text('default', 'theme_default_page_home_seo'))->toBe((string) $other->id);
+    } finally {
+        file_put_contents(base_path('themes/default/theme.json'), $original);
+        \App\Support\ThemeSettings::forget('default');
+    }
 });
 
 it('seeds the Default page: inactive, with an SEO row, out of the nav', function () {

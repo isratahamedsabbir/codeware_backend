@@ -8,7 +8,53 @@
     and write the result back to the screen's component.
 --}}
 <div>
-    @if (! $psFeatureOn)
+    @if ($psGroups)
+        {{-- Settings groups: the theme's own named blocks of settings (Home, About, FAQ…).
+             Not rows of the pages table — each name owns one form, themes/{slug}/pages/{key}.blade.php,
+             and its values are saved to the theme's theme.json by the one Save bar. --}}
+        <div class="grid gap-5 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-6">
+            <nav aria-label="Pages" class="space-y-1 lg:sticky lg:top-14 lg:self-start">
+                @foreach ($psGroups as $group)
+                    @php $groupActive = $psGroup && $group['key'] === $psGroup['key']; @endphp
+                    <button type="button" wire:click="selectGroup('{{ $group['key'] }}')" wire:key="ps-group-nav-{{ $group['key'] }}"
+                        @class([
+                            'flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition',
+                            'bg-primary/10 text-primary' => $groupActive,
+                            'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' => ! $groupActive,
+                        ])>
+                        <flux:icon :name="$group['key'] === 'home' ? 'home' : 'document-text'" class="size-4 shrink-0" />
+                        <span class="min-w-0 flex-1 truncate">{{ $group['name'] }}</span>
+                    </button>
+                @endforeach
+            </nav>
+
+            @if ($psGroup)
+                <div class="min-w-0 space-y-6" wire:key="ps-group-{{ $psGroup['key'] }}">
+                    <x-admin-collapse-section icon="magnifying-glass" title="SEO"
+                        description="The title and description search engines and social media show for this page."
+                        :open="$errors->has('groupSeo.'.$psGroup['key'])">
+                        <flux:field>
+                            <flux:label>Which SEO should this page use?</flux:label>
+                            <flux:select wire:model="groupSeo.{{ $psGroup['key'] }}" wire:key="ps-group-seo-{{ $psGroup['key'] }}">
+                                @foreach ($psSeoOptions as $optionId => $optionLabel)
+                                    <flux:select.option value="{{ $optionId }}">{{ $optionLabel }}</flux:select.option>
+                                @endforeach
+                            </flux:select>
+                            <flux:error name="groupSeo.{{ $psGroup['key'] }}" />
+                        </flux:field>
+                    </x-admin-collapse-section>
+
+                    @if ($psGroupView)
+                        @include($psGroupView)
+                    @else
+                        <div class="rounded-lg border border-dashed border-zinc-200 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700">
+                            No settings form yet — add <code class="font-mono text-xs">pages/{{ $psGroup['key'] }}.blade.php</code> to the theme folder.
+                        </div>
+                    @endif
+                </div>
+            @endif
+        </div>
+    @elseif (! $psFeatureOn)
         <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
             The Pages feature is switched off (Settings → Features), so there are no pages to edit here.
         </div>
@@ -37,19 +83,7 @@
 
             {{-- The picked page --}}
             <div class="min-w-0 space-y-6" wire:key="ps-page-{{ $psSelected->id }}">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                    <h3 class="text-base font-semibold text-zinc-800 dark:text-zinc-100">{{ $psSelected->getTranslation('title', $psPrimary, false) ?: 'Untitled' }}</h3>
-                    <div class="flex items-center gap-2">
-                        @if ($psSelected->status === 'active')
-                            <flux:button size="sm" variant="ghost" icon="arrow-top-right-on-square" href="{{ $psSelected->slug === 'home' ? url('/') : url('/'.$psSelected->slug) }}" target="_blank">View</flux:button>
-                        @endif
-                        <flux:button size="sm" variant="ghost" icon="pencil-square" href="{{ route('admin.pages.edit', $psSelected->id) }}" wire:navigate>Full editor</flux:button>
-                    </div>
-                </div>
-
-                <hr class="border-zinc-200 dark:border-zinc-700">
-
-                {{-- Every block of the page is its own collapsed section: SEO, the title, the
+                {{-- Every block of the page is its own collapsed section: SEO, the
                      theme's banners, then each CMS section. Closed unless something inside
                      it has a validation error, so the message is never hidden. --}}
 
@@ -63,42 +97,12 @@
                     <flux:field>
                         <flux:label>Which SEO should this page use?</flux:label>
                         <flux:select wire:model="seoSources.{{ $psSelected->id }}" wire:key="ps-seo-{{ $psSelected->id }}">
-                            <flux:select.option value="">{{ $psSeoOptions[$psSelected->id] ?? $psSelected->getTranslation('title', app()->getLocale(), true) ?: 'This page' }} (own SEO)</flux:select.option>
                             @foreach ($psSeoOptions as $optionId => $optionLabel)
-                                @continue($optionId === $psSelected->id)
                                 <flux:select.option value="{{ $optionId }}">{{ $optionLabel }}</flux:select.option>
                             @endforeach
                         </flux:select>
-                        <flux:description>
-                            Keep the default to use this page's own SEO, which you edit on the page itself.
-                            Or pick another page to show that page's SEO here instead.
-                            Anything left blank falls back to the site-wide SEO in <a href="{{ route('admin.seo') }}" wire:navigate class="font-medium text-primary hover:underline">Admin → SEO</a>.
-                        </flux:description>
                         <flux:error name="seoSources.{{ $psSelected->id }}" />
                     </flux:field>
-                </x-admin-collapse-section>
-
-                {{-- Title, one tab per language (the same tabs the Pages form uses). --}}
-                <x-admin-collapse-section icon="language" title="Page title"
-                    description="The page's name, in every language."
-                    :open="$errors->has('titles.'.$psSelected->id.'.'.$psPrimary)">
-                    <x-admin-locale-tabs>
-                        @foreach ($psLanguages as $language)
-                            <x-admin-locale-panel :code="$language->code">
-                                <flux:field>
-                                    <flux:label :badge="$language->code">
-                                        Page title
-                                        @if ($language->code === $psPrimary)<span class="ml-0.5 text-red-500">*</span>@endif
-                                    </flux:label>
-                                    <flux:input wire:model="titles.{{ $psSelected->id }}.{{ $language->code }}"
-                                        placeholder="{{ $language->code === $psPrimary ? 'Page title' : 'Page title ('.($language->native_name ?: $language->name).')' }}" />
-                                    @if ($language->code === $psPrimary)
-                                        <flux:error name="titles.{{ $psSelected->id }}.{{ $language->code }}" />
-                                    @endif
-                                </flux:field>
-                            </x-admin-locale-panel>
-                        @endforeach
-                    </x-admin-locale-tabs>
                 </x-admin-collapse-section>
 
                 {{-- The theme's own built-in home sections (hero slider, promo tiles). --}}

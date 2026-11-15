@@ -1302,7 +1302,7 @@ class Index extends Component
     private function settingsDeclarations(): array
     {
         return $this->declarations ??= collect(
-            array_merge(glob(base_path('themes/*/settings.blade.php')) ?: [], glob(base_path('themes/*/page-settings.blade.php')) ?: [])
+            array_merge(glob(base_path('themes/*/settings.blade.php')) ?: [], glob(base_path('themes/*/page-settings.blade.php')) ?: [], glob(base_path('themes/*/pages/*.blade.php')) ?: [])
         )
             ->map(fn (string $file) => (string) file_get_contents($file))
             ->values()

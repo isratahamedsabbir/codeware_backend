@@ -1,8 +1,8 @@
 {{--
-    Default theme — the home page's intro block, shown under Page Settings → Home.
+    Default theme — the "Home" settings group, shown under Page Settings → Home.
 
-    Included by the Theme Settings screen's Page Settings card when a theme ships
-    a page-settings.blade.php at its root. Binds to the screen's settings bag;
+    One file per group listed in theme.json `pages` ({"key": "home"}): the
+    Page Settings card includes pages/{key}.blade.php. Binds to the screen's settings bag;
     persists to this theme's theme.json and is read by views/index.blade.php with
         \App\Support\ThemeSettings::text('default', 'theme_default_intro_heading')
 --}}

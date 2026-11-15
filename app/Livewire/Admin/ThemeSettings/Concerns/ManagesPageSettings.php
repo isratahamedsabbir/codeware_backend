@@ -44,8 +44,11 @@ trait ManagesPageSettings
 
     public ?int $selectedPageId = null;
 
-    /** @var array<int, array<string, string>> page id => locale => title */
-    public array $titles = [];
+    /** Group mode: the key of the picked settings group ("home", "about"…). */
+    public ?string $selectedGroup = null;
+
+    /** @var array<string, int|string> group key => id of the page whose SEO it uses */
+    public array $groupSeo = [];
 
     /** @var array<int, int|string> page id => id of the page whose SEO it uses ('' = its own) */
     public array $seoSources = [];
@@ -64,10 +67,53 @@ trait ManagesPageSettings
 
     protected function loadPageSettings(): void
     {
+        if ($this->groups() !== null) {
+            $theme = $this->pageTheme();
+            $defaultId = $this->defaultSeoPage()?->id;
+
+            $this->groupSeo = $this->groups()->mapWithKeys(fn (array $group) => [
+                $group['key'] => ThemeSettings::text($theme, $this->groupSeoKey($group['key'])) ?: ($defaultId ?? ''),
+            ])->all();
+
+            if (! $this->groups()->contains('key', $this->selectedGroup)) {
+                $this->selectedGroup = $this->groups()->first()['key'];
+            }
+
+            return;
+        }
+
         $this->load();
 
         if (! $this->pages()->contains('id', $this->selectedPageId)) {
             $this->selectedPageId = $this->pages()->first()?->id;
+        }
+    }
+
+    /**
+     * The theme's named settings groups (theme.json `pages` written as
+     * {key, name}), or null when it lists plain page slugs and Page Settings
+     * works on rows of the pages table instead. A group is only a name that owns
+     * one form and its values: nothing here reads or writes the pages table.
+     *
+     * @return ?Collection<int, array{key: string, name: string}>
+     */
+    private function groups(): ?Collection
+    {
+        $groups = Themes::manifest($this->pageTheme())['groups'];
+
+        return $groups === null ? null : collect($groups);
+    }
+
+    /** The theme.json key a group's chosen SEO source is stored under. */
+    private function groupSeoKey(string $key): string
+    {
+        return 'theme_'.$this->pageTheme().'_page_'.$key.'_seo';
+    }
+
+    public function selectGroup(string $key): void
+    {
+        if ($this->groups()?->contains('key', $key)) {
+            $this->selectedGroup = $key;
         }
     }
 
@@ -96,7 +142,7 @@ trait ManagesPageSettings
     /** @return Collection<int, Page> */
     private function pages(): Collection
     {
-        if (! Features::enabled('pages')) {
+        if (! Features::enabled('pages') || $this->groups() !== null) {
             return collect();
         }
 
@@ -142,7 +188,13 @@ trait ManagesPageSettings
     {
         $primary = Locale::primary();
 
-        $default = Page::ofType('page')->whereHas('slugRecord', fn ($q) => $q->where('slug', 'default'))->first();
+        $default = $this->defaultSeoPage();
+
+        if ($this->groups() !== null) {
+            return Page::ofType('page')->get()
+                ->sortBy(fn (Page $page) => $page->id === $default?->id ? 0 : 1)
+                ->mapWithKeys(fn (Page $page) => [$page->id => $page->getTranslation('title', $primary, true) ?: 'Untitled']);
+        }
 
         return $this->pages()
             ->when($default, fn (Collection $pages) => $pages->push($default))
@@ -150,6 +202,11 @@ trait ManagesPageSettings
             ->mapWithKeys(fn (Page $page) => [
                 $page->id => $page->getTranslation('title', $primary, true) ?: 'Untitled',
             ]);
+    }
+
+    private function defaultSeoPage(): ?Page
+    {
+        return Page::ofType('page')->whereHas('slugRecord', fn ($q) => $q->where('slug', 'default'))->first();
     }
 
     /** @return Collection<int, CmsSection> */
@@ -165,8 +222,9 @@ trait ManagesPageSettings
     {
         $pages = $this->pages();
 
-        $this->titles = $pages->mapWithKeys(fn (Page $page) => [$page->id => $page->getTranslations('title')])->all();
-        $this->seoSources = $pages->mapWithKeys(fn (Page $page) => [$page->id => $page->seo_page_id ?? ''])->all();
+        // A page that never picked a source shows the seeded Default page as its SEO.
+        $defaultId = $this->defaultSeoPage()?->id;
+        $this->seoSources = $pages->mapWithKeys(fn (Page $page) => [$page->id => $page->seo_page_id ?? $defaultId ?? ''])->all();
 
         $sections = $this->sectionsFor($pages);
 
@@ -227,12 +285,12 @@ trait ManagesPageSettings
     /** @return array{0: array<string, mixed>, 1: array<string, string>} */
     protected function pageSettingsRules(): array
     {
-        $primary = Locale::primary();
+        if ($this->groups() !== null) {
+            return [['groupSeo.*' => ['nullable', 'integer', \Illuminate\Validation\Rule::exists('pages', 'id')->where('type', 'page')]], []];
+        }
 
         $rules = [
-            'titles.*' => ['array'],
             'seoSources.*' => ['nullable', 'integer', \Illuminate\Validation\Rule::exists('pages', 'id')->where('type', 'page')],
-            "titles.*.{$primary}" => ['required', 'string', 'max:255'],
             'cards.*.*.image' => ['nullable', 'string'],
             'cards.*.*.title' => ['nullable', 'string', 'max:255'],
             'cards.*.*.subtitle' => ['nullable', 'string', 'max:255'],
@@ -245,37 +303,32 @@ trait ManagesPageSettings
             'promo.*.image' => ['nullable', 'string'],
         ];
 
-        foreach (Locale::codes() as $code) {
-            if ($code !== $primary) {
-                $rules["titles.*.{$code}"] = ['nullable', 'string', 'max:255'];
-            }
-        }
-
         return [$rules, ['cards.*.*.text_color.regex' => 'Use a hex colour like #1e7bc4.']];
     }
 
     protected function savePageSettings(): void
     {
+        if ($this->groups() !== null) {
+            $theme = $this->pageTheme();
+            $values = [];
+
+            foreach ($this->groups() as $group) {
+                $values[$this->groupSeoKey($group['key'])] = (string) ($this->groupSeo[$group['key']] ?? '');
+            }
+
+            if (ThemeSettings::exists($theme)) {
+                ThemeSettings::merge($theme, $values);
+            }
+
+            return;
+        }
+
         $pages = $this->pages();
         $sections = $this->sectionsFor($pages);
-        $primary = Locale::primary();
 
         // Only rows this card loaded may be written: ids arrive from the browser,
         // so a page or section that is not one of the theme's own is ignored
         // rather than trusted.
-        foreach ($pages as $page) {
-            if (! isset($this->titles[$page->id])) {
-                continue;
-            }
-
-            $title = array_filter(array_map(fn ($v) => is_string($v) ? trim($v) : '', $this->titles[$page->id]));
-
-            if ($title !== [] && $title !== $page->getTranslations('title')) {
-                $page->update(['title' => $title]);
-                AdminActivity::log('updated', "Page #{$page->id}: {$page->getTranslation('title', $primary, false)} (Page Settings)");
-            }
-        }
-
         // The SEO each page uses: another page's, or (empty) its own and then the
         // site-wide defaults. A page cannot name itself — that is the same as empty.
         foreach ($pages as $page) {
@@ -364,10 +417,16 @@ trait ManagesPageSettings
      */
     protected function pageSettingsData(): array
     {
+        $groups = $this->groups();
         $pages = $this->pages();
         $selected = $pages->firstWhere('id', $this->selectedPageId) ?? $pages->first();
 
         return [
+            'psGroups' => $groups,
+            'psGroup' => $groups?->firstWhere('key', $this->selectedGroup) ?? $groups?->first(),
+            'psGroupView' => $groups && is_file(Themes::path().'/'.$this->pageTheme().'/pages/'.($this->selectedGroup ?? '').'.blade.php')
+                ? Themes::viewNamespace($this->pageTheme()).'::pages.'.$this->selectedGroup
+                : null,
             'psPages' => $pages,
             'psSelected' => $selected,
             'psSections' => $selected ? $this->sectionsFor(collect([$selected])) : collect(),
