@@ -100,6 +100,14 @@
     </style>
 
     <aside class="mfa-side">
+        {{-- The layout skips its own centred logo on a wide card (see
+             layouts/auth/split.blade.php); this is the one, class and all, so it
+             keeps the same glow. --}}
+        <div class="auth-logo-wrap">
+            <img src="{{ \App\Models\Setting::get('site_icon') ?: '/default/logo.png' }}"
+                alt="{{ config('app.name') }}" style="display: block; max-width: 100px;">
+        </div>
+
         <span class="mfa-eyebrow">
             <flux:icon.shield-check class="size-4" /> {{ __('Security check') }}
         </span>

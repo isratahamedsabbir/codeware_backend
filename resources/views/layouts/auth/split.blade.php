@@ -307,10 +307,15 @@
                 @php
                     $siteIcon = \App\Models\Setting::get('site_icon');
                 @endphp
-                <div class="auth-logo-wrap mb-6 flex justify-center"> 
-                    <img src="{{ $siteIcon ?: '/default/logo.png' }}" alt="{{ config('app.name') }}"
-                        class="max-w-[100px] block">
-                </div> 
+                {{-- Centred over a login form. A wide two-pane card (the MFA
+                     enrolment screen) draws its own logo at the top of its left
+                     pane, so the right pane can start at the top of the card. --}}
+                @unless ($wide ?? false)
+                    <div class="auth-logo-wrap mb-6 flex justify-center">
+                        <img src="{{ $siteIcon ?: '/default/logo.png' }}" alt="{{ config('app.name') }}"
+                            class="max-w-[100px] block">
+                    </div>
+                @endunless
                 {{ $slot }}
             </div> 
 
