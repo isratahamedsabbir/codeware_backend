@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Admin\Env;
 
-use App\Models\Setting;
 use App\Support\AdminActivity;
 use App\Support\EnvFile;
 use App\Support\PuckEditor;
@@ -15,15 +14,6 @@ class Index extends Component
 {
     public array $env = [];
 
-    /**
-     * Only Tracking's Google Pixel ID — the one plain (DB-backed) Setting that
-     * lives on this page — not every Setting row (that generic loop stays on the
-     * main Settings page).
-     *
-     * @var array<string, mixed>
-     */
-    public array $settings = [];
-
     public bool $maintenanceMode = false;
 
     public bool $debugMode = false;
@@ -31,7 +21,6 @@ class Index extends Component
     public function mount(): void
     {
         $this->loadEnv();
-        $this->loadSettings();
         $this->maintenanceMode = app()->isDownForMaintenance();
         $this->debugMode = (bool) config('app.debug');
     }
@@ -45,11 +34,6 @@ class Index extends Component
                 $this->env[$key] = $current[$key] ?? '';
             }
         }
-    }
-
-    protected function loadSettings(): void
-    {
-        $this->settings['google_pixel_id'] = Setting::get('google_pixel_id', '') ?? '';
     }
 
     /**
@@ -237,8 +221,6 @@ class Index extends Component
         // production deploy might run), that cache would keep serving the old
         // host until cleared here too.
         Artisan::call('route:clear');
-
-        $this->persistTrackingSettings();
 
         AdminActivity::log('updated', 'Environment settings updated');
 
@@ -430,17 +412,6 @@ class Index extends Component
         Artisan::call('config:clear');
 
         return true;
-    }
-
-    /**
-     * Persists Tracking's Google Pixel ID — the only plain (DB-backed) Setting
-     * hosted on this page — alongside the .env-backed fields above, so a single
-     * "Save Environment Settings" click persists both without the admin needing
-     * to know they're stored differently.
-     */
-    private function persistTrackingSettings(): void
-    {
-        Setting::set('google_pixel_id', $this->settings['google_pixel_id'] ?? '');
     }
 
     public function render()

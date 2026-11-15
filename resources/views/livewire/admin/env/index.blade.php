@@ -25,7 +25,7 @@
                 $tabs = [
                     'general' => ['General', 'cog-6-tooth', 'App, maintenance, debug mode'],
                     'authentication' => ['Authentication', 'lock-closed', 'Google & Facebook login, reCAPTCHA, Turnstile'],
-                    'integrations' => ['Integrations', 'puzzle-piece', 'Pixel, GTM, Maps, S3, Firebase'],
+                    'integrations' => ['Integrations', 'puzzle-piece', 'GTM, Maps, S3, Firebase'],
                 ];
             @endphp
             <div role="tablist" aria-label="Developer Tools sections"
@@ -225,25 +225,6 @@
         <div x-show="activeTab === 'integrations'" x-cloak class="space-y-5">
 <div class="grid grid-cols-1 xl:grid-cols-2 gap-5 items-start"><div class="space-y-5">
 
-            {{-- Google Pixel --}}
-            <x-admin-section-card id="env-section-pixel" class="scroll-mt-24" header-border="border-zinc-100" icon="chart-bar" title="Google Pixel"
-                description="The Measurement/Pixel ID (e.g. G-XXXXXXXXXX or AW-XXXXXXXXX) exposed via the public settings API for the frontend to use.">
-                <x-slot:titleActions>
-                    <a href="{{ route('admin.developer-guide') }}#integration-pixel"
-                        title="Integration guide — open the Developer Guide"
-                        aria-label="Integration guide — open the Developer Guide"
-                        class="flex size-5 items-center justify-center text-zinc-400 transition-colors hover:text-primary">
-                        <flux:icon.information-circle class="size-4" />
-                    </a>
-                </x-slot:titleActions>
-                <div class="max-w-xl">
-                    <flux:field>
-                        <flux:label>Google Pixel ID</flux:label>
-                        <flux:input wire:model="settings.google_pixel_id" placeholder="G-XXXXXXXXXX" class="font-mono" />
-                    </flux:field>
-                </div>
-            </x-admin-section-card>
-
             {{-- Google Tag Manager --}}
             <x-admin-section-card id="env-section-google-tag-manager" class="scroll-mt-24" header-border="border-zinc-100" icon="tag" title="Google Tag Manager"
                 description="The container ID (e.g. GTM-XXXXXXX) loaded on every public theme page. A blank ID turns the container off.">
@@ -393,7 +374,7 @@
 </div></div>
 
             {{-- Fallback: any future env group added without a hand-built card above --}}
-            @php $manuallyRenderedGroups = ['App', 'Google Login', 'Facebook Login', 'Captcha', 'reCAPTCHA', 'Turnstile', 'Google Maps', 'AWS S3', 'Firebase', 'CMS Editor']; @endphp
+            @php $manuallyRenderedGroups = ['App', 'Google Login', 'Facebook Login', 'Captcha', 'reCAPTCHA', 'Turnstile', 'Google Tag Manager', 'Google Maps', 'AWS S3', 'Firebase', 'CMS Editor']; @endphp
             @foreach ($this->envFields() as $groupLabel => $fields)
                 @continue(in_array($groupLabel, $manuallyRenderedGroups, true))
                 <x-admin-section-card header-border="border-zinc-100" icon="rocket-launch" title="{{ __($groupLabel) }}">

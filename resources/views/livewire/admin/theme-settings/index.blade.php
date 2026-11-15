@@ -344,20 +344,15 @@
                                 @endif
                             </p>
                         </div>
-                        @if ($themeCards[$slug]['manifest']['tags'] !== [])
-                            {{-- Capped rather than wrapped. Ecommerce declares five tags,
-                                 and on a narrow card wrapping them pushed the footer to
-                                 three lines and threw the row out of alignment. What is
-                                 left of the count is said once, instead. --}}
-                            <div class="hidden shrink-0 items-center gap-1 lg:flex">
-                                @foreach (array_slice($themeCards[$slug]['manifest']['tags'], 0, 2) as $tag)
-                                    <span class="rounded-md bg-zinc-50 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">{{ $tag }}</span>
-                                @endforeach
-                                @if (count($themeCards[$slug]['manifest']['tags']) > 2)
-                                    <span class="font-mono text-[10px] text-zinc-400">+{{ count($themeCards[$slug]['manifest']['tags']) - 2 }}</span>
-                                @endif
-                            </div>
-                        @endif
+                        {{-- Opens this theme's own settings screen, scrolled to its Page
+                             Settings card. The card is a <label> around the radio, so the
+                             click must not bubble or it would also select the theme. --}}
+                        <a href="{{ route('admin.theme-settings.edit', $slug) }}#theme-page-settings" wire:navigate
+                            x-on:click.stop
+                            class="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 transition hover:border-primary hover:text-primary dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-200">
+                            <flux:icon.cog-6-tooth class="size-3.5" />
+                            Settings
+                        </a>
                         @if (! $themeCards[$slug]['hasRoutes'])
                             {{-- On the card as well as in the panel below, because
                                  the radio right next to it is what picks the

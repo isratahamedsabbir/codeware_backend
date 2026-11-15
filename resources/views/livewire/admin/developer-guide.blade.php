@@ -961,27 +961,6 @@ Admin -> SEO / Social / Payment Gateways   their own setting groups
                 </p>
             </div>
 
-            <div id="integration-pixel" class="scroll-mt-24">
-                <p class="font-semibold text-zinc-800 dark:text-zinc-100">Google Pixel (Integrations)</p>
-                <ol class="mt-2 list-decimal list-inside space-y-1.5">
-                    <li>GA4 &mdash; <span class="font-mono text-xs">analytics.google.com</span> &rarr; Admin &rarr; Data Streams &rarr; your web stream &rarr; copy the <strong>Measurement ID</strong> (<span class="font-mono text-xs">G-XXXXXXXXXX</span>).</li>
-                    <li>Or Google Ads conversion tracking &mdash; Ads &rarr; Tools &rarr; Conversions &rarr; copy the <span class="font-mono text-xs">AW-XXXXXXXXX</span> ID.</li>
-                    <li>Paste into the field and save.</li>
-                </ol>
-                <x-admin-doc-code label="The only value the frontend needs to read" file="GET /api/v1/settings/public">
-{
-  "data": {
-    "tracking": { "google_pixel_id": "G-XXXXXXXXXX" }
-  }
-}
-                </x-admin-doc-code>
-                <p class="text-xs text-zinc-500">
-                    It is already public &mdash; no auth, no server proxy. Fetch it once (cache it &mdash; the
-                    frontend revalidates hourly) and only inject the gtag script when the ID is non-empty, so a
-                    blank field means no analytics script at all rather than a broken one.
-                </p>
-            </div>
-
             <div id="integration-google-tag-manager" class="scroll-mt-24">
                 <p class="font-semibold text-zinc-800 dark:text-zinc-100">Google Tag Manager (Integrations)</p>
                 <ol class="mt-2 list-decimal list-inside space-y-1.5">

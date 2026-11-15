@@ -131,7 +131,7 @@
                  the page you pick, its sections — title, subtitle, image, button, text
                  colour — on the right. Same component state as the Theme Settings card, so the
                  one Save Changes bar below saves both. --}}
-            <x-admin-section-card plain header-border="border-zinc-100" icon="document-text" title="Page Settings"
+            <x-admin-section-card id="theme-page-settings" class="scroll-mt-24" plain header-border="border-zinc-100" icon="document-text" title="Page Settings"
                 description="The pages this theme serves. Pick a page to edit its sections — titles, subtitles, images, buttons and text colour.">
                 @include('livewire.admin.theme-settings.page-settings')
             </x-admin-section-card>
