@@ -251,12 +251,22 @@ it('selects the Default page as the SEO source of a page that never picked one',
         ->assertSet("seoSources.{$this->about->id}", $default->id);
 });
 
-it('treats a page naming itself as its SEO source as empty', function () {
-    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])
-        ->set("seoSources.{$this->about->id}", $this->about->id)
-        ->call('save');
+it('keeps a page that picked its own SEO on its own SEO, and shows it after the save', function () {
+    $default = Page::factory()->create(['title' => ['en' => 'Default', 'bn' => ''], 'slug' => 'default', 'type' => 'page', 'status' => 'inactive']);
 
-    expect($this->about->fresh()->seo_page_id)->toBeNull();
+    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])
+        ->assertSet("seoSources.{$this->about->id}", $default->id)
+        ->set("seoSources.{$this->about->id}", $this->about->id)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    // Stored as itself, which the page reads as "my own row" …
+    expect($this->about->fresh()->seo_page_id)->toBe($this->about->id)
+        ->and($this->about->fresh()->seoSourcePage()->is($this->about))->toBeTrue();
+
+    // … and the form shows that choice, not Default, when it is opened again.
+    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])
+        ->assertSet("seoSources.{$this->about->id}", $this->about->id);
 });
 
 it('lists only pages as SEO options, not posts, products or categories', function () {
@@ -491,4 +501,49 @@ it('reorders a section\'s items with the up and down buttons', function () {
     $component->call('moveCard', $this->section->id, 0, 'up')->call('moveCard', $this->section->id, 1, 'down');
 
     expect($component->get("cards.{$this->section->id}.0.title"))->toBe('Second');
+});
+
+it('does not move every page onto Default just because Save was pressed', function () {
+    Page::factory()->create(['title' => ['en' => 'Default', 'bn' => ''], 'slug' => 'default', 'type' => 'page', 'status' => 'inactive']);
+    $this->about->update(['seo_title' => ['en' => 'About own title']]);
+
+    // The form shows Default for a page that never picked a source …
+    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])->call('save')->assertHasNoErrors();
+
+    // … but saving without touching it must leave the page on its own SEO.
+    expect($this->about->fresh()->seo_page_id)->toBeNull()
+        ->and($this->about->fresh()->seo_title)->toBe('About own title');
+});
+
+it('falls back to Default in the form when a page\'s saved SEO source was deleted', function () {
+    $default = Page::factory()->create(['title' => ['en' => 'Default', 'bn' => ''], 'slug' => 'default', 'type' => 'page', 'status' => 'inactive']);
+    $gone = Page::factory()->published()->create(['title' => ['en' => 'Gone', 'bn' => ''], 'slug' => 'gone', 'type' => 'page']);
+    $this->about->update(['seo_page_id' => $gone->id]);
+    $gone->delete();
+
+    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])
+        ->assertSet("seoSources.{$this->about->id}", $default->id)
+        ->call('save')
+        ->assertHasNoErrors();
+});
+
+it('shows a success toast right away when a theme\'s own settings page is saved, without reloading', function () {
+    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])
+        ->call('save')
+        ->assertDispatched('notify', message: 'Theme settings saved.', type: 'success');
+});
+
+it('shows an error toast, and asks folded cards to open, when a save is refused', function () {
+    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])
+        ->set("seoSources.{$this->about->id}", 987654)
+        ->call('save')
+        ->assertHasErrors()
+        ->assertDispatched('notify', type: 'error')
+        ->assertDispatched('validation-failed');
+});
+
+it('keeps the theme list\'s save on the flash message and reload', function () {
+    Livewire::test(ThemeSettingsScreen::class)
+        ->call('save')
+        ->assertNotDispatched('notify');
 });

@@ -15,7 +15,10 @@
 --}}
 @props(['title', 'description' => null, 'icon' => 'rectangle-group', 'badge' => null, 'open' => false])
 
-<section x-data="{ open: @js((bool) $open) }" {{ $attributes->class('overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700') }}>
+{{-- `validation-failed` is dispatched by a form whose save was refused: a card holding
+     an error message opens, so the message is never hidden inside a folded card. --}}
+<section x-data="{ open: @js((bool) $open) }"
+    x-on:validation-failed.window="$nextTick(() => { if ($el.querySelector('[data-flux-error]:not(:empty)')) open = true })" {{ $attributes->class('overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700') }}>
     <button type="button" x-on:click="open = ! open" :aria-expanded="open"
         class="flex w-full items-center justify-between gap-3 bg-zinc-50/70 px-4 py-3 text-left transition hover:bg-zinc-50 dark:bg-zinc-800/40 dark:hover:bg-zinc-800/60">
         <span class="flex min-w-0 items-center gap-3">

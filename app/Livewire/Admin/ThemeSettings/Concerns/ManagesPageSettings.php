@@ -53,6 +53,9 @@ trait ManagesPageSettings
     /** @var array<int, int|string> page id => id of the page whose SEO it uses ('' = its own) */
     public array $seoSources = [];
 
+    /** @var array<int, int|string> seoSources as loaded, so a save only writes the pages the owner changed */
+    public array $seoSourcesLoaded = [];
+
     /** @var array<int, array<int, array<string, ?string>>> section id => cards */
     public array $cards = [];
 
@@ -229,7 +232,12 @@ trait ManagesPageSettings
 
         // A page that never picked a source shows the seeded Default page as its SEO.
         $defaultId = $this->defaultSeoPage()?->id;
-        $this->seoSources = $pages->mapWithKeys(fn (Page $page) => [$page->id => $page->seo_page_id ?? $defaultId ?? ''])->all();
+        $options = $this->seoOptions();
+        $this->seoSources = $pages->mapWithKeys(fn (Page $page) => [
+            // A source that has since been deleted (or is no longer offered) falls back to Default.
+            $page->id => $options->has($page->seo_page_id) ? $page->seo_page_id : ($defaultId ?? ''),
+        ])->all();
+        $this->seoSourcesLoaded = $this->seoSources;
 
         $sections = $this->sectionsFor($pages);
 
@@ -345,15 +353,21 @@ trait ManagesPageSettings
         // Only rows this card loaded may be written: ids arrive from the browser,
         // so a page or section that is not one of the theme's own is ignored
         // rather than trusted.
-        // The SEO each page uses: another page's, or (empty) its own and then the
-        // site-wide defaults. A page cannot name itself — that is the same as empty.
+        // The SEO each page uses: another page's, or its own. Naming itself is stored
+        // as itself (HasSeo reads that as "my own row"): turning it into null would
+        // make the form show Default again after the save, as if nothing was saved.
         foreach ($pages as $page) {
             if (! array_key_exists($page->id, $this->seoSources)) {
                 continue;
             }
 
+            // Untouched means untouched: a page showing "Default" only because it never
+            // picked a source keeps its own SEO until the owner actually picks one.
+            if ((string) $this->seoSources[$page->id] === (string) ($this->seoSourcesLoaded[$page->id] ?? '')) {
+                continue;
+            }
+
             $chosen = filled($this->seoSources[$page->id]) ? (int) $this->seoSources[$page->id] : null;
-            $chosen = $chosen === $page->id ? null : $chosen;
 
             if ($chosen !== ($page->seo_page_id ? (int) $page->seo_page_id : null)) {
                 $page->update(['seo_page_id' => $chosen]);

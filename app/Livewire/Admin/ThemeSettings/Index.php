@@ -343,6 +343,63 @@ class Index extends Component
 
     public function save(): void
     {
+        try {
+            $this->validateForm();
+        } catch (ValidationException $e) {
+            // The message is under the field, but the field may sit inside a card
+            // that is folded shut: say so with a toast, and open the cards that
+            // hold an error (see <x-admin-collapse-section>).
+            $this->dispatch('notify', message: 'Nothing was saved — please fix the highlighted fields.', type: 'error');
+            $this->dispatch('validation-failed');
+
+            throw $e;
+        }
+
+        // Page Settings card: page titles, section content, home banners.
+        $this->savePageSettings();
+
+        $this->saveUploads();
+
+        // The theme files, before the site-wide rows: if one of them cannot be
+        // written the owner needs to hear about that even though the rest of the
+        // screen saved, so the failure is carried into the message below.
+        $skipped = $this->saveThemeValues();
+
+        foreach ($this->keys() as $key) {
+            if (array_key_exists($key, $this->settings)) {
+                Setting::set($key, $this->settings[$key]);
+            }
+        }
+
+        AdminActivity::log('updated', 'Theme settings updated');
+
+        // An error, not a success: the theme's own fields (photo, text, lists)
+        // live in the saved-values file, so a skipped write means they were NOT saved.
+        $failure = $skipped === [] ? null : 'Not saved: the '.implode(', ', $skipped).' theme\'s fields could not be written. Check that storage/themes is writable by the web server user.';
+
+        // One theme's own settings page: stay where the owner is, show the result
+        // as a toast right now and re-read what was saved (blank repeater rows are
+        // dropped, uploads become URLs). A toast carried through a page reload in the
+        // session is lost if any other request lands in between.
+        if ($this->settingsFor) {
+            $this->loadThemeValues();
+            $this->loadPageSettings();
+
+            $this->dispatch('notify', message: $failure ?? 'Theme settings saved.', type: $failure ? 'error' : 'success');
+
+            return;
+        }
+
+        // The theme list: a real browser reload, same as Settings\Index::save(), so
+        // anything rendered from Setting::get() (e.g. the active theme) re-reads fresh.
+        session()->flash($failure ? 'error' : 'success', $failure ?? 'Theme settings saved.');
+
+        $this->js('window.location.reload()');
+    }
+
+    /** Validate every part of the screen's one form. */
+    private function validateForm(): void
+    {
         $this->settings['chat_widget_color'] = strtolower(trim((string) ($this->settings['chat_widget_color'] ?? '')));
 
         $this->validate(
@@ -354,36 +411,6 @@ class Index extends Component
 
         [$pageRules, $pageMessages] = $this->pageSettingsRules();
         $this->validate($pageRules, $pageMessages);
-
-        // Page Settings card: page titles, section content, home banners.
-        $this->savePageSettings();
-
-        $this->saveUploads();
-
-        // The theme files, before the site-wide rows: if one of them cannot be
-        // written the owner needs to hear about that even though the rest of the
-        // screen saved, so the failure is carried into the flash below.
-        $skipped = $this->saveThemeValues();
-
-        foreach ($this->keys() as $key) {
-            if (array_key_exists($key, $this->settings)) {
-                Setting::set($key, $this->settings[$key]);
-            }
-        }
-
-        AdminActivity::log('updated', 'Theme settings updated');
-
-        // A real browser reload, same as Settings\Index::save(), so anything
-        // rendered from Setting::get() (e.g. the active theme) re-reads fresh.
-        if ($skipped === []) {
-            session()->flash('success', 'Theme settings saved.');
-        } else {
-            // An error, not a success: the theme's own fields (photo, text, lists)
-            // live in theme.json, so a skipped write means they were NOT saved.
-            session()->flash('error', 'Not saved: the '.implode(', ', $skipped).' theme\'s fields could not be written. Its theme.json is missing or not writable by the web server user (check permissions on themes/ and the file).');
-        }
-
-        $this->js('window.location.reload()');
     }
 
     /**
