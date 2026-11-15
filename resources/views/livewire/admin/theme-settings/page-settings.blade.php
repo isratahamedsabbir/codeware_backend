@@ -46,10 +46,6 @@
 
                     @if ($psGroupView)
                         @include($psGroupView)
-                    @else
-                        <div class="rounded-lg border border-dashed border-zinc-200 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700">
-                            No settings form yet — add <code class="font-mono text-xs">pages/{{ $psGroup['key'] }}.blade.php</code> to the theme folder.
-                        </div>
                     @endif
                 </div>
             @endif
@@ -107,14 +103,11 @@
 
                 {{-- The theme's own built-in home sections (hero slider, promo tiles). --}}
                 @if ($psBanners && $psSelected->slug === $psHomeSlug)
-                    <x-admin-collapse-section icon="photo" title="Banners"
-                        description="The home page's hero slider and promo tiles.">
-                        @include($psBanners, ['heroSlides' => $heroSlides, 'promo' => $promo])
-                    </x-admin-collapse-section>
+                    @include($psBanners, ['heroSlides' => $heroSlides, 'promo' => $promo])
                 @endif
 
                 {{-- Sections --}}
-                @forelse ($psSections as $section)
+                @foreach ($psSections as $section)
                     @php $constants = array_values($section->constant ?? []); @endphp
 
                     @php
@@ -226,14 +219,7 @@
                             </div>
                         </div>
                     </div>
-                @empty
-                    @unless ($psBanners && $psSelected->slug === $psHomeSlug)
-                        <p class="rounded-lg border border-dashed border-zinc-300 p-4 text-center text-sm text-zinc-400">
-                            This page has no sections yet.
-                            <a href="{{ route('admin.cms', ['pageId' => $psSelected->id]) }}" wire:navigate class="font-medium text-primary hover:underline">Add one in CMS</a>
-                        </p>
-                    @endunless
-                @endforelse
+                @endforeach
             </div>
         </div>
 

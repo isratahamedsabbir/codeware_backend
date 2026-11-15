@@ -283,6 +283,24 @@ class ThemeSettings
     }
 
     /**
+     * The page whose SEO a settings group ("home", "about"…) presents: the one
+     * picked in Page Settings → {group} → SEO, else the seeded Default page, else
+     * null (the site-wide defaults then apply). Hand the result to the layout as
+     * `page` and its title, description, Open Graph, Twitter, robots and canonical
+     * are what the group's public page says about itself. The group is a name,
+     * not a row, so the page returned is only ever the *source* of that SEO.
+     */
+    public static function groupSeoPage(string $slug, string $group): ?\App\Models\Page
+    {
+        $id = (int) static::text($slug, 'page_'.$group.'_seo');
+        $pages = \App\Models\Page::ofType('page');
+
+        $page = $id > 0 ? (clone $pages)->find($id) : null;
+
+        return $page ?? (clone $pages)->whereHas('slugRecord', fn ($q) => $q->where('slug', 'default'))->first();
+    }
+
+    /**
      * A stored list of rows — the read side of a <x-admin-repeatable-fields>
      * declaration, as a plain list of flat string maps.
      *

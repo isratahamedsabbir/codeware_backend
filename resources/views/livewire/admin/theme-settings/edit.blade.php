@@ -32,7 +32,7 @@
                  settings away rather than that there was nowhere to put them. --}}
 
             @if ($selectedHasSettings)
-                <x-admin-section-card plain header-border="border-zinc-100" icon="adjustments-horizontal" title="Theme Settings"
+                <x-admin-section-card plain collapsible header-border="border-zinc-100" icon="adjustments-horizontal" title="Theme Settings"
                     description="Everything the {{ $selectedSlug }} theme defines for itself. Stored in its own {{ \App\Support\ThemeSettings::FILE }} inside the theme folder, not in the database.">
                     <x-slot:titleActions>
                         {{-- Points into the Developer Guide rather than opening a copy of

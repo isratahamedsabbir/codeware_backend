@@ -352,25 +352,47 @@ it('offers a theme\'s own pages and the Default page as SEO options, never anoth
         ->assertViewHas('psSeoOptions', fn ($options) => $options->contains('About us') && $options->contains('Default') && $options->contains('Home'));
 });
 
+/**
+ * Runs $test with the default theme's theme.json stripped of any saved group SEO
+ * pick (a real site keeps page ids there that the test database does not have),
+ * and puts the file back afterwards.
+ */
+function withCleanDefaultThemeFile(Closure $test): void
+{
+    $file = base_path('themes/default/theme.json');
+    $original = file_get_contents($file);
+    $data = json_decode($original, true);
+    unset($data['theme_default_page_home_seo']);
+    file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+    \App\Support\ThemeSettings::forget('default');
+
+    try {
+        $test();
+    } finally {
+        file_put_contents($file, $original);
+        \App\Support\ThemeSettings::forget('default');
+    }
+}
+
 it('lists the default theme\'s settings groups by name, without touching the pages table', function () {
-    $before = Page::count();
+    withCleanDefaultThemeFile(function () {
+        $before = Page::count();
 
-    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'default'])
-        ->assertViewHas('psGroups', fn ($groups) => $groups->pluck('key')->all() === ['home'])
-        ->assertSee('Intro Heading')
-        ->call('save')
-        ->assertHasNoErrors();
+        Livewire::test(ThemeSettingsEdit::class, ['slug' => 'default'])
+            ->assertViewHas('psGroups', fn ($groups) => $groups->pluck('key')->all() === ['home'])
+            ->assertSee('Intro Heading')
+            ->call('save')
+            ->assertHasNoErrors();
 
-    expect(Page::count())->toBe($before);
+        expect(Page::count())->toBe($before);
+    });
 });
 
 it('selects the Default page as a group\'s SEO source and saves the one picked', function () {
     $default = Page::factory()->create(['title' => ['en' => 'Default', 'bn' => ''], 'slug' => 'default', 'type' => 'page', 'status' => 'inactive']);
     $other = Page::factory()->published()->create(['title' => ['en' => 'Shared SEO', 'bn' => ''], 'slug' => 'shared-seo', 'type' => 'page']);
 
-    $original = file_get_contents(base_path('themes/default/theme.json'));
-
-    try {
+    withCleanDefaultThemeFile(function () use ($default, $other) {
         Livewire::test(ThemeSettingsEdit::class, ['slug' => 'default'])
             ->assertSet('groupSeo.home', $default->id)
             ->set('groupSeo.home', $other->id)
@@ -378,10 +400,26 @@ it('selects the Default page as a group\'s SEO source and saves the one picked',
             ->assertHasNoErrors();
 
         expect(\App\Support\ThemeSettings::text('default', 'theme_default_page_home_seo'))->toBe((string) $other->id);
-    } finally {
-        file_put_contents(base_path('themes/default/theme.json'), $original);
-        \App\Support\ThemeSettings::forget('default');
-    }
+    });
+});
+
+it('serves the SEO picked for the Home group on the default theme home page', function () {
+    $source = Page::factory()->published()->create([
+        'title' => ['en' => 'About us', 'bn' => ''], 'slug' => 'about-seo-source', 'type' => 'page',
+        'seo_title' => ['en' => 'Picked home SEO title'], 'seo_description' => ['en' => 'Picked home SEO description'],
+    ]);
+
+    Setting::set('site_theme', 'default');
+    Themes::forget();
+
+    withCleanDefaultThemeFile(function () use ($source) {
+        \App\Support\ThemeSettings::merge('default', ['theme_default_page_home_seo' => (string) $source->id]);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('Picked home SEO title')
+            ->assertSee('Picked home SEO description');
+    });
 });
 
 it('seeds the Default page: inactive, with an SEO row, out of the nav', function () {

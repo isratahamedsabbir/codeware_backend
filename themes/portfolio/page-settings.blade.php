@@ -2,8 +2,8 @@
     Portfolio — the one-pager's content, shown under Page Settings → Home.
 
     Profile, Sections, Projects, Experience, Skills, Testimonials, Education and
-    Certifications are the home page's own content, so they live in the Page
-    Settings card; only Typography (the global look) stays in settings.blade.php.
+    Certifications are the home page's own content, each one a collapse card in
+    the Page Settings card; only Typography (the global look) stays in settings.blade.php.
 
     Included by the Theme Settings screen's Page Settings card when a theme ships
     a page-settings.blade.php at its root. Binds to the screen's `$settings` bag
@@ -15,52 +15,11 @@
 
     Read back by the one-pager through Themes\Portfolio\Support\PortfolioProfile.
 --}}
-<div
-    wire:key="portfolio-home-content"
-    x-data="{
-        // The two renames below are one-way and permanent: a stored tab name
-        // that no longer matches a panel would leave `tab` pointing at nothing,
-        // so the screen would open blank with no menu entry marked. A renamed
-        // tab has to send the browser to whatever replaced it, the same way the
-        // old 'work' name was folded into 'projects'.
-        tab: (() => {
-            try {
-                const saved = localStorage.getItem('theme-portfolio-tab') || 'profile'
-                if (saved === 'work') return 'projects'
-                // 'credentials' was one panel holding two lists. It is now a
-                // panel each, so a browser that remembers the old name lands on
-                // the first of the two.
-                if (saved === 'credentials') return 'education'
-                return saved
-            } catch (e) { return 'profile' }
-        })(),
-        open(name) { this.tab = name; try { localStorage.setItem('theme-portfolio-tab', name) } catch (e) {} },
-    }"
-    class="grid gap-5 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-6"
->
-    {{-- The sections are a menu, not a tab strip: a strip at the top of a form
-         this long scrolls out of reach, this holds its place beside the form.
-         `lg:top-14` clears the 56px sticky admin header. --}}
-    <x-admin-settings-nav class="lg:sticky lg:top-14 lg:self-start" :tabs="[
-        'profile' => ['Profile', 'user-circle'],
-        'sections' => ['Sections', 'squares-2x2'],
-        'projects' => ['Projects', 'folder'],
-        'experience' => ['Experience', 'briefcase'],
-        'skills' => ['Skills', 'sparkles'],
-        'testimonials' => ['Testimonials', 'chat-bubble-left-right'],
-        'education' => ['Education', 'academic-cap'],
-        'certifications' => ['Certifications', 'check-badge'],
-    ]" />
-
-    {{-- `x-cloak` on the whole column: panels stay mounted (x-show, not x-if) so
-         the media pickers keep their Livewire bindings, which means every panel
-         is in the DOM at once and would otherwise all flash before Alpine boots. --}}
-    <div class="min-w-0 space-y-5" x-cloak>
+<div wire:key="portfolio-home-content" class="space-y-3">
     {{-- ══ Profile ═══════════════════════════════════════════════════════ --}}
     {{-- Both panels stay mounted (x-show) so the media picker keeps its Livewire
          binding while switching tabs; the last tab is remembered per browser. --}}
-    <section role="tabpanel" x-show="tab === 'profile'"
-        class="isolate overflow-hidden rounded-xl bg-white dark:bg-zinc-900">
+    <x-admin-collapse-section icon="user-circle" title="Profile" description="Your name, role, photo, tagline and résumé.">
         {{-- Direct uploads rather than Media Library pickers: a new file
              replaces the old one and the old file is deleted on save
              (see App\Livewire\Admin\ThemeSettings\Index::saveUploads()). --}}
@@ -109,11 +68,10 @@
                 </flux:field>
             </div>
         </div>
-    </section>
+    </x-admin-collapse-section>
 
     {{-- ══ Sections ══════════════════════════════════════════════════════ --}}
-    <section role="tabpanel" x-show="tab === 'sections'"
-        class="isolate overflow-hidden rounded-xl bg-white dark:bg-zinc-900">
+    <x-admin-collapse-section icon="squares-2x2" title="Sections" description="The stats strip and which sections the page shows.">
         <div class="space-y-8 p-5">
             <x-admin-repeatable-fields
                 :repeaters="$repeaters"
@@ -138,15 +96,14 @@
                  second source. "What I do" on the storefront now renders the
                  active Service rows and hands each one a booking form. --}}
         </div>
-    </section>
+    </x-admin-collapse-section>
 
 
     {{-- ══ Projects ════════════════════════════════════════════════════════ --}}
     {{-- Projects and Experience both used to be table-backed with their own
          CRUD screens; they are lists here so the whole portfolio is edited in
          one place. --}}
-    <section role="tabpanel" x-show="tab === 'projects'"
-        class="isolate overflow-hidden rounded-xl bg-white dark:bg-zinc-900">
+    <x-admin-collapse-section icon="folder" title="Projects" description="The work you show.">
         <div class="space-y-8 p-5">
             <x-admin-repeatable-fields
                 :repeaters="$repeaters"
@@ -167,11 +124,10 @@
                     ['name' => 'repo', 'label' => 'Source code', 'placeholder' => 'https://github.com/you/project', 'wide' => true],
                 ]" />
         </div>
-    </section>
+    </x-admin-collapse-section>
 
     {{-- ══ Experience ══════════════════════════════════════════════════════ --}}
-    <section role="tabpanel" x-show="tab === 'experience'"
-        class="isolate overflow-hidden rounded-xl bg-white dark:bg-zinc-900">
+    <x-admin-collapse-section icon="briefcase" title="Experience" description="Where you have worked.">
 
         <div class="space-y-8 p-5">
             <x-admin-repeatable-fields
@@ -189,11 +145,10 @@
                     ['name' => 'description', 'label' => 'Description', 'type' => 'textarea', 'placeholder' => 'What you owned, and what it changed.'],
                 ]" />
         </div>
-    </section>
+    </x-admin-collapse-section>
 
     {{-- ══ Skills ══════════════════════════════════════════════════════════ --}}
-    <section role="tabpanel" x-show="tab === 'skills'"
-        class="isolate overflow-hidden rounded-xl bg-white dark:bg-zinc-900">
+    <x-admin-collapse-section icon="sparkles" title="Skills" description="What you are good at.">
 
         <div class="p-5">
             <x-admin-repeatable-fields
@@ -211,11 +166,10 @@
                     ['name' => 'description', 'label' => 'Description', 'placeholder' => 'Framework of choice'],
                 ]" />
         </div>
-    </section>
+    </x-admin-collapse-section>
 
     {{-- ══ Testimonials ═════════════════════════════════════════════════════ --}}
-    <section role="tabpanel" x-show="tab === 'testimonials'"
-        class="isolate overflow-hidden rounded-xl bg-white dark:bg-zinc-900">
+    <x-admin-collapse-section icon="chat-bubble-left-right" title="Testimonials" description="What clients say.">
 
         <div class="p-5">
             <x-admin-repeatable-fields
@@ -233,7 +187,7 @@
                     ['name' => 'rating', 'label' => 'Rating (1-5)', 'placeholder' => '5', 'wide' => true],
                 ]" />
         </div>
-    </section>
+    </x-admin-collapse-section>
 
     {{-- ══ Education ════════════════════════════════════════════════════ --}}
     {{-- Education and Certifications were one Credentials panel holding two
@@ -248,8 +202,7 @@
          list may be left empty — it hides itself on the public page rather than
          printing an empty heading, so a portfolio with only education never has
          to invent certifications. --}}
-    <section role="tabpanel" x-show="tab === 'education'"
-        class="isolate overflow-hidden rounded-xl bg-white dark:bg-zinc-900">
+    <x-admin-collapse-section icon="academic-cap" title="Education" description="Your studies.">
         <div class="p-5">
             <x-admin-repeatable-fields
                 :repeaters="$repeaters"
@@ -264,14 +217,13 @@
                     ['name' => 'description', 'label' => 'Institution', 'placeholder' => 'University name', 'wide' => true],
                 ]" />
         </div>
-    </section>
+    </x-admin-collapse-section>
 
     {{-- ══ Certifications ════════════════════════════════════════════════ --}}
     {{-- No heading of its own: the menu already names this section and the
          repeater card below repeats the label inside it, so a third copy above
          the card said the same word twice and pushed the rows down. --}}
-    <section role="tabpanel" x-show="tab === 'certifications'"
-        class="isolate overflow-hidden rounded-xl bg-white dark:bg-zinc-900">
+    <x-admin-collapse-section icon="check-badge" title="Certifications" description="Certificates you hold.">
         <div class="p-5">
             <x-admin-repeatable-fields
                 :repeaters="$repeaters"
@@ -286,6 +238,5 @@
                     ['name' => 'description', 'label' => 'Issuer', 'placeholder' => 'Amazon Web Services', 'wide' => true],
                 ]" />
         </div>
-    </section>
-    </div>
+    </x-admin-collapse-section>
 </div>

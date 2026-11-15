@@ -12,13 +12,8 @@
     Until a list has a row the home page shows its built-in sample content, so a
     fresh install is never an empty page.
 --}}
-<div wire:key="modern-home-banners" class="space-y-8">
-    <div class="space-y-3">
-        <div>
-            <h4 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Hero slider</h4>
-            <p class="text-xs text-zinc-500">The large sliding banner at the top of the home page. Until you add a slide the theme's sample slides are shown.</p>
-        </div>
-
+<div wire:key="modern-home-banners" class="space-y-3">
+    <x-admin-collapse-section icon="photo" title="Hero slider" description="The large sliding banner at the top of the home page. Until you add a slide the theme's sample slides are shown.">
         <x-admin-repeatable-fields
             :repeaters="$repeaters"
             setting-key="theme_modern_ecommerce_hero_slides"
@@ -35,14 +30,9 @@
                 ['name' => 'link', 'label' => 'Button link', 'placeholder' => '/shop or https://…'],
                 ['name' => 'image', 'label' => 'Background image', 'type' => 'media'],
             ]" />
-    </div>
+    </x-admin-collapse-section>
 
-    <div class="space-y-3">
-        <div>
-            <h4 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Promo tiles</h4>
-            <p class="text-xs text-zinc-500">Up to three banner tiles under the hero, each linking where you choose. Leave empty to hide the row.</p>
-        </div>
-
+    <x-admin-collapse-section icon="squares-2x2" title="Promo tiles" description="Up to three banner tiles under the hero, each linking where you choose. Leave empty to hide the row.">
         <x-admin-repeatable-fields
             :repeaters="$repeaters"
             setting-key="theme_modern_ecommerce_promos"
@@ -56,5 +46,5 @@
                 ['name' => 'link', 'label' => 'Link', 'placeholder' => '/shop or https://…'],
                 ['name' => 'image', 'label' => 'Image', 'type' => 'media'],
             ]" />
-    </div>
+    </x-admin-collapse-section>
 </div>

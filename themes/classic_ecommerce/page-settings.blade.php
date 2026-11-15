@@ -26,6 +26,7 @@
          Livewire binding while you switch slides. `isolate` keeps the
          z-indexed cards on the images from rising above the sticky page
          header and save bar. --}}
+    <x-admin-collapse-section icon="photo" title="Banners" description="The home page's hero slider and promo tiles.">
     <section x-data="{ activeSlide: 0 }"
         class="isolate overflow-hidden rounded-xl bg-white dark:bg-zinc-900">
         {{-- ── Canvas: hero (2/3) + promo tiles (1/3) ── --}}
@@ -131,4 +132,5 @@
             </div>
         </div>
     </section>
+    </x-admin-collapse-section>
 </div>
