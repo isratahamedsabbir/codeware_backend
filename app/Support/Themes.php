@@ -628,7 +628,7 @@ class Themes
                 // leave a bundled theme quietly deletable.
                 'default' => ($data['default'] ?? null) === true,
                 'sn' => static::readSn($data['sn'] ?? null),
-                'pages' => is_array($data['pages'] ?? null)
+                'pages' => is_array($data['pages'] ?? null) && array_is_list($data['pages'])
                     ? collect($data['pages'])->filter(fn ($page) => is_string($page) && $page !== '')->values()->all()
                     : null,
                 'groups' => static::readGroups($data['pages'] ?? null),
@@ -652,6 +652,14 @@ class Themes
     {
         if (! is_array($pages)) {
             return null;
+        }
+
+        // The on-disk layout: "pages": { "home": { "label": "Home", … } }.
+        if (! array_is_list($pages)) {
+            $pages = collect($pages)
+                ->map(fn ($page, $key) => ['key' => (string) $key, 'name' => is_array($page) ? ($page['label'] ?? null) : null])
+                ->values()
+                ->all();
         }
 
         $groups = collect($pages)

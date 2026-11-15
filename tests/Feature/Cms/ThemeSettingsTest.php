@@ -234,6 +234,52 @@ it('creates a well-formed manifest when it recreates a missing file', function (
     expect($written)->toHaveKey('name', 'Default')
         ->and($written)->toHaveKey('version', '1.0.0')
         ->and($written)->toHaveKey('tags')
-        ->and($written)->toHaveKey('theme_default_hero_title', 'Seeded')
+        ->and($written['global'])->toHaveKey('hero_title', 'Seeded')
         ->and(Themes::manifest('default')['name'])->toBe('Default');
+});
+
+it('writes theme.json as manifest, global and pages, and still reads it as flat keys', function () {
+    $file = ThemeSettings::file('portfolio');
+    $original = file_get_contents($file);
+
+    try {
+        ThemeSettings::merge('portfolio', [
+            'theme_portfolio_font' => 'inter',
+            'theme_portfolio_hero_title' => 'Hi',
+            'theme_portfolio_home_seo' => '7',
+        ]);
+
+        $disk = json_decode((string) file_get_contents($file), true);
+
+        expect($disk['global'])->toHaveKey('font', 'inter')
+            ->and($disk['pages']['home']['label'])->toBe('Home')
+            ->and($disk['pages']['home']['hero']['title'])->toBe('Hi')
+            ->and($disk['pages']['home']['seo'])->toBe(7)
+            ->and($disk)->not->toHaveKey('theme_portfolio_font');
+
+        // Read back through the flat API every template and form already uses.
+        expect(ThemeSettings::text('portfolio', 'font'))->toBe('inter')
+            ->and(ThemeSettings::text('portfolio', 'hero_title'))->toBe('Hi')
+            ->and(ThemeSettings::text('portfolio', 'home_seo'))->toBe('7')
+            ->and(Themes::manifest('portfolio')['groups'])->toBe([['key' => 'home', 'name' => 'Home']]);
+    } finally {
+        file_put_contents($file, $original);
+        ThemeSettings::forget('portfolio');
+        Themes::forgetManifest('portfolio');
+    }
+});
+
+it('reads a theme.json still written with flat theme_ keys', function () {
+    $file = ThemeSettings::file('default');
+    $original = file_get_contents($file);
+
+    try {
+        file_put_contents($file, json_encode(['name' => 'Default', 'theme_default_font' => 'legacy']));
+        ThemeSettings::forget('default');
+
+        expect(ThemeSettings::text('default', 'font'))->toBe('legacy');
+    } finally {
+        file_put_contents($file, $original);
+        ThemeSettings::forget('default');
+    }
 });

@@ -167,8 +167,8 @@ it('shows a theme settings page with Theme Settings and Page Settings, not the t
         ->assertSet('settingsFor', 'portfolio')
         ->assertSee('Page Settings')
         ->assertSee('theme_portfolio_font', false)
-        // The portfolio serves no standalone pages, so the About page is not listed.
-        ->assertDontSee('About us');
+        // The portfolio's pages are one settings group, Home — not rows of the pages table.
+        ->assertViewHas('psGroups', fn ($groups) => $groups->pluck('key')->all() === ['home']);
 });
 
 it('lists the pages of the theme being edited, not the live one', function () {
@@ -327,7 +327,6 @@ it('lists only the pages a theme names in its theme.json', function (string $the
 })->with([
     'news' => ['news', ['home', 'about', 'contact', 'faq']],
     'classic' => ['classic_ecommerce', ['home', 'about', 'contact', 'faq']],
-    'portfolio' => ['portfolio', ['home']],
 ]);
 
 it('lists the pages in the order the theme names them', function () {
@@ -344,12 +343,13 @@ it('offers a theme\'s own pages and the Default page as SEO options, never anoth
     Page::factory()->published()->create(['title' => ['en' => 'Home', 'bn' => ''], 'slug' => 'home', 'type' => 'page']);
     Page::factory()->create(['title' => ['en' => 'Default', 'bn' => ''], 'slug' => 'default', 'type' => 'page', 'status' => 'inactive']);
 
-    // The portfolio has only Home, so About (a news page) is not one of its options.
-    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'portfolio'])
-        ->assertViewHas('psSeoOptions', fn ($options) => $options->values()->sort()->values()->all() === ['Default', 'Home'] || $options->values()->sort()->values()->all() === ['Default']);
-
+    // A theme that keeps plain page slugs offers its own pages plus Default.
     Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])
         ->assertViewHas('psSeoOptions', fn ($options) => $options->contains('About us') && $options->contains('Default') && $options->contains('Home'));
+
+    // A theme with settings groups offers every page, Default first.
+    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'portfolio'])
+        ->assertViewHas('psSeoOptions', fn ($options) => $options->contains('Default') && $options->contains('Home') && $options->first() === 'Default');
 });
 
 /**
@@ -362,7 +362,7 @@ function withCleanDefaultThemeFile(Closure $test): void
     $file = base_path('themes/default/theme.json');
     $original = file_get_contents($file);
     $data = json_decode($original, true);
-    unset($data['theme_default_page_home_seo']);
+    unset($data['pages']['home']['seo']);
     file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     \App\Support\ThemeSettings::forget('default');
 
@@ -399,7 +399,7 @@ it('selects the Default page as a group\'s SEO source and saves the one picked',
             ->call('save')
             ->assertHasNoErrors();
 
-        expect(\App\Support\ThemeSettings::text('default', 'theme_default_page_home_seo'))->toBe((string) $other->id);
+        expect(\App\Support\ThemeSettings::text('default', 'theme_default_home_seo'))->toBe((string) $other->id);
     });
 });
 
@@ -413,7 +413,7 @@ it('serves the SEO picked for the Home group on the default theme home page', fu
     Themes::forget();
 
     withCleanDefaultThemeFile(function () use ($source) {
-        \App\Support\ThemeSettings::merge('default', ['theme_default_page_home_seo' => (string) $source->id]);
+        \App\Support\ThemeSettings::merge('default', ['theme_default_home_seo' => (string) $source->id]);
 
         $this->get('/')
             ->assertOk()
@@ -431,4 +431,25 @@ it('seeds the Default page: inactive, with an SEO row, out of the nav', function
         ->and($page->status)->toBe('inactive')
         ->and(\App\Models\Seo::where('page_id', $page->id)->exists())->toBeTrue()
         ->and(\App\Support\Frontend::navPages()->pluck('slug')->all())->not->toContain('default');
+});
+
+it('falls back to the Default page when a group\'s saved SEO page no longer exists', function () {
+    $default = Page::factory()->create(['title' => ['en' => 'Default', 'bn' => ''], 'slug' => 'default', 'type' => 'page', 'status' => 'inactive']);
+    $file = base_path('themes/default/theme.json');
+    $original = file_get_contents($file);
+
+    try {
+        $data = json_decode($original, true);
+        $data['pages']['home']['seo'] = 987654;
+        file_put_contents($file, json_encode($data));
+        \App\Support\ThemeSettings::forget('default');
+
+        Livewire::test(ThemeSettingsEdit::class, ['slug' => 'default'])
+            ->assertSet('groupSeo.home', $default->id)
+            ->call('save')
+            ->assertHasNoErrors();
+    } finally {
+        file_put_contents($file, $original);
+        \App\Support\ThemeSettings::forget('default');
+    }
 });

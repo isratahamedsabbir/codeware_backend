@@ -1,17 +1,24 @@
 {
-    "pages": [
-        {
-            "key": "home",
-            "name": "Home"
-        }
-    ],
+    "name": "Default",
+    "description": "The default theme: the way into the admin, vendor and delivery panels, with an owner-written intro.",
+    "version": "1.0.0",
+    "author": "Codeware",
     "default": true,
     "no_index": true,
-    "theme_default_intro_heading": "",
-    "theme_default_intro_text": "",
-    "theme_default_font": "system",
-    "theme_default_promo_1_link": "",
-    "theme_default_promo_2_link": "",
-    "theme_default_hero_title": "Welcome home",
-    "theme_default_page_home_seo": "11"
+    "global": {
+        "font": "system",
+        "promo_1_link": "",
+        "promo_2_link": "",
+        "hero_title": "Welcome home"
+    },
+    "pages": {
+        "home": {
+            "label": "Home",
+            "intro": {
+                "heading": "",
+                "text": ""
+            },
+            "seo": 7
+        }
+    }
 }

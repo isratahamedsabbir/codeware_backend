@@ -71,9 +71,14 @@ trait ManagesPageSettings
             $theme = $this->pageTheme();
             $defaultId = $this->defaultSeoPage()?->id;
 
-            $this->groupSeo = $this->groups()->mapWithKeys(fn (array $group) => [
-                $group['key'] => ThemeSettings::text($theme, $this->groupSeoKey($group['key'])) ?: ($defaultId ?? ''),
-            ])->all();
+            // A stored pick whose page has since been deleted falls back to Default
+            // rather than leaving the form holding an id that fails validation.
+            $options = $this->seoOptions();
+            $this->groupSeo = $this->groups()->mapWithKeys(function (array $group) use ($theme, $options, $defaultId) {
+                $stored = (int) ThemeSettings::text($theme, $this->groupSeoKey($group['key']));
+
+                return [$group['key'] => $options->has($stored) ? $stored : ($defaultId ?? '')];
+            })->all();
 
             if (! $this->groups()->contains('key', $this->selectedGroup)) {
                 $this->selectedGroup = $this->groups()->first()['key'];
@@ -107,7 +112,7 @@ trait ManagesPageSettings
     /** The theme.json key a group's chosen SEO source is stored under. */
     private function groupSeoKey(string $key): string
     {
-        return 'theme_'.$this->pageTheme().'_page_'.$key.'_seo';
+        return 'theme_'.$this->pageTheme().'_'.$key.'_seo';
     }
 
     public function selectGroup(string $key): void

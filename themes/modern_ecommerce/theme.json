@@ -1,10 +1,4 @@
 {
-    "pages": [
-        "home",
-        "about",
-        "contact",
-        "faq"
-    ],
     "home_page": "home",
     "name": "Modern Ecommerce",
     "description": "A clean, bold storefront with a sliding hero, promo tiles and product rows.",
@@ -15,8 +9,16 @@
         "Modern",
         "Fashion"
     ],
-    "theme_modern_ecommerce_accent_color": "#e63946",
-    "theme_modern_ecommerce_font": "",
-    "theme_modern_ecommerce_hero_slides": [],
-    "theme_modern_ecommerce_promos": []
+    "pages": [
+        "home",
+        "about",
+        "contact",
+        "faq"
+    ],
+    "global": {
+        "accent_color": "#e63946",
+        "font": "",
+        "hero_slides": [],
+        "promos": []
+    }
 }

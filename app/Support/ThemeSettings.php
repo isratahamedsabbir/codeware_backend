@@ -188,7 +188,7 @@ class ThemeSettings
             // key => value map has no keys to look anything up by, so there is
             // nothing to read. An empty {} is both, and is just no values.
             if (is_array($decoded) && ($decoded === [] || ! array_is_list($decoded))) {
-                $values = $decoded;
+                $values = static::flatten($slug, $decoded);
             }
         }
 
@@ -292,7 +292,7 @@ class ThemeSettings
      */
     public static function groupSeoPage(string $slug, string $group): ?\App\Models\Page
     {
-        $id = (int) static::text($slug, 'page_'.$group.'_seo');
+        $id = (int) static::text($slug, $group.'_seo');
         $pages = \App\Models\Page::ofType('page');
 
         $page = $id > 0 ? (clone $pages)->find($id) : null;
@@ -478,7 +478,7 @@ class ThemeSettings
             return false;
         }
 
-        $json = json_encode((object) $values, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $json = json_encode((object) static::nest($slug, $values), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
         // json_encode() returns false for anything it cannot represent. A
         // settings file that is not valid JSON is a storefront that cannot be
@@ -513,6 +513,191 @@ class ThemeSettings
         Themes::forgetManifest($slug);
 
         return true;
+    }
+
+    /**
+     * The file's layout on disk, and the flat map every reader still sees.
+     *
+     * On disk a theme.json is structured the way a theme author thinks of it:
+     *
+     *     { "name": …, "version": …,                       the manifest
+     *       "global": { "font": "system", … },             the global look
+     *       "pages":  { "home": { "label": "Home",          one entry per settings group
+     *                             "seo": 11,
+     *                             "hero": { "title": … } } } }
+     *
+     * In memory (all(), get(), text(), merge(), the admin form's `settings.theme_*`)
+     * it is still the flat `theme_{slug}_{field}` map, so no template, form or
+     * helper had to change. flatten() and nest() are the two directions and are
+     * exact inverses: a page's section is only the first word of a field name
+     * (`hero_title` ⇄ hero.title), `{page}_seo` ⇄ pages.{page}.seo, and `label` is the
+     * group's display name (so a theme may still have a field called `name`). A key in the
+     * old flat layout is still read, and is moved to its place on the next write.
+     *
+     * @param  array<string, mixed>  $decoded
+     * @return array<string, mixed>
+     */
+    private static function flatten(string $slug, array $decoded): array
+    {
+        $prefix = self::PREFIX.$slug.'_';
+        $out = [];
+
+        foreach ($decoded as $key => $value) {
+            if ($key === 'global' && is_array($value) && ! array_is_list($value)) {
+                foreach ($value as $field => $fieldValue) {
+                    $out[$prefix.$field] = $fieldValue;
+                }
+
+                continue;
+            }
+
+            if ($key === 'pages' && is_array($value) && ! array_is_list($value)) {
+                $groups = [];
+
+                foreach ($value as $pageKey => $page) {
+                    $page = is_array($page) ? $page : [];
+                    $groups[] = ['key' => (string) $pageKey, 'name' => is_string($page['label'] ?? null) ? $page['label'] : ucwords(str_replace('_', ' ', (string) $pageKey))];
+
+                    foreach ($page as $field => $fieldValue) {
+                        if ($field === 'label') {
+                            continue;
+                        }
+
+                        if ($field === 'seo') {
+                            $out[$prefix.$pageKey.'_seo'] = $fieldValue;
+                        } elseif (is_array($fieldValue) && $fieldValue !== [] && ! array_is_list($fieldValue)) {
+                            foreach ($fieldValue as $sub => $subValue) {
+                                $out[$prefix.$field.'_'.$sub] = $subValue;
+                            }
+                        } else {
+                            $out[$prefix.$field] = $fieldValue;
+                        }
+                    }
+                }
+
+                $out['pages'] = $groups;
+
+                continue;
+            }
+
+            $out[$key] = $value;
+        }
+
+        return $out;
+    }
+
+    /**
+     * @param  array<string, mixed>  $flat
+     * @return array<string, mixed>
+     */
+    private static function nest(string $slug, array $flat): array
+    {
+        $prefix = self::PREFIX.$slug.'_';
+        $groups = collect($flat['pages'] ?? null)
+            ->filter(fn ($page) => is_array($page) && isset($page['key']))
+            ->mapWithKeys(fn (array $page) => [(string) $page['key'] => (string) ($page['name'] ?? $page['key'])]);
+
+        $manifest = [];
+        $global = [];
+        $pages = [];
+        $rest = [];
+
+        foreach ($groups as $pageKey => $name) {
+            $pages[$pageKey] = ['label' => $name];
+        }
+
+        $owners = $groups->isEmpty() ? [] : static::fieldOwners($slug, $groups->keys()->all());
+
+        foreach ($flat as $key => $value) {
+            if ($key === 'pages') {
+                continue;
+            }
+
+            if (in_array($key, self::MANIFEST_KEYS, true)) {
+                $manifest[$key] = $value;
+
+                continue;
+            }
+
+            if (! str_starts_with((string) $key, $prefix)) {
+                $rest[$key] = $value;
+
+                continue;
+            }
+
+            $field = substr((string) $key, strlen($prefix));
+
+            foreach ($groups->keys() as $pageKey) {
+                if ($field === $pageKey.'_seo') {
+                    $pages[$pageKey]['seo'] = is_string($value) && ctype_digit($value) ? (int) $value : $value;
+
+                    continue 2;
+                }
+            }
+
+            $owner = $owners[$field] ?? null;
+
+            if ($owner === null) {
+                $global[$field] = $value;
+
+                continue;
+            }
+
+            [$section, $leaf] = array_pad(explode('_', $field, 2), 2, null);
+
+            if ($leaf === null || (isset($pages[$owner][$section]) && ! is_array($pages[$owner][$section]))) {
+                $pages[$owner][$field] = $value;
+            } else {
+                $pages[$owner][$section][$leaf] = $value;
+            }
+        }
+
+        // A page-level field that shares its name with a section would otherwise be
+        // overwritten by it; both survive because the section only ever takes the
+        // leaf when the slot is free (checked above) or already a section.
+        $out = $manifest;
+
+        if ($groups->isNotEmpty()) {
+            $out['global'] = (object) $global;
+            $out['pages'] = (object) array_map(fn ($page) => (object) $page, $pages);
+        } else {
+            if (array_key_exists('pages', $flat)) {
+                $out['pages'] = $flat['pages'];
+            }
+
+            $out['global'] = (object) $global;
+        }
+
+        return $out + $rest;
+    }
+
+    /**
+     * field => page key, for every field a page group's form (themes/{slug}/pages/{key}.blade.php)
+     * declares, discovered the way the admin screen discovers a theme's fields.
+     *
+     * @param  array<int, string>  $pageKeys
+     * @return array<string, string>
+     */
+    private static function fieldOwners(string $slug, array $pageKeys): array
+    {
+        $prefix = self::PREFIX.$slug.'_';
+        $owners = [];
+
+        foreach ($pageKeys as $pageKey) {
+            $file = Themes::path().'/'.$slug.'/pages/'.$pageKey.'.blade.php';
+
+            if (! is_file($file)) {
+                continue;
+            }
+
+            preg_match_all('/(?:settings\.|[\'"])('.preg_quote($prefix, '/').'[a-z0-9_]+)/', (string) file_get_contents($file), $matches);
+
+            foreach ($matches[1] as $declared) {
+                $owners[substr($declared, strlen($prefix))] ??= $pageKey;
+            }
+        }
+
+        return $owners;
     }
 
     /**
