@@ -9,8 +9,10 @@
     disagree about whether / is worth listing.
 --}}
 {{-- The SEO is the one picked under Page Settings → Home → SEO ($seoPage, from
-     HomeController); with none to present, the login screen stays noindex. --}}
-<x-layouts::auth :title="$title ?? null" :page="$seoPage ?? null" :seo-meta="filled($seoPage ?? null)" :noindex="! filled($seoPage ?? null)" :custom-code="true">
+     RendersHomePage). Whether this screen is indexed is that page's "no index"
+     switch, written by the seo-meta block — Themes::isIndexable() reads the same
+     answer for the sitemap. --}}
+<x-layouts::auth :title="$title ?? null" :page="$seoPage ?? null" :seo-meta="true" :noindex="false" :custom-code="true">
     @php
         // The intro block is this theme's own settings, read from the theme.json
         // beside this file. See default/settings.blade.php for the admin side.

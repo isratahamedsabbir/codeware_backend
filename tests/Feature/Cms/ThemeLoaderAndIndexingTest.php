@@ -305,16 +305,23 @@ it('leaves the loader to the portfolio theme alone', function () {
 |--------------------------------------------------------------------------
 */
 
-it('keeps the default theme out of search engines', function () {
-    // It is a screen of Admin / Vendor / Delivery login links, which used to be
-    // handed a canonical URL and a set of og: tags as though it were a page.
+function defaultSeoPage(array $seo = []): \App\Models\Page
+{
+    return \App\Models\Page::factory()->create(array_merge([
+        'title' => ['en' => 'Default', 'bn' => ''], 'slug' => 'default', 'type' => 'page', 'status' => 'inactive',
+    ], $seo));
+}
+
+it('keeps the default theme out of search engines when its SEO page says no index', function () {
+    // It is a screen of Admin / Vendor / Delivery login links. Whether search
+    // engines keep it is the "no index" switch of the SEO page picked for Home.
     Setting::set('site_theme', 'default');
+    defaultSeoPage(['no_index' => true, 'no_follow' => true]);
 
     $html = $this->get('/')->assertOk()->getContent();
 
     expect($html)->toContain('<meta name="robots" content="noindex, nofollow">')
-        ->and($html)->not->toContain('rel="canonical"')
-        ->and($html)->not->toContain('property="og:');
+        ->and(Themes::isIndexable('default'))->toBeFalse();
 });
 
 it('sends noindex exactly once', function () {
@@ -322,16 +329,34 @@ it('sends noindex exactly once', function () {
     // tag. Asking for both would put two of them in one head, and a crawler is
     // left to pick.
     Setting::set('site_theme', 'default');
+    defaultSeoPage(['no_index' => true]);
 
     expect(substr_count($this->get('/')->getContent(), 'name="robots"'))->toBe(1);
 });
 
-it('says in one place that the default theme is a login screen', function () {
-    // The flag and the template are two statements of the same thing, so they
-    // are asserted against each other: a home page sending noindex without
-    // declaring no_index would still be listed in the sitemap.
+it('lets the SEO page picked for the default theme\'s Home decide whether it is indexed', function () {
+    Setting::set('site_theme', 'default');
+
+    $page = defaultSeoPage(['seo_title' => ['en' => 'Home SEO']]);
+
+    expect(Themes::isIndexable('default'))->toBeTrue();
+
+    $html = $this->get('/')->assertOk()->getContent();
+
+    expect($html)->not->toContain('<meta name="robots" content="noindex, nofollow">')
+        ->and($html)->toContain('Home SEO');
+
+    // Switching "no index" on in that page's SEO is all it takes to take the
+    // screen out of search — the sitemap and the meta tag read the same answer.
+    $page->update(['no_index' => true]);
+
     expect(Themes::isIndexable('default'))->toBeFalse()
-        ->and(Themes::manifest('default')['no_index'])->toBeTrue();
+        ->and($this->get('/')->getContent())->toContain('name="robots" content="noindex');
+});
+
+it('does not need no_index in the default theme\'s theme.json', function () {
+    expect(Themes::manifest('default')['no_index'])->toBeFalse()
+        ->and(Themes::manifest('default')['groups'])->not->toBeNull();
 });
 
 it('leaves a storefront theme indexable', function () {
@@ -372,6 +397,7 @@ it('does not count no_index among the settings the owner filled in', function ()
 
 it('keeps the site root out of the sitemap while it is a login screen', function () {
     Setting::set('site_theme', 'default');
+    defaultSeoPage(['no_index' => true]);
 
     expect(Themes::isIndexable())->toBeFalse()
         ->and(collect(Sitemap::entries())->pluck('loc')->all())->not->toContain(Url::url('/'));
@@ -389,6 +415,7 @@ it('rebuilds the cached sitemap when a theme stops wanting to be indexed', funct
     // theme.json edited by hand would keep serving the old list until the cache
     // expired on its own.
     Setting::set('site_theme', 'default');
+    defaultSeoPage(['no_index' => true]);
     expect(Sitemap::xml('0'))->not->toContain('<loc>'.Url::url('/').'</loc>');
 
     Setting::set('site_theme', 'classic_ecommerce');

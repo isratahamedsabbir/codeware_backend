@@ -608,7 +608,13 @@ class ThemeSettings
             return false;
         }
 
-        $manifest = Themes::manifest($slug);
+        // The manifest as it is written on disk: `groups` is only the parsed form of
+        // `pages`, and an absent `pages` is not worth a null.
+        $manifest = array_filter(
+            array_diff_key(Themes::manifest($slug), ['groups' => true]),
+            fn ($value, $key) => $key !== 'pages' || $value !== null,
+            ARRAY_FILTER_USE_BOTH,
+        );
 
         if (! array_key_exists('sn', $values)) {
             $manifest['sn'] = Themes::nextSn();

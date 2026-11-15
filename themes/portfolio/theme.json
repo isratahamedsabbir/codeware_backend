@@ -3,6 +3,11 @@
     "description": "A one-page portfolio.",
     "version": "1.0.0",
     "author": "Codeware",
+    "tags": [
+        "Portfolio",
+        "One-page",
+        "Personal"
+    ],
     "global": {
         "font": ""
     },

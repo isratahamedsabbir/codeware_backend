@@ -1,5 +1,4 @@
 {
-    "home_page": "home",
     "name": "News",
     "description": "A newspaper-style front page for a blog or news site: a lead story, latest headlines, category sections and a clean article page. Every story is a post.",
     "version": "1.0.0",
@@ -9,6 +8,7 @@
         "Blog",
         "Magazine"
     ],
+    "home_page": "home",
     "pages": [
         "home",
         "about",

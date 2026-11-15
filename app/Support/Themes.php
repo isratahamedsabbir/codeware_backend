@@ -711,16 +711,31 @@ class Themes
     /**
      * Whether the active theme wants search engines to keep what it renders.
      *
-     * The flag lives in the theme's own theme.json next to its name and version,
-     * because it is a property of the theme and not of a page: switching themes
-     * has to be able to change the answer without anyone remembering to go and
-     * edit a meta tag. The "default" theme is the case that matters — it is a
-     * screen of login links, so it sends noindex,nofollow and is kept out of the
-     * sitemap (see Seo\Sitemap), and it needs those two to be the same answer.
+     * A theme may force "no_index": true in its theme.json (a property of the
+     * theme, which switching themes changes without anyone editing a meta tag).
+     * A theme with settings groups, like "default", leaves it out and lets the SEO
+     * page picked for its Home group decide — the page sends noindex,nofollow and
+     * is kept out of the sitemap (see Seo\Sitemap) from that one answer.
      */
     public static function isIndexable(?string $slug = null): bool
     {
-        return ! self::manifest($slug ?? self::active())['no_index'];
+        $slug ??= self::active();
+        $manifest = self::manifest($slug);
+
+        if ($manifest['no_index']) {
+            return false;
+        }
+
+        // A theme with settings groups says it where its SEO is picked: the home
+        // group's SEO page decides, through its "no index" switch. With no page to
+        // speak for it the answer is the neutral one, "indexable", like any theme.
+        if ($manifest['groups'] !== null) {
+            $page = ThemeSettings::groupSeoPage($slug, 'home');
+
+            return $page === null || ! (bool) $page->no_index;
+        }
+
+        return true;
     }
 
     /**

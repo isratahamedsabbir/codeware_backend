@@ -283,22 +283,9 @@ it('uses the global seo title verbatim on the home page, in every theme', functi
 
     expect($head['title'])->toBe('Codeware - the whole site in one line');
 
-    // The "default" theme is a screen of login links and says noindex,nofollow,
-    // so it carries a title and nothing else — a canonical URL and a social
-    // preview for a login page is a sitemap entry and a card for something
-    // nobody should be finding. Every storefront theme still has the full head.
-    if ($theme === 'default') {
-        expect($head)->toBe([
-            'title' => 'Codeware - the whole site in one line',
-            'description' => null,
-            'og' => null,
-            'twitter' => null,
-            'canonical' => null,
-        ]);
-
-        return;
-    }
-
+    // Every theme, the default one included, carries the full head: whether the
+    // default theme's screen is indexed is the "no index" switch of the SEO page
+    // picked for its Home, not a property of the theme.
     expect($head)->toBe([
         'title' => 'Codeware - the whole site in one line',
         'description' => 'One description for the whole site.',

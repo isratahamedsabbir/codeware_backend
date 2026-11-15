@@ -59,25 +59,19 @@
                         </a>
                     </x-slot:titleActions>
 
-                    {{-- Right of the header: the file's state, and the button that puts
-                         it back. A theme is a folder that can be re-downloaded, replaced
+                    {{-- Right of the header: the button that puts a missing theme.json
+                         back (nothing is shown while the file is there). A theme is a folder that can be re-downloaded, replaced
                          or checked out from an older branch, and the file goes with it —
                          so this is a state the owner reaches in the ordinary course of
                          managing themes, not a corruption to report. --}}
                     <x-slot:actions>
-                        @if ($settingsFileExists)
-                            <span class="hidden items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 font-mono text-[11px] font-medium text-emerald-700 sm:inline-flex dark:bg-emerald-500/10 dark:text-emerald-400"
-                                title="{{ $settingsFilePath }}">
-                                <flux:icon.document-text class="size-3.5" />
-                                {{ $settingsFileCount }} {{ Str::plural('value', $settingsFileCount) }}
-                            </span>
-                        @else
+                        @unless ($settingsFileExists)
                             <flux:button variant="primary" size="sm" icon="plus" wire:click="createSettingsFile"
                                 wire:loading.attr="disabled">
                                 <span wire:loading.remove>Create {{ \App\Support\ThemeSettings::FILE }}</span>
                                 <span wire:loading>Creating…</span>
                             </flux:button>
-                        @endif
+                        @endunless
                     </x-slot:actions>
 
                     @error('settingsFile')

@@ -326,3 +326,24 @@ it('does not lose either of two saves made one after the other', function () {
     expect(ThemeSettings::text('default', 'font'))->toBe('roboto')
         ->and(ThemeSettings::text('default', 'hero_title'))->toBe('Second');
 });
+
+it('writes name, description, version and author into every theme.json it creates, and nothing internal', function () {
+    ThemeSettings::delete('default');
+
+    expect(ThemeSettings::create('default'))->toBeTrue();
+
+    $written = json_decode((string) file_get_contents(ThemeSettings::file('default')), true);
+
+    expect($written)->toHaveKeys(['name', 'description', 'version', 'author'])
+        ->and($written)->not->toHaveKey('groups');
+});
+
+it('ships name, description, version and author in every bundled theme.json', function () {
+    foreach (array_keys(Themes::all()) as $slug) {
+        $file = json_decode((string) file_get_contents(ThemeSettings::file($slug)), true);
+
+        expect($file)->toHaveKeys(['name', 'description', 'version', 'author'], "{$slug} theme.json");
+        expect($file['name'])->not->toBe('')
+            ->and($file['version'])->not->toBe('');
+    }
+});

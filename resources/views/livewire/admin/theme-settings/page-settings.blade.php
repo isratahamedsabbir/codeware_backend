@@ -14,10 +14,6 @@
              and its values are saved to the theme's theme.json by the one Save bar. --}}
         <div class="grid gap-5 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-6">
             <nav aria-label="Pages" class="lg:sticky lg:top-14 lg:self-start">
-                <p class="mb-2 flex items-center justify-between px-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
-                    <span>Pages</span>
-                    <span class="rounded-full bg-zinc-100 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500 dark:bg-zinc-800">{{ $psGroups->count() }}</span>
-                </p>
                 <div class="space-y-1">
                     @foreach ($psGroups as $group)
                         @php $groupActive = $psGroup && $group['key'] === $psGroup['key']; @endphp
@@ -75,10 +71,6 @@
         <div class="grid gap-5 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-6">
             {{-- Pages --}}
             <nav aria-label="Pages" class="lg:sticky lg:top-14 lg:self-start">
-                <p class="mb-2 flex items-center justify-between px-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
-                    <span>Pages</span>
-                    <span class="rounded-full bg-zinc-100 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500 dark:bg-zinc-800">{{ $psPages->count() }}</span>
-                </p>
                 <div class="space-y-1">
                     @foreach ($psPages as $psPage)
                         @php $psActive = $psPage->id === $psSelected->id; @endphp

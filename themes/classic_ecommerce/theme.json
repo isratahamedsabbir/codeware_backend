@@ -1,4 +1,13 @@
 {
+    "name": "Classic Ecommerce",
+    "description": "A classic storefront: a hero slider with promo tiles, product rows, and the shop, cart and account pages.",
+    "version": "1.0.0",
+    "author": "Codeware",
+    "tags": [
+        "Ecommerce",
+        "Classic",
+        "Shop"
+    ],
     "home_page": "home",
     "pages": [
         "home",

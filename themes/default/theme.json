@@ -3,8 +3,11 @@
     "description": "The default theme: the way into the admin, vendor and delivery panels, with an owner-written intro.",
     "version": "1.0.0",
     "author": "Codeware",
+    "tags": [
+        "Default",
+        "Login"
+    ],
     "default": true,
-    "no_index": true,
     "global": {
         "font": "system",
         "promo_1_link": "",
