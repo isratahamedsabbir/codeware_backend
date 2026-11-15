@@ -148,6 +148,17 @@ class AddToCartButton extends Component
         $this->added = true;
         $this->syncCart();
         $this->dispatch('cart-updated');
+
+        // The GTM listener in partials/_custom-code-head pushes this into the
+        // dataLayer as the GA4 add_to_cart event — one place, every add path.
+        $unitPrice = $attributes !== [] ? $product->variationPrice($attributes) : (float) $product->price;
+
+        $this->dispatch('add-to-cart', item: [
+            'item_id' => (string) $product->id,
+            'item_name' => $product->name,
+            'price' => (float) ($product->effectiveDiscount($attributes) ?? $unitPrice),
+            'quantity' => $this->quantity,
+        ]);
     }
 
     /**

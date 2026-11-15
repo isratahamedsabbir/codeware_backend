@@ -117,6 +117,10 @@ class Index extends Component
             'Google Maps' => [
                 'GOOGLE_MAPS_API_KEY' => ['label' => 'API Key', 'type' => 'text'],
             ],
+            'Google Tag Manager' => [
+                'GOOGLE_TAG_MANAGER_ID' => ['label' => 'Container ID', 'type' => 'text',
+                    'hint' => 'e.g. GTM-XXXXXXX. Loaded on every public theme page; leave it blank to turn the container off.'],
+            ],
             'AWS S3' => [
                 'AWS_ACCESS_KEY_ID' => ['label' => 'Access Key ID', 'type' => 'text'],
                 'AWS_SECRET_ACCESS_KEY' => ['label' => 'Secret Access Key', 'type' => 'password'],
@@ -156,6 +160,7 @@ class Index extends Component
             'env.TURNSTILE_SITE_KEY' => 'nullable|string',
             'env.TURNSTILE_SECRET_KEY' => 'nullable|string',
             'env.GOOGLE_MAPS_API_KEY' => 'nullable|string',
+            'env.GOOGLE_TAG_MANAGER_ID' => ['nullable', 'string', 'regex:/^(GTM-[A-Za-z0-9]+)?$/'],
             'env.AWS_ACCESS_KEY_ID' => 'nullable|string',
             'env.AWS_SECRET_ACCESS_KEY' => 'nullable|string',
             'env.AWS_DEFAULT_REGION' => 'nullable|string',

@@ -1,4 +1,26 @@
-﻿<!DOCTYPE html>
+﻿@php($checkoutLines = \App\Support\Cart::lines())
+@if ($checkoutLines->isNotEmpty())
+    @push('datalayer')
+    <script>
+        dataLayer.push({ ecommerce: null });
+        dataLayer.push({
+            event: 'begin_checkout',
+            ecommerce: {
+                currency: @json(\App\Models\Setting::get('currency_code', 'BDT')),
+                value: {{ (float) \App\Support\Cart::subtotal() }},
+                items: @json($checkoutLines->map(fn (array $line) => [
+                    'item_id' => (string) $line['product_id'],
+                    'item_name' => $line['product']->name,
+                    'price' => (float) ($line['discount_price'] ?? $line['unit_price']),
+                    'quantity' => $line['quantity'],
+                ])->values()),
+            },
+        });
+    </script>
+    @endpush
+@endif
+
+<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ \App\Support\Locale::direction() }}">
 <head>
     @include('partials._head')

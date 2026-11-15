@@ -1,4 +1,29 @@
-﻿<!DOCTYPE html>
+﻿@if (session('track_purchase'))
+    @php(session()->forget('track_purchase'))
+    @push('datalayer')
+    <script>
+        dataLayer.push({ ecommerce: null });
+        dataLayer.push({
+            event: 'purchase',
+            event_id: @json('order_'.$order->order_number),
+            ecommerce: {
+                transaction_id: @json((string) $order->order_number),
+                currency: @json($order->currency ?: \App\Models\Setting::get('currency_code', 'BDT')),
+                value: {{ (float) $order->total }},
+                shipping: {{ (float) ($order->shipping_cost ?? 0) }},
+                items: @json($order->items->map(fn ($item) => [
+                    'item_id' => (string) $item->product_id,
+                    'item_name' => $item->item_name,
+                    'price' => (float) $item->unit_price,
+                    'quantity' => $item->quantity,
+                ])->values()),
+            },
+        });
+    </script>
+    @endpush
+@endif
+
+<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ \App\Support\Locale::direction() }}">
 <head>
     @include('partials._head')

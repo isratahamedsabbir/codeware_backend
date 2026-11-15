@@ -66,6 +66,11 @@ return [
         'api_key' => env('GOOGLE_MAPS_API_KEY'),
     ],
 
+    // Loaded on every public theme page; a blank ID turns the container off.
+    'google_tag_manager' => [
+        'id' => env('GOOGLE_TAG_MANAGER_ID'),
+    ],
+
     // Set at Admin → Settings → Telegram, which writes these two .env keys.
     'telegram' => [
         'bot_token' => env('TELEGRAM_BOT_TOKEN'),

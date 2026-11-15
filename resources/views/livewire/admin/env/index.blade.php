@@ -25,7 +25,7 @@
                 $tabs = [
                     'general' => ['General', 'cog-6-tooth', 'App, maintenance, debug mode'],
                     'authentication' => ['Authentication', 'lock-closed', 'Google & Facebook login, reCAPTCHA, Turnstile'],
-                    'integrations' => ['Integrations', 'puzzle-piece', 'Pixel, Maps, S3, Firebase'],
+                    'integrations' => ['Integrations', 'puzzle-piece', 'Pixel, GTM, Maps, S3, Firebase'],
                 ];
             @endphp
             <div role="tablist" aria-label="Developer Tools sections"
@@ -241,6 +241,24 @@
                         <flux:label>Google Pixel ID</flux:label>
                         <flux:input wire:model="settings.google_pixel_id" placeholder="G-XXXXXXXXXX" class="font-mono" />
                     </flux:field>
+                </div>
+            </x-admin-section-card>
+
+            {{-- Google Tag Manager --}}
+            <x-admin-section-card id="env-section-google-tag-manager" class="scroll-mt-24" header-border="border-zinc-100" icon="tag" title="Google Tag Manager"
+                description="The container ID (e.g. GTM-XXXXXXX) loaded on every public theme page. A blank ID turns the container off.">
+                <x-slot:titleActions>
+                    <a href="{{ route('admin.developer-guide') }}#integration-google-tag-manager"
+                        title="Where to get this — open the Developer Guide"
+                        aria-label="Where to get this — open the Developer Guide"
+                        class="flex size-5 items-center justify-center text-zinc-400 transition-colors hover:text-primary">
+                        <flux:icon.information-circle class="size-4" />
+                    </a>
+                </x-slot:titleActions>
+                <div class="grid grid-cols-1 gap-y-3">
+                    @foreach ($this->envFields()['Google Tag Manager'] as $key => $meta)
+                        @include('livewire.admin.env.partials._env-field', ['key' => $key, 'meta' => $meta])
+                    @endforeach
                 </div>
             </x-admin-section-card>
 

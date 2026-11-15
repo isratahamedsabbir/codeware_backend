@@ -234,6 +234,9 @@ class Checkout extends Component
         Cart::clear();
         $this->dispatch('cart-updated');
         session()->flash('placed_order', $order->order_number);
+        // One-shot flag for the confirmation page's GA4 purchase event, so a
+        // reload of the receipt cannot fire it a second time.
+        session()->flash('track_purchase', true);
 
         return redirect()->route('checkout.confirmation', $order->order_number);
     }

@@ -1,3 +1,24 @@
+@php($viewItemPrice = (float) ($product->effectiveDiscount() ?? $product->price))
+@push('datalayer')
+<script>
+    dataLayer.push({ ecommerce: null });
+    dataLayer.push({
+        event: 'view_item',
+        ecommerce: {
+            currency: @json(\App\Models\Setting::get('currency_code', 'BDT')),
+            value: {{ $viewItemPrice }},
+            items: [{
+                item_id: @json((string) $product->id),
+                item_name: @json($product->name),
+                item_category: @json($product->categories->first()?->name),
+                price: {{ $viewItemPrice }},
+                quantity: 1,
+            }],
+        },
+    });
+</script>
+@endpush
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ \App\Support\Locale::direction() }}">
 <head>

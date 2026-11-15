@@ -982,6 +982,21 @@ Admin -> SEO / Social / Payment Gateways   their own setting groups
                 </p>
             </div>
 
+            <div id="integration-google-tag-manager" class="scroll-mt-24">
+                <p class="font-semibold text-zinc-800 dark:text-zinc-100">Google Tag Manager (Integrations)</p>
+                <ol class="mt-2 list-decimal list-inside space-y-1.5">
+                    <li><span class="font-mono text-xs">tagmanager.google.com</span> &rarr; open the account and container.</li>
+                    <li>Copy the <strong>Container ID</strong> (<span class="font-mono text-xs">GTM-XXXXXXX</span>) from the top bar.</li>
+                    <li>Paste into the field and save.</li>
+                </ol>
+                <p class="mt-2 text-xs text-zinc-500">
+                    The backend reads <span class="font-mono text-xs">GOOGLE_TAG_MANAGER_ID</span> from the environment
+                    through <span class="font-mono text-xs">config/services.php</span> and prints the container snippet
+                    in the head of every public theme page &mdash; never on admin pages. A blank ID disables it.
+                    Add GA4, Ads and any other tags inside the container itself.
+                </p>
+            </div>
+
             <div id="integration-google-maps" class="scroll-mt-24">
                 <p class="font-semibold text-zinc-800 dark:text-zinc-100">Google Maps (Integrations)</p>
                 <ol class="mt-2 list-decimal list-inside space-y-1.5">

@@ -233,10 +233,20 @@ it('allows a blank cms editor base url', function () {
     expect(EnvFile::get('CMS_EDITOR_BASE_URL'))->toBe('');
 });
 
+it('saves the google tag manager container id to the environment', function () {
+    Livewire::test(EnvIndex::class)
+        ->set('env.GOOGLE_TAG_MANAGER_ID', 'GTM-ABC123')
+        ->call('confirmSaveEnv')
+        ->call('saveEnv')
+        ->assertHasNoErrors();
+
+    expect(EnvFile::get('GOOGLE_TAG_MANAGER_ID'))->toBe('GTM-ABC123');
+});
+
 it('links every integration card to its section of the developer guide', function () {
     $anchors = [
         'maintenance', 'debug', 'app', 'google-login', 'facebook-login',
-        'pixel', 'recaptcha', 'google-maps', 'aws-s3', 'firebase', 'cms-editor',
+        'pixel', 'google-tag-manager', 'recaptcha', 'google-maps', 'aws-s3', 'firebase', 'cms-editor',
     ];
 
     $html = Livewire::test(EnvIndex::class)->html();
@@ -262,7 +272,7 @@ it('retires the section info modal in favour of the developer guide', function (
 it('answers every question the info modal used to answer, in the guide', function () {
     $anchors = [
         'maintenance', 'debug', 'app', 'google-login', 'facebook-login',
-        'pixel', 'recaptcha', 'google-maps', 'aws-s3', 'firebase', 'cms-editor',
+        'pixel', 'google-tag-manager', 'recaptcha', 'google-maps', 'aws-s3', 'firebase', 'cms-editor',
     ];
 
     $guide = Livewire::actingAs(User::factory()->admin()->create())

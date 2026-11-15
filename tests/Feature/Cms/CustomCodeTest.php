@@ -1,12 +1,16 @@
 <?php
 
+use App\Livewire\Admin\Pages\Form;
+use App\Livewire\Admin\Settings\Index;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Setting;
 use App\Models\User;
+use App\Support\CustomCode;
 use Database\Seeders\RolePermissionSeeder;
+use Laravel\Sanctum\Sanctum;
 
 beforeEach(function () {
     Setting::set('custom_head_code', '<meta name="custom-head-probe" content="1">');
@@ -64,6 +68,37 @@ it('outputs nothing when no custom code is set', function () {
         ->assertDontSee('customBodyProbe', false);
 });
 
+it('prints the google tag manager container from config on public pages', function () {
+    Setting::set('site_theme', 'classic_ecommerce');
+    config(['services.google_tag_manager.id' => 'GTM-TEST123']);
+
+    $html = $this->get('/')->assertOk()->getContent();
+
+    expect($html)
+        ->toContain('https://www.googletagmanager.com/gtm.js?id=GTM-TEST123')
+        ->and(strpos($html, 'gtm.js?id=GTM-TEST123'))->toBeLessThan(strpos($html, '</head>'));
+});
+
+it('renders page pushes from the datalayer stack before gtm.js', function () {
+    Setting::set('site_theme', 'classic_ecommerce');
+    config(['services.google_tag_manager.id' => 'GTM-TEST123']);
+
+    view()->startPush('datalayer', '<script>window.dataLayer.push({"event":"probe"});</script>');
+
+    $html = $this->get('/')->assertOk()->getContent();
+
+    expect(strpos($html, '"event":"probe"'))->not->toBeFalse()
+        ->and(strpos($html, '"event":"probe"'))->toBeLessThan(strpos($html, 'gtm.js?id=GTM-TEST123'));
+});
+
+it('loads no google tag manager container when the id is blank', function () {
+    Setting::set('site_theme', 'classic_ecommerce');
+    config(['services.google_tag_manager.id' => null]);
+
+    $this->get('/')->assertOk()
+        ->assertDontSee('googletagmanager.com/gtm.js', false);
+});
+
 it('outputs a snippet only on the pages that picked it', function () {
     Setting::set('site_theme', 'classic_ecommerce');
     Setting::set('custom_code_rules', json_encode([
@@ -87,14 +122,14 @@ it('saves named custom code snippets from the settings screen', function () {
     $this->seed(RolePermissionSeeder::class);
     $this->actingAs(User::factory()->admin()->create());
 
-    Livewire\Livewire::test(App\Livewire\Admin\Settings\Index::class)
+    Livewire\Livewire::test(Index::class)
         ->call('addCodeRule')
         ->set('codeRules.0.name', 'Product pixel')
         ->set('codeRules.0.head', '<meta name="p" content="1">')
         ->call('save')
         ->assertHasNoErrors();
 
-    $rules = App\Support\CustomCode::rules();
+    $rules = CustomCode::rules();
 
     expect($rules)->toHaveCount(1)
         ->and($rules[0])->toMatchArray(['name' => 'Product pixel', 'head' => '<meta name="p" content="1">', 'body' => ''])
@@ -109,7 +144,7 @@ it('stores the picked snippet on the page from the page form', function () {
     ]));
     $page = Page::factory()->published()->create(['title' => ['en' => 'About', 'bn' => ''], 'slug' => 'about']);
 
-    Livewire\Livewire::test(App\Livewire\Admin\Pages\Form::class, ['id' => $page->id])
+    Livewire\Livewire::test(Form::class, ['id' => $page->id])
         ->set('custom_code_id', 'abc123')
         ->call('save')
         ->assertHasNoErrors();
@@ -128,7 +163,7 @@ it('offers the snippets in a Custom Code card on the page, product, post and cat
         ->assertSee('Custom Code')
         ->assertSee('Checkout pixel');
 })->with([
-    App\Livewire\Admin\Pages\Form::class,
+    Form::class,
     App\Livewire\Admin\Products\Form::class,
     App\Livewire\Admin\Posts\Form::class,
     App\Livewire\Admin\Categories\Form::class,
@@ -173,10 +208,10 @@ describe('page-type coverage', function () {
     });
 
     it('saves and reloads the picked snippet from the product form', function () {
-        $this->seed(Database\Seeders\RolePermissionSeeder::class);
-        $this->actingAs(App\Models\User::factory()->admin()->create());
+        $this->seed(RolePermissionSeeder::class);
+        $this->actingAs(User::factory()->admin()->create());
         $product = Product::factory()->create();
-        Page::create(['user_id' => $product->user_id ?? App\Models\User::first()->id, 'type' => 'product', 'product_id' => $product->id, 'slug' => 'pf', 'title' => ['en' => 'T', 'bn' => ''], 'status' => 'active']);
+        Page::create(['user_id' => $product->user_id ?? User::first()->id, 'type' => 'product', 'product_id' => $product->id, 'slug' => 'pf', 'title' => ['en' => 'T', 'bn' => ''], 'status' => 'active']);
 
         Livewire\Livewire::test(App\Livewire\Admin\Products\Form::class, ['id' => $product->id])
             ->set('custom_code_id', 'bbb')
@@ -210,7 +245,7 @@ it('exposes the picked snippet in the public page API meta_data', function () {
 
 it('lets the admin API set and clear a page\'s snippet, rejecting unknown ids', function () {
     $this->seed(RolePermissionSeeder::class);
-    Laravel\Sanctum\Sanctum::actingAs(User::factory()->admin()->create());
+    Sanctum::actingAs(User::factory()->admin()->create());
     Setting::set('custom_code_rules', json_encode([
         ['id' => 'aaa', 'name' => 'A', 'head' => 'x', 'body' => ''],
     ]));
