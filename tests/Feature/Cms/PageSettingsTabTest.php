@@ -477,3 +477,18 @@ it('serves the picked page\'s own SEO even when that page borrows another page\'
         \App\Support\ThemeSettings::forget('default');
     }
 });
+
+it('reorders a section\'s items with the up and down buttons', function () {
+    $component = Livewire::test(ThemeSettingsScreen::class)
+        ->call('addCard', $this->section->id)
+        ->set("cards.{$this->section->id}.1.title", 'Second')
+        ->call('moveCard', $this->section->id, 1, 'up');
+
+    expect($component->get("cards.{$this->section->id}.0.title"))->toBe('Second')
+        ->and($component->get("cards.{$this->section->id}.1.title"))->toBe('Alex');
+
+    // The first item cannot go further up, and the last cannot go further down.
+    $component->call('moveCard', $this->section->id, 0, 'up')->call('moveCard', $this->section->id, 1, 'down');
+
+    expect($component->get("cards.{$this->section->id}.0.title"))->toBe('Second');
+});

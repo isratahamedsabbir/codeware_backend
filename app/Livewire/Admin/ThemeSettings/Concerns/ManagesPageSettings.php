@@ -277,6 +277,17 @@ trait ManagesPageSettings
         $this->cards[$sectionId][] = collect(self::CARD_FIELDS)->mapWithKeys(fn ($f) => [$f => $f === 'image' ? null : ''])->all();
     }
 
+    public function moveCard(int $sectionId, int $index, string $direction): void
+    {
+        $target = $direction === 'up' ? $index - 1 : $index + 1;
+
+        if (! isset($this->cards[$sectionId][$index], $this->cards[$sectionId][$target])) {
+            return;
+        }
+
+        [$this->cards[$sectionId][$index], $this->cards[$sectionId][$target]] = [$this->cards[$sectionId][$target], $this->cards[$sectionId][$index]];
+    }
+
     public function removeCard(int $sectionId, int $index): void
     {
         if (! isset($this->cards[$sectionId][$index])) {
