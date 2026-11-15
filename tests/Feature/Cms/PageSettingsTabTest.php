@@ -453,3 +453,27 @@ it('falls back to the Default page when a group\'s saved SEO page no longer exis
         \App\Support\ThemeSettings::forget('default');
     }
 });
+
+it('serves the picked page\'s own SEO even when that page borrows another page\'s', function () {
+    $borrowed = Page::factory()->create(['title' => ['en' => 'Default', 'bn' => ''], 'slug' => 'default', 'type' => 'page', 'status' => 'inactive']);
+    $source = Page::factory()->published()->create([
+        'title' => ['en' => 'About us', 'bn' => ''], 'slug' => 'about-borrower', 'type' => 'page',
+        'seo_title' => ['en' => 'About own title'],
+    ]);
+    $source->update(['seo_page_id' => $borrowed->id]);
+
+    $file = base_path('themes/default/theme.json');
+    $original = file_get_contents($file);
+
+    try {
+        $data = json_decode($original, true);
+        $data['pages']['home']['seo'] = $source->id;
+        file_put_contents($file, json_encode($data));
+        \App\Support\ThemeSettings::forget('default');
+
+        expect(\App\Support\ThemeSettings::groupSeoPage('default', 'home')->seo_title)->toBe('About own title');
+    } finally {
+        file_put_contents($file, $original);
+        \App\Support\ThemeSettings::forget('default');
+    }
+});

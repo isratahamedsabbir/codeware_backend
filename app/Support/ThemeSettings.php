@@ -297,7 +297,17 @@ class ThemeSettings
 
         $page = $id > 0 ? (clone $pages)->find($id) : null;
 
-        return $page ?? (clone $pages)->whereHas('slugRecord', fn ($q) => $q->where('slug', 'default'))->first();
+        $page ??= (clone $pages)->whereHas('slugRecord', fn ($q) => $q->where('slug', 'default'))->first();
+
+        // The SEO the owner sees on that page's own form, not whatever that page
+        // happens to borrow from a third one: picking "About Us" means About Us's
+        // title and description. (In memory only — nothing here is saved.)
+        if ($page && $page->getAttribute('seo_page_id')) {
+            $page->setAttribute('seo_page_id', null);
+            $page->unsetRelation('seoSource');
+        }
+
+        return $page;
     }
 
     /**
