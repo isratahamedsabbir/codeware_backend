@@ -1,4 +1,12 @@
-@php($checkoutLines = \App\Support\Cart::lines())
+@php
+    $checkoutLines = \App\Support\Cart::lines();
+    $checkoutItems = $checkoutLines->map(fn (array $line) => [
+        'item_id' => (string) $line['product_id'],
+        'item_name' => $line['product']->name,
+        'price' => (float) ($line['discount_price'] ?? $line['unit_price']),
+        'quantity' => $line['quantity'],
+    ])->values()->all();
+@endphp
 @if ($checkoutLines->isNotEmpty())
     @push('datalayer')
     <script>
@@ -8,12 +16,7 @@
             ecommerce: {
                 currency: @json(\App\Models\Setting::get('currency_code', 'BDT')),
                 value: {{ (float) \App\Support\Cart::subtotal() }},
-                items: @json($checkoutLines->map(fn (array $line) => [
-                    'item_id' => (string) $line['product_id'],
-                    'item_name' => $line['product']->name,
-                    'price' => (float) ($line['discount_price'] ?? $line['unit_price']),
-                    'quantity' => $line['quantity'],
-                ])->values()),
+                items: @json($checkoutItems),
             },
         });
     </script>

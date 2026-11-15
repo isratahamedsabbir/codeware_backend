@@ -1,4 +1,6 @@
-@php($viewItemPrice = (float) ($product->effectiveDiscount() ?? $product->price))
+@php
+    $viewItemPrice = (float) ($product->effectiveDiscount() ?? $product->price);
+@endphp
 @push('datalayer')
 <script>
     dataLayer.push({ ecommerce: null });
@@ -262,7 +264,9 @@
         </div>
     </div>
 
-    @php($hasProductDetails = filled($product->description) || filled($product->specifications))
+    @php
+    $hasProductDetails = filled($product->description) || filled($product->specifications);
+@endphp
 
     @if ($hasProductDetails)
         <section class="mt-12 max-w-3xl">

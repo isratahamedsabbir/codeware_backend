@@ -1,4 +1,6 @@
-﻿@php($viewItemPrice = (float) ($product->effectiveDiscount() ?? $product->price))
+﻿@php
+    $viewItemPrice = (float) ($product->effectiveDiscount() ?? $product->price);
+@endphp
 @push('datalayer')
 <script>
     dataLayer.push({ ecommerce: null });
@@ -386,7 +388,9 @@
         </div>
     </div>
 
-    @php($hasProductDetails = filled($product->description) || filled($product->specifications))
+    @php
+    $hasProductDetails = filled($product->description) || filled($product->specifications);
+@endphp
 
     @if ($hasProductDetails || $advertisement)
     {{-- Details tabs on the left, the sponsored banner beside them on large screens. --}}

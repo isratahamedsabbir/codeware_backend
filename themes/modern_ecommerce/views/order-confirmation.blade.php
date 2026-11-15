@@ -1,5 +1,13 @@
 @if (session('track_purchase'))
-    @php(session()->forget('track_purchase'))
+    @php
+    session()->forget('track_purchase');
+    $purchaseItems = $order->items->map(fn ($item) => [
+        'item_id' => (string) $item->product_id,
+        'item_name' => $item->item_name,
+        'price' => (float) $item->unit_price,
+        'quantity' => $item->quantity,
+    ])->values()->all();
+@endphp
     @push('datalayer')
     <script>
         dataLayer.push({ ecommerce: null });
@@ -11,12 +19,7 @@
                 currency: @json($order->currency ?: \App\Models\Setting::get('currency_code', 'BDT')),
                 value: {{ (float) $order->total }},
                 shipping: {{ (float) ($order->shipping_cost ?? 0) }},
-                items: @json($order->items->map(fn ($item) => [
-                    'item_id' => (string) $item->product_id,
-                    'item_name' => $item->item_name,
-                    'price' => (float) $item->unit_price,
-                    'quantity' => $item->quantity,
-                ])->values()),
+                items: @json($purchaseItems),
             },
         });
     </script>
@@ -88,7 +91,9 @@
 
             <ul class="divide-y divide-gray-100 px-5">
                 @foreach ($order->items as $item)
-                    @php($image = $item->product?->featured_image)
+                    @php
+    $image = $item->product?->featured_image;
+@endphp
                     <li class="flex items-center gap-4 py-4">
                         <span class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-gray-100 bg-[#f8f9fa] text-gray-300">
                             @if ($image)

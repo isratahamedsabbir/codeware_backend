@@ -1,5 +1,13 @@
 ﻿@if (session('track_purchase'))
-    @php(session()->forget('track_purchase'))
+    @php
+    session()->forget('track_purchase');
+    $purchaseItems = $order->items->map(fn ($item) => [
+        'item_id' => (string) $item->product_id,
+        'item_name' => $item->item_name,
+        'price' => (float) $item->unit_price,
+        'quantity' => $item->quantity,
+    ])->values()->all();
+@endphp
     @push('datalayer')
     <script>
         dataLayer.push({ ecommerce: null });
@@ -11,12 +19,7 @@
                 currency: @json($order->currency ?: \App\Models\Setting::get('currency_code', 'BDT')),
                 value: {{ (float) $order->total }},
                 shipping: {{ (float) ($order->shipping_cost ?? 0) }},
-                items: @json($order->items->map(fn ($item) => [
-                    'item_id' => (string) $item->product_id,
-                    'item_name' => $item->item_name,
-                    'price' => (float) $item->unit_price,
-                    'quantity' => $item->quantity,
-                ])->values()),
+                items: @json($purchaseItems),
             },
         });
     </script>
