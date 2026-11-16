@@ -152,6 +152,9 @@ class Index extends Component
     /** Where direct theme uploads live on the public disk. */
     private const UPLOAD_DIR = 'theme-uploads';
 
+    /** Site-wide on/off switches on this screen. */
+    private const BOOLEAN_KEYS = ['chat_widget_enabled', 'popup_enabled'];
+
     public function mount(): void
     {
         $rows = Setting::whereIn('key', $this->keys())->get()->keyBy('key');
@@ -160,7 +163,12 @@ class Index extends Component
             $row = $rows->get($key);
             $value = $row?->value ?? '';
 
-            $this->settings[$key] = $row?->type === 'boolean' ? (bool) $value : (string) $value;
+            // The two switches are booleans whatever `type` their row happens to
+            // carry (a row first written by Setting::set() has no boolean type):
+            // a "0" string would otherwise read as truthy and show the switch on.
+            $this->settings[$key] = ($row?->type === 'boolean' || in_array($key, self::BOOLEAN_KEYS, true))
+                ? filter_var($value, FILTER_VALIDATE_BOOLEAN)
+                : (string) $value;
         }
 
         $this->loadThemeValues();
@@ -367,7 +375,10 @@ class Index extends Component
 
         foreach ($this->keys() as $key) {
             if (array_key_exists($key, $this->settings)) {
-                Setting::set($key, $this->settings[$key]);
+                // Stored as '1'/'0': a raw false can be written as an empty string.
+                Setting::set($key, in_array($key, self::BOOLEAN_KEYS, true)
+                    ? ($this->settings[$key] ? '1' : '0')
+                    : $this->settings[$key]);
             }
         }
 
