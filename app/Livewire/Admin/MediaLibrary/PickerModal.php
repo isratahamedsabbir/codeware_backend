@@ -2,9 +2,12 @@
 
 namespace App\Livewire\Admin\MediaLibrary;
 
+use App\Models\Group;
 use App\Models\MediaLibrary;
+use App\Models\Type;
 use App\Support\MediaLibraryUploader;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -78,6 +81,8 @@ class PickerModal extends Component
     public string $editCaption = '';
 
     public string $editDescription = '';
+
+    public ?int $editGalleryGroupId = null;
 
     public function openPicker(string $pickerId, bool $onlyImages = false, string $mimes = 'jpg,jpeg,png,gif,webp,avif', int $maxSizeKb = 2048, bool $multiple = false): void
     {
@@ -160,6 +165,7 @@ class PickerModal extends Component
         $this->editAltText = $media?->alt_text ?? '';
         $this->editCaption = $media?->caption ?? '';
         $this->editDescription = $media?->description ?? '';
+        $this->editGalleryGroupId = $media?->gallery_group_id;
     }
 
     public function saveMediaDetails(): void
@@ -172,6 +178,7 @@ class PickerModal extends Component
             'editAltText' => 'nullable|string|max:255',
             'editCaption' => 'nullable|string|max:500',
             'editDescription' => 'nullable|string|max:1000',
+            'editGalleryGroupId' => ['nullable', 'integer', Rule::exists('groups', 'id')->where('type_id', Type::idFor(Type::GALLERY))],
         ]);
 
         $media->update([
@@ -179,6 +186,9 @@ class PickerModal extends Component
             'alt_text' => $this->editAltText ?: null,
             'caption' => $this->editCaption ?: null,
             'description' => $this->editDescription ?: null,
+            'gallery_group_id' => $media->isImage() ? $this->editGalleryGroupId : null,
+            // Picking a group is the same as "Add to Gallery"; clearing it leaves the flag alone.
+            'is_gallery' => $media->is_gallery || ($media->isImage() && $this->editGalleryGroupId !== null),
         ]);
 
         $this->dispatch('notify', message: 'Media details updated successfully');
@@ -368,8 +378,10 @@ class PickerModal extends Component
             }
         }
 
+        $galleryGroups = $this->show ? Group::gallery()->active()->orderBy('sort_order')->get() : collect();
+
         return view('livewire.admin.media-library.picker-modal', compact(
-            'media', 'total', 'totalPages', 'selectedMedia'
+            'media', 'total', 'totalPages', 'selectedMedia', 'galleryGroups'
         ));
     }
 }

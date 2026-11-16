@@ -129,3 +129,20 @@ it('does not offer the Gallery type in the category form', function () {
 
     expect(collect($options)->pluck('slug'))->not->toContain(Type::GALLERY);
 });
+
+it('files an image into a group from the picker modal too', function () {
+    $group = Group::create(['name' => ['en' => 'Events'], 'type_id' => Type::idFor(Type::GALLERY)]);
+    $image = galleryImage(['is_gallery' => false]);
+
+    Livewire::test(\App\Livewire\Admin\MediaLibrary\PickerModal::class)
+        ->call('openPicker', 'test-picker')
+        ->call('selectMedia', $image->id)
+        ->assertSee('Gallery Group')
+        ->assertSet('editGalleryGroupId', null)
+        ->set('editGalleryGroupId', $group->id)
+        ->call('saveMediaDetails')
+        ->assertHasNoErrors();
+
+    expect($image->fresh()->gallery_group_id)->toBe($group->id)
+        ->and($image->fresh()->is_gallery)->toBeTrue();
+});

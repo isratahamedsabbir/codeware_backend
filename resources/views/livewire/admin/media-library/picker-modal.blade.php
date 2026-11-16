@@ -380,6 +380,22 @@
                                                 <input wire:model="editCaption" type="text"
                                                     class="block h-8 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10" />
                                             </div>
+                                            @if ($selectedMedia->isImage())
+                                                <div class="space-y-1">
+                                                    <label
+                                                        class="block text-[10px] font-bold uppercase tracking-widest text-slate-400">Gallery Group</label>
+                                                    <select wire:model="editGalleryGroupId"
+                                                        class="block h-8 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-800 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10">
+                                                        <option value="">— None —</option>
+                                                        @foreach ($galleryGroups as $galleryGroup)
+                                                            <option value="{{ $galleryGroup->id }}">{{ $galleryGroup->getTranslation('name', app()->getLocale(), true) }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error('editGalleryGroupId')
+                                                        <p class="text-xs font-bold text-red-600">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
+                                            @endif
                                             <div class="space-y-1">
                                                 <label
                                                     class="block text-[10px] font-bold uppercase tracking-widest text-slate-400">Description</label>
