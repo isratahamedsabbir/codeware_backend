@@ -118,7 +118,7 @@
                         </div>
 
                         @if ($bulkMode)
-                            <div class="absolute left-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full border-2 shadow
+                            <div class="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full border-2 shadow
                                 {{ $isSelected ? 'border-primary bg-primary' : 'border-white bg-black/30' }}">
                                 @if ($isSelected)
                                     <svg class="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">

@@ -27,6 +27,7 @@ return new class extends Migration
             $table->text('caption')->nullable();
             $table->text('description')->nullable();
             $table->json('metadata')->nullable();
+            $table->boolean('is_gallery')->default(false)->index();
             $table->foreignId('uploaded_by')->nullable()->constrained('users')->nullOnDelete();
             $table->index('file_type');
             $table->timestamps();

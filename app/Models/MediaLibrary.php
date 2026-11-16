@@ -29,6 +29,7 @@ class MediaLibrary extends Model
         'caption',
         'description',
         'metadata',
+        'is_gallery',
         'uploaded_by',
     ];
 
