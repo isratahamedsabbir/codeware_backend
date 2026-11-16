@@ -119,6 +119,12 @@ class Category extends Model
         return $this->hasOne(Page::class, 'category_id');
     }
 
+    /** Categories filed under the Gallery type (used by the Media Library). */
+    public function scopeGallery(Builder $query): Builder
+    {
+        return $query->where('type_id', Type::idFor(Type::GALLERY));
+    }
+
     public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_id');

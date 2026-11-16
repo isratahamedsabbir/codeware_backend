@@ -2,11 +2,14 @@
 
 namespace App\Livewire\Admin\MediaLibrary;
 
+use App\Models\Category;
 use App\Models\MediaLibrary;
 use App\Models\Setting;
+use App\Models\Type;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -47,6 +50,8 @@ class Index extends Component
     public string $editCaption = '';
 
     public string $editDescription = '';
+
+    public ?int $editGalleryCategoryId = null;
 
     // Watermark (configured from the Media Library header button — used to live
     // on Settings → Other, moved here with the same four Setting keys)
@@ -236,6 +241,7 @@ class Index extends Component
         $this->editAltText = $media->alt_text ?? '';
         $this->editCaption = $media->caption ?? '';
         $this->editDescription = $media->description ?? '';
+        $this->editGalleryCategoryId = $media->gallery_category_id;
         $this->showDetailsModal = true;
     }
 
@@ -265,6 +271,11 @@ class Index extends Component
             'editAltText' => 'nullable|string|max:255',
             'editCaption' => 'nullable|string|max:500',
             'editDescription' => 'nullable|string|max:1000',
+            'editGalleryCategoryId' => [
+                'nullable',
+                'integer',
+                Rule::exists('categories', 'id')->where('type_id', Type::idFor(Type::GALLERY)),
+            ],
         ]);
 
         $media = MediaLibrary::findOrFail($this->editingMediaId);
@@ -273,6 +284,7 @@ class Index extends Component
             'alt_text' => $this->editAltText ?: null,
             'caption' => $this->editCaption ?: null,
             'description' => $this->editDescription ?: null,
+            'gallery_category_id' => $media->is_gallery ? $this->editGalleryCategoryId : null,
         ]);
 
         $this->closeDetailsModal();
@@ -517,6 +529,9 @@ class Index extends Component
 
         return view('livewire.admin.media-library.index', [
             'media' => $media,
+            'galleryCategories' => $this->showDetailsModal
+                ? Category::gallery()->orderBy('sort_order')->get()
+                : collect(),
         ])->layout('layouts.admin', [
             'title' => 'Media Library',
         ]);

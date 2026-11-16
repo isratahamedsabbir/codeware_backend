@@ -381,6 +381,26 @@
                                 class="block w-full rounded-md border border-slate-200 px-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/10" />
                         </div>
 
+                        {{-- Gallery category — only for images flagged as gallery --}}
+                        @php($editingMedia = $editingMediaId ? \App\Models\MediaLibrary::find($editingMediaId) : null)
+                        @if ($editingMedia?->is_gallery)
+                            <div class="md:col-span-2 space-y-1.5">
+                                <label
+                                    class="block text-[10px] font-medium uppercase tracking-widest text-slate-500">Gallery Category</label>
+                                <select wire:model="editGalleryCategoryId"
+                                    class="block w-full rounded-md border border-slate-200 px-3 py-2.5 text-sm text-slate-800 focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/10">
+                                    <option value="">— None —</option>
+                                    @foreach ($galleryCategories as $galleryCategory)
+                                        <option value="{{ $galleryCategory->id }}">
+                                            {{ $galleryCategory->getTranslation('name', app()->getLocale(), true) }}</option>
+                                    @endforeach
+                                </select>
+                                @error('editGalleryCategoryId')
+                                    <p class="text-xs text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        @endif
+
                         {{-- Description --}}
                         <div class="md:col-span-2 space-y-1.5">
                             <label
