@@ -30,7 +30,7 @@ class MediaLibrary extends Model
         'description',
         'metadata',
         'is_gallery',
-        'gallery_category_id',
+        'gallery_group_id',
         'uploaded_by',
     ];
 
@@ -57,11 +57,6 @@ class MediaLibrary extends Model
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');
-    }
-
-    public function galleryCategory(): BelongsTo
-    {
-        return $this->belongsTo(Category::class, 'gallery_category_id');
     }
 
     public function isImage(): bool

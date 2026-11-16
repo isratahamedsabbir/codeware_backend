@@ -18,6 +18,9 @@ class Cruds
 {
     public const MENU_GROUP = 'CRUD';
 
+    /** The seeded "Group" CRUD that Media Library gallery images are filed under. */
+    public const GROUP_SLUG = 'group';
+
     public const TYPES = [
         'text' => 'Text',
         'textarea' => 'Long text',
@@ -160,6 +163,23 @@ class Cruds
         return $rules;
     }
 
+    /**
+     * Records of the Group CRUD as id => name, for the Media Library's group
+     * dropdown. Empty when the CRUD (or its table) does not exist.
+     *
+     * @return array<int, string>
+     */
+    public static function groupOptions(): array
+    {
+        $crud = Crud::where('slug', self::GROUP_SLUG)->first();
+
+        if (! $crud || ! Schema::hasTable($crud->table_name) || ! Schema::hasColumn($crud->table_name, 'name')) {
+            return [];
+        }
+
+        return $crud->recordModel()->newQuery()->orderBy('name')->pluck('name', 'id')->all();
+    }
+
     /** Adds the CRUD group (builder link + one link per CRUD) to the sidebar. */
     public static function extendMenu(Collection $menu): Collection
     {
@@ -173,7 +193,23 @@ class Cruds
             'route_name' => 'admin.cruds',
         ])]);
 
-        foreach (Crud::query()->orderBy('name')->get() as $crud) {
+        $cruds = Crud::query()->orderBy('name')->get();
+
+        // The Group CRUD is catalogue vocabulary, so it sits inside Accessories
+        // (next to Categories / Tags) instead of in the CRUD group.
+        $groupCrud = $cruds->firstWhere('slug', self::GROUP_SLUG);
+        $accessories = $menu->first(fn (MenuItem $item) => $item->is_group && $item->label === 'Accessories');
+
+        if ($groupCrud && $accessories) {
+            $accessories->setRelation('children', $accessories->children->push(new MenuItem([
+                'label' => $groupCrud->name,
+                'icon' => MenuItem::iconExists($groupCrud->icon) ? $groupCrud->icon : 'rectangle-stack',
+                'url' => route('admin.cruds.records', $groupCrud->slug),
+            ])));
+            $cruds = $cruds->reject(fn (Crud $crud) => $crud->slug === self::GROUP_SLUG);
+        }
+
+        foreach ($cruds as $crud) {
             $children->push(new MenuItem([
                 'label' => $crud->name,
                 'icon' => MenuItem::iconExists($crud->icon) ? $crud->icon : 'rectangle-stack',

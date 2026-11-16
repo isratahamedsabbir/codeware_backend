@@ -18,7 +18,6 @@ class TypeSeeder extends Seeder
         $types = [
             ['slug' => Type::PRODUCT, 'name' => ['en' => 'Product', 'bn' => 'পণ্য'], 'sort_order' => 1],
             ['slug' => Type::POST, 'name' => ['en' => 'Post', 'bn' => 'পোস্ট'], 'sort_order' => 2],
-            ['slug' => Type::GALLERY, 'name' => ['en' => 'Gallery', 'bn' => 'গ্যালারি'], 'sort_order' => 3],
         ];
 
         foreach ($types as $type) {

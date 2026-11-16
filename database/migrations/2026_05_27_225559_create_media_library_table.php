@@ -28,7 +28,8 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->json('metadata')->nullable();
             $table->boolean('is_gallery')->default(false)->index();
-            $table->foreignId('gallery_category_id')->nullable()->constrained('categories')->nullOnDelete();
+            // Id of a record in the Group CRUD (crud_group). No foreign key: that table is generated at runtime.
+            $table->unsignedBigInteger('gallery_group_id')->nullable()->index();
             $table->foreignId('uploaded_by')->nullable()->constrained('users')->nullOnDelete();
             $table->index('file_type');
             $table->timestamps();

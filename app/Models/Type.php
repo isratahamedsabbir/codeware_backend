@@ -30,8 +30,6 @@ class Type extends Model
 
     public const POST = 'post';
 
-    public const GALLERY = 'gallery';
-
     public array $translatable = ['name'];
 
     protected $fillable = ['name', 'slug', 'status', 'sort_order'];
