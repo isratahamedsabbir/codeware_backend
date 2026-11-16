@@ -243,6 +243,14 @@ Route::middleware(['auth', 'admin', 'activity-log', 'mfa'])->group(function () {
         Route::get('/types/{id}/edit', App\Livewire\Admin\Types\Form::class)->name('types.edit');
     });
 
+    // Groups — named groups filed under a Type, managed like Categories. The
+    // Media Library files gallery images into the Gallery-type groups.
+    Route::middleware('feature:groups')->group(function () {
+        Route::get('/groups', App\Livewire\Admin\Groups\Index::class)->name('groups');
+        Route::get('/groups/create', App\Livewire\Admin\Groups\Form::class)->name('groups.create');
+        Route::get('/groups/{id}/edit', App\Livewire\Admin\Groups\Form::class)->name('groups.edit');
+    });
+
     // Brands — its own feature toggle, separate from Products; also its own
     // top-level sidebar item rather than nested under Products (see AdminMenuSeeder).
     Route::middleware('feature:brands')->group(function () {

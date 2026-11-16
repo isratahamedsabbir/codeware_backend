@@ -381,16 +381,16 @@
                                 class="block w-full rounded-md border border-slate-200 px-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/10" />
                         </div>
 
-                        {{-- Gallery group — only for images flagged as gallery --}}
-                        @if ($editingMediaId && \App\Models\MediaLibrary::whereKey($editingMediaId)->where('is_gallery', true)->exists())
+                        {{-- Gallery group — any image can be filed into one; picking a group adds it to the gallery --}}
+                        @if ($editingMediaId && \App\Models\MediaLibrary::whereKey($editingMediaId)->where('file_type', 'image')->exists())
                             <div class="md:col-span-2 space-y-1.5">
                                 <label
                                     class="block text-[10px] font-medium uppercase tracking-widest text-slate-500">Gallery Group</label>
                                 <select wire:model="editGalleryGroupId"
                                     class="block w-full rounded-md border border-slate-200 px-3 py-2.5 text-sm text-slate-800 focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/10">
                                     <option value="">— None —</option>
-                                    @foreach ($galleryGroups as $groupId => $groupName)
-                                        <option value="{{ $groupId }}">{{ $groupName }}</option>
+                                    @foreach ($galleryGroups as $galleryGroup)
+                                        <option value="{{ $galleryGroup->id }}">{{ $galleryGroup->getTranslation('name', app()->getLocale(), true) }}</option>
                                     @endforeach
                                 </select>
                                 @error('editGalleryGroupId')

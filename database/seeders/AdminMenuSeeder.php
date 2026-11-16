@@ -40,6 +40,7 @@ class AdminMenuSeeder extends Seeder
         $this->group('Accessories', 4, [
             ['Types', 'tag', 'admin.types'],
             ['Categories', 'squares-2x2', 'admin.categories'],
+            ['Groups', 'rectangle-stack', 'admin.groups'],
             ['Tags', 'tag', 'admin.tags'],
             ['Brands', 'building-storefront', 'admin.product-brands'],
             ['Advertisements', 'megaphone', 'admin.advertisements'],

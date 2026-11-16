@@ -48,7 +48,7 @@ class Index extends Component
 
             if ($this->isInUse($type)) {
                 $this->deletingId = null;
-                $this->dispatch('notify', message: "{$type->name} is still assigned to categories, brands or tags. Deactivate it instead.");
+                $this->dispatch('notify', message: "{$type->name} is still assigned to categories, brands, tags or groups. Deactivate it instead.");
                 $this->dispatch('close-modal', name: 'type-delete');
 
                 return;
@@ -107,7 +107,7 @@ class Index extends Component
     {
         return view('livewire.admin.types.index', [
             'types' => Type::query()
-                ->withCount(['categories', 'brands', 'tags'])
+                ->withCount(['categories', 'brands', 'tags', 'groups'])
                 ->when($this->search, fn ($q) => $q->where('name->en', 'like', "%{$this->search}%")
                     ->orWhere('name->bn', 'like', "%{$this->search}%")
                     ->orWhere('slug', 'like', "%{$this->search}%"))
@@ -132,6 +132,7 @@ class Index extends Component
     {
         return $type->categories()->exists()
             || $type->brands()->exists()
-            || $type->tags()->exists();
+            || $type->tags()->exists()
+            || $type->groups()->exists();
     }
 }

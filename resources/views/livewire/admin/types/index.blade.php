@@ -99,10 +99,11 @@
                                      deactivated, not deleted (the FK restricts), so this is
                                      what an admin needs in order to tell the two apart. --}}
                                 <td class="px-4 py-2 text-xs text-zinc-600 space-y-0.5">
-                                    @if ($type->categories_count || $type->brands_count || $type->tags_count)
+                                    @if ($type->categories_count || $type->brands_count || $type->tags_count || $type->groups_count)
                                         <div>{{ $type->categories_count }} {{ \Illuminate\Support\Str::plural('category', $type->categories_count) }}</div>
                                         <div>{{ $type->brands_count }} {{ \Illuminate\Support\Str::plural('brand', $type->brands_count) }}</div>
                                         <div>{{ $type->tags_count }} {{ \Illuminate\Support\Str::plural('tag', $type->tags_count) }}</div>
+                                        <div>{{ $type->groups_count }} {{ \Illuminate\Support\Str::plural('group', $type->groups_count) }}</div>
                                     @else
                                         <span class="text-zinc-400">Unused</span>
                                     @endif
@@ -128,7 +129,7 @@
 
                                 @php
                                     $bulkActive = count($selectedIds) > 0;
-                                    $inUse = $type->categories_count || $type->brands_count || $type->tags_count;
+                                    $inUse = $type->categories_count || $type->brands_count || $type->tags_count || $type->groups_count;
                                 @endphp
                                 <td class="sticky right-0 z-10 bg-white group-hover/row:bg-indigo-100 border-l border-zinc-100 px-4 py-2">
                                     <x-admin-row-actions :actions="[

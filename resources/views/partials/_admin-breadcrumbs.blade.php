@@ -16,6 +16,7 @@
         'discounts'          => ['Accessories', 'admin.categories'],
         'flash-deals'        => ['Accessories', 'admin.categories'],
         'types'              => ['Accessories', 'admin.types'],
+        'groups'             => ['Accessories', 'admin.groups'],
         'categories'         => ['Accessories', 'admin.categories'],
         'tags'               => ['Accessories', 'admin.categories'],
         'product-brands'     => ['Accessories', 'admin.categories'],

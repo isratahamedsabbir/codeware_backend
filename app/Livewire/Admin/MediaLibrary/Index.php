@@ -2,9 +2,10 @@
 
 namespace App\Livewire\Admin\MediaLibrary;
 
+use App\Models\Group;
 use App\Models\MediaLibrary;
 use App\Models\Setting;
-use App\Support\Cruds;
+use App\Models\Type;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -270,7 +271,7 @@ class Index extends Component
             'editAltText' => 'nullable|string|max:255',
             'editCaption' => 'nullable|string|max:500',
             'editDescription' => 'nullable|string|max:1000',
-            'editGalleryGroupId' => ['nullable', 'integer', Rule::in(array_keys(Cruds::groupOptions()))],
+            'editGalleryGroupId' => ['nullable', 'integer', Rule::exists('groups', 'id')->where('type_id', Type::idFor(Type::GALLERY))],
         ]);
 
         $media = MediaLibrary::findOrFail($this->editingMediaId);
@@ -279,7 +280,9 @@ class Index extends Component
             'alt_text' => $this->editAltText ?: null,
             'caption' => $this->editCaption ?: null,
             'description' => $this->editDescription ?: null,
-            'gallery_group_id' => $media->is_gallery ? $this->editGalleryGroupId : null,
+            'gallery_group_id' => $media->isImage() ? $this->editGalleryGroupId : null,
+            // Picking a group is the same as "Add to Gallery"; clearing it leaves the flag alone.
+            'is_gallery' => $media->is_gallery || ($media->isImage() && $this->editGalleryGroupId !== null),
         ]);
 
         $this->closeDetailsModal();
@@ -524,7 +527,7 @@ class Index extends Component
 
         return view('livewire.admin.media-library.index', [
             'media' => $media,
-            'galleryGroups' => $this->showDetailsModal ? Cruds::groupOptions() : [],
+            'galleryGroups' => $this->showDetailsModal ? Group::gallery()->active()->orderBy('sort_order')->get() : collect(),
         ])->layout('layouts.admin', [
             'title' => 'Media Library',
         ]);

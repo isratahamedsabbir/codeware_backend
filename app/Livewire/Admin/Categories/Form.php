@@ -152,7 +152,12 @@ class Form extends Component
     #[Computed]
     public function typeOptions()
     {
-        return Type::selectOptions();
+        // Gallery is a type for the Group CRUD / Media Library, not a pool
+        // categories are filed under — keep it out of this dropdown unless
+        // the category being edited already has it.
+        return Type::selectOptions()
+            ->reject(fn (Type $type) => $type->slug === Type::GALLERY && $type->id !== $this->typeId)
+            ->values();
     }
 
     /**

@@ -17,6 +17,7 @@ class Features
         'env' => 'Env (App, Maintenance & API Settings)',
         'blog' => 'Blog (Posts)',
         'types' => 'Types (the product/post split behind Categories, Tags & Brands)',
+        'groups' => 'Groups (named groups under a Type, used by the Media Library gallery)',
         'categories' => 'Categories (shared by Blog and Products)',
         'tags' => 'Tags (shared by Blog and Products)',
         'access-control' => 'Access Control (Roles, Permissions, Users)',

@@ -49,7 +49,6 @@ class DatabaseSeeder extends Seeder
         // resolve their type by slug (Type::idFor), so they need these two rows
         // to already exist.
         $this->call(TypeSeeder::class);
-        $this->call(GroupCrudSeeder::class);
         $this->call(ProductCategorySeeder::class);
         $this->call(ProductBrandSeeder::class);
         $this->call(ProductAttributeSeeder::class);

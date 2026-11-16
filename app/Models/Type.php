@@ -30,6 +30,8 @@ class Type extends Model
 
     public const POST = 'post';
 
+    public const GALLERY = 'gallery';
+
     public array $translatable = ['name'];
 
     protected $fillable = ['name', 'slug', 'status', 'sort_order'];
@@ -117,6 +119,11 @@ class Type extends Model
     public function tags(): HasMany
     {
         return $this->hasMany(Tag::class, 'type_id')->where('kind', Category::KIND_TAG);
+    }
+
+    public function groups(): HasMany
+    {
+        return $this->hasMany(Group::class, 'type_id');
     }
 
     public function scopeActive(Builder $query): Builder
