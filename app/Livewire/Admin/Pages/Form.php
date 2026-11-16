@@ -31,6 +31,8 @@ class Form extends Component
 
     public ?int $postId = null;
 
+    public ?int $serviceId = null;
+
     public ?int $categoryId = null;
 
     public array $title = [];
@@ -73,6 +75,7 @@ class Form extends Component
             $this->type = $page->type;
             $this->productId = $page->product_id;
             $this->postId = $page->post_id;
+            $this->serviceId = $page->service_id;
             $this->categoryId = $page->category_id;
             $this->hydrateTranslatable($page, ['title']);
             $this->slug = $page->slug;
@@ -300,6 +303,7 @@ class Form extends Component
         return match ($this->type) {
             'product' => ['products', $this->productId],
             'post' => ['posts', $this->postId],
+            'service' => ['services', $this->serviceId],
             'product_category', 'post_category' => ['categories', $this->categoryId],
             default => [null, null],
         };

@@ -23,6 +23,8 @@ return new class extends Migration
             $table->string('type', 20)->default('page');
             $table->foreignId('product_id')->nullable()->constrained('products')->nullOnDelete();
             $table->foreignId('post_id')->nullable()->constrained('posts')->nullOnDelete();
+            // services is created later than pages, so no FK constraint here.
+            $table->unsignedBigInteger('service_id')->nullable()->index();
             $table->foreignId('category_id')->nullable()->constrained('categories')->nullOnDelete();
             $table->unsignedInteger('sort_order')->default(0);
             // SEO copy (meta, Open Graph, Twitter, robots, canonical) lives in the `seos` table.

@@ -35,7 +35,7 @@ class Page extends Model
 
     protected $fillable = [
         'user_id', 'title', 'slug', 'content', 'description', 'puck_data', 'status',
-        'template', 'type', 'product_id', 'post_id', 'category_id', 'sort_order', 'seo_page_id', 'seo_title', 'seo_description',
+        'template', 'type', 'product_id', 'post_id', 'service_id', 'category_id', 'sort_order', 'seo_page_id', 'seo_title', 'seo_description',
         'og_image', 'og_title', 'og_description',
         'twitter_title', 'twitter_description', 'twitter_image', 'no_index', 'no_follow', 'custom_code_id',
         'canonical_base', 'canonical_slug', 'constant',
@@ -194,6 +194,11 @@ class Page extends Model
     public function post(): BelongsTo
     {
         return $this->belongsTo(Post::class, 'post_id');
+    }
+
+    public function service(): BelongsTo
+    {
+        return $this->belongsTo(Service::class);
     }
 
     public function category(): BelongsTo

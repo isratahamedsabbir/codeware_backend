@@ -40,6 +40,7 @@ class PageCascade
         $entity = match ($page->type) {
             'product' => $page->product,
             'post' => $page->post,
+            'service' => $page->service,
             'product_category' => ProductCategory::find($page->category_id),
             'post_category' => PostCategory::find($page->category_id),
             default => null,

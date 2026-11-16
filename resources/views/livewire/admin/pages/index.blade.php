@@ -199,6 +199,7 @@
                                         'page' => 'bg-zinc-100 text-zinc-600 border-zinc-200',
                                         'post' => 'bg-purple-50 text-purple-600 border-purple-200',
                                         'product' => 'bg-emerald-50 text-emerald-600 border-emerald-200',
+                                        'service' => 'bg-rose-50 text-rose-600 border-rose-200',
                                         'product_category' => 'bg-amber-50 text-amber-600 border-amber-200',
                                         'post_category' => 'bg-sky-50 text-sky-600 border-sky-200',
                                     ];

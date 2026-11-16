@@ -11,6 +11,7 @@ use App\Models\Post;
 use App\Models\PostCategory;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\Service;
 use App\Services\Import\CsvImporter;
 use App\Services\Import\PageCsvImporter;
 use App\Support\AdminActivity;
@@ -36,6 +37,7 @@ class Index extends Component
         'page' => 'Page',
         'post' => 'Post',
         'product' => 'Product',
+        'service' => 'Service',
         'product_category' => 'Product Category',
         'post_category' => 'Post Category',
     ];
@@ -246,6 +248,7 @@ class Index extends Component
         $entity = match ($page->type) {
             'product' => Product::find($page->product_id),
             'post' => Post::find($page->post_id),
+            'service' => Service::find($page->service_id),
             'product_category' => ProductCategory::find($page->category_id),
             'post_category' => PostCategory::find($page->category_id),
             default => null,
