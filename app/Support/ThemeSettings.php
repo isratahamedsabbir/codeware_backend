@@ -453,6 +453,21 @@ class ThemeSettings
     }
 
     /**
+     * A text field in the visitor's language: the `{key}_{locale}` value (the
+     * Bangla copy of `theme_x_title` is `theme_x_title_bn`) when the owner wrote
+     * one, else the base value — so a language with no copy shows the default
+     * instead of a hole.
+     */
+    public static function localized(?string $slug, string $key, string $default = ''): string
+    {
+        $locale = app()->getLocale();
+
+        $value = $locale === config('app.fallback_locale') ? '' : static::text($slug, $key.'_'.$locale);
+
+        return $value !== '' ? $value : static::text($slug, $key, $default);
+    }
+
+    /**
      * The page whose SEO a settings group ("home", "about"…) presents: the one
      * picked in Page Settings → {group} → SEO, else the seeded Default page, else
      * null (the site-wide defaults then apply). Hand the result to the layout as

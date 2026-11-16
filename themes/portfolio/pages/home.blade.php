@@ -19,7 +19,7 @@
     {{-- ══ Profile ═══════════════════════════════════════════════════════ --}}
     {{-- Both panels stay mounted (x-show) so the media picker keeps its Livewire
          binding while switching tabs; the last tab is remembered per browser. --}}
-    <x-admin-collapse-section icon="user-circle" title="Profile" description="Your name, role, photo, tagline and résumé.">
+    <x-admin-collapse-section icon="user-circle" title="Profile" description="Your name, role, photo, tagline and résumé." :locales="['en', 'bn']">
         {{-- Direct uploads rather than Media Library pickers: a new file
              replaces the old one and the old file is deleted on save
              (see App\Livewire\Admin\ThemeSettings\Index::saveUploads()). --}}
@@ -32,40 +32,73 @@
             {{-- One grid, one row-gap: the fields used to sit in stacked wrappers whose
                  spacing added up differently row to row. --}}
             <div class="grid grid-cols-1 content-start items-start gap-5 sm:grid-cols-2">
-                <flux:field>
-                    <flux:label>Display Name<x-field-hint text="Leave blank to use the site name from Settings." /></flux:label>
-                    <flux:input wire:model="settings.theme_portfolio_name" placeholder="e.g. Sabbir Hossain" />
-                </flux:field>
+                <x-admin-locale-panel code="en" class="grid grid-cols-1 content-start items-start gap-5 sm:col-span-2 sm:grid-cols-2">
+                    <flux:field>
+                        <flux:label badge="en">Display Name<x-field-hint text="Leave blank to use the site name from Settings." /></flux:label>
+                        <flux:input wire:model="settings.theme_portfolio_name" placeholder="e.g. Sabbir Hossain" />
+                    </flux:field>
 
-                <flux:field>
-                    <flux:label>Role<x-field-hint text="The line under your name — 'Full Stack Developer', 'Laravel & React Engineer'." /></flux:label>
-                    <flux:input wire:model="settings.theme_portfolio_hero_title" placeholder="Full Stack Developer" />
-                </flux:field>
+                    <flux:field>
+                        <flux:label badge="en">Role<x-field-hint text="The line under your name." /></flux:label>
+                        <flux:input wire:model="settings.theme_portfolio_hero_title" placeholder="Full Stack Developer" />
+                    </flux:field>
 
-                <flux:field class="sm:col-span-2">
-                    <flux:label>Tagline<x-field-hint text="One or two sentences on what you build." /></flux:label>
-                    <flux:textarea wire:model="settings.theme_portfolio_hero_tagline" class="h-24"
-                        placeholder="Building fast, reliable, and scalable web applications with modern tools." />
-                </flux:field>
+                    <flux:field class="sm:col-span-2">
+                        <flux:label badge="en">Tagline<x-field-hint text="One or two sentences on what you build." /></flux:label>
+                        <flux:textarea wire:model="settings.theme_portfolio_hero_tagline" class="h-24" placeholder="Building fast, reliable, and scalable web applications with modern tools." />
+                    </flux:field>
 
-                <flux:field>
-                    <flux:label>Location<x-field-hint text="Shown under the tagline and in the contact card." /></flux:label>
-                    <flux:input wire:model="settings.theme_portfolio_location" placeholder="e.g. Dhaka, Bangladesh" />
-                </flux:field>
+                    <flux:field>
+                        <flux:label badge="en">Location<x-field-hint text="Shown under the tagline and in the contact card." /></flux:label>
+                        <flux:input wire:model="settings.theme_portfolio_location" placeholder="e.g. Dhaka, Bangladesh" />
+                    </flux:field>
 
-                <flux:field>
-                    <flux:label>Availability<x-field-hint text="The status pill in the hero. Blank hides it." /></flux:label>
-                    <flux:input wire:model="settings.theme_portfolio_availability" placeholder="Available for new projects" />
-                </flux:field>
+                    <flux:field>
+                        <flux:label badge="en">Availability<x-field-hint text="The status pill in the hero. Blank hides it." /></flux:label>
+                        <flux:input wire:model="settings.theme_portfolio_availability" placeholder="Available for new projects" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label badge="en">Résumé Button Label</flux:label>
+                        <flux:input wire:model="settings.theme_portfolio_resume_label" placeholder="Download CV" />
+                    </flux:field>
+                </x-admin-locale-panel>
+
+                <x-admin-locale-panel code="bn" class="grid grid-cols-1 content-start items-start gap-5 sm:col-span-2 sm:grid-cols-2">
+                    <flux:field>
+                        <flux:label badge="bn">Display Name<x-field-hint text="Bangla name. Blank falls back to the English one." /></flux:label>
+                        <flux:input wire:model="settings.theme_portfolio_name_bn" placeholder="নাম" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label badge="bn">Role<x-field-hint text="The line under your name. Blank falls back to English." /></flux:label>
+                        <flux:input wire:model="settings.theme_portfolio_hero_title_bn" placeholder="পদবি" />
+                    </flux:field>
+
+                    <flux:field class="sm:col-span-2">
+                        <flux:label badge="bn">Tagline<x-field-hint text="One or two sentences on what you build." /></flux:label>
+                        <flux:textarea wire:model="settings.theme_portfolio_hero_tagline_bn" class="h-24" placeholder="সংক্ষিপ্ত পরিচিতি" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label badge="bn">Location<x-field-hint text="Shown under the tagline and in the contact card." /></flux:label>
+                        <flux:input wire:model="settings.theme_portfolio_location_bn" placeholder="যেমন: ঢাকা, বাংলাদেশ" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label badge="bn">Availability<x-field-hint text="The status pill in the hero. Blank hides it." /></flux:label>
+                        <flux:input wire:model="settings.theme_portfolio_availability_bn" placeholder="নতুন প্রজেক্টের জন্য উপলব্ধ" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label badge="bn">Résumé Button Label</flux:label>
+                        <flux:input wire:model="settings.theme_portfolio_resume_label_bn" placeholder="সিভি ডাউনলোড" />
+                    </flux:field>
+                </x-admin-locale-panel>
 
                 <x-admin-theme-upload upload-key="theme_portfolio_resume_url" type="pdf" label="Résumé (PDF)"
                     hint="No file hides the download button."
                     :value="$settings['theme_portfolio_resume_url'] ?? ''" :pending="$uploads['theme_portfolio_resume_url'] ?? null" />
-
-                <flux:field>
-                    <flux:label>Résumé Button Label</flux:label>
-                    <flux:input wire:model="settings.theme_portfolio_resume_label" placeholder="Download CV" />
-                </flux:field>
             </div>
         </div>
     </x-admin-collapse-section>

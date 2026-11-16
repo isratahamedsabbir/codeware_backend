@@ -16,8 +16,8 @@
     @php
         // The intro block is this theme's own settings, read from the theme.json
         // beside this file. See default/settings.blade.php for the admin side.
-        $introHeading = \App\Support\ThemeSettings::text('default', 'theme_default_intro_heading');
-        $introText = \App\Support\ThemeSettings::text('default', 'theme_default_intro_text');
+        $introHeading = \App\Support\ThemeSettings::localized('default', 'theme_default_intro_heading');
+        $introText = \App\Support\ThemeSettings::localized('default', 'theme_default_intro_text');
     @endphp
 
     <div class="flex flex-col items-center gap-8 text-center">

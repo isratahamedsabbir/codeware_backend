@@ -82,7 +82,7 @@ class PortfolioProfile
      */
     public static function hero(): array
     {
-        $name = ThemeSettings::text(self::SLUG, 'theme_portfolio_name') ?: (string) Setting::get('site_name', config('app.name'));
+        $name = ThemeSettings::localized(self::SLUG, 'theme_portfolio_name') ?: (string) Setting::get('site_name', config('app.name'));
         $email = trim((string) Setting::get('contact_email', '')) ?: null;
 
         return [
@@ -90,15 +90,15 @@ class PortfolioProfile
             // hero_title / hero_tagline are the keys this theme shipped with, kept
             // as-is: renaming them would silently drop the copy an existing
             // install already has saved and fall back to the defaults below.
-            'role' => self::text('theme_portfolio_hero_title', 'Full Stack Developer'),
-            'tagline' => self::text('theme_portfolio_hero_tagline', 'Building fast, reliable, and scalable web applications with modern tools. Passionate about clean code and thoughtful design.'),
-            'availability' => self::text('theme_portfolio_availability', 'Available for new projects'),
-            'location' => self::text('theme_portfolio_location'),
+            'role' => self::localized('theme_portfolio_hero_title', 'Full Stack Developer'),
+            'tagline' => self::localized('theme_portfolio_hero_tagline', 'Building fast, reliable, and scalable web applications with modern tools. Passionate about clean code and thoughtful design.'),
+            'availability' => self::localized('theme_portfolio_availability', 'Available for new projects'),
+            'location' => self::localized('theme_portfolio_location'),
             'email' => $email,
             'photo' => self::text('theme_portfolio_photo'),
             'monogram' => static::monogram($name),
             'resume_url' => self::text('theme_portfolio_resume_url'),
-            'resume_label' => self::text('theme_portfolio_resume_label', 'Download CV'),
+            'resume_label' => self::localized('theme_portfolio_resume_label', 'Download CV'),
         ];
     }
 
@@ -319,6 +319,14 @@ class PortfolioProfile
             // filled in has nothing to show, so it is not a row.
             ->filter(fn (array $row) => ($row[$identity] ?? '') !== '')
             ->values();
+    }
+
+    /** Like text(), but in the visitor's language (the `_bn` copy, else the base one). */
+    private static function localized(string $key, ?string $default = null): ?string
+    {
+        $value = ThemeSettings::localized(self::SLUG, $key);
+
+        return $value !== '' ? $value : self::text($key, $default);
     }
 
     /**
