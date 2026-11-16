@@ -27,6 +27,13 @@ class SecurityHeaders
         $headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $headers->set('Permissions-Policy', config('security.headers.permissions_policy'));
 
+        // Back-office and sign-in screens never belong in a search index. The
+        // meta tag in the layouts covers HTML; this header covers everything
+        // else (redirects, Livewire/JSON responses, error pages).
+        if ($this->isPrivateArea($request)) {
+            $headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+        }
+
         if (! app()->environment(['local', 'testing']) && $request->isSecure()) {
             $headers->set('Strict-Transport-Security', config('security.headers.hsts'));
         }
@@ -40,6 +47,32 @@ class SecurityHeaders
         }
 
         return $response;
+    }
+
+    /**
+     * Admin / vendor / delivery hosts in full, plus the sign-in pages and the
+     * legacy /admin prefix on the main host.
+     */
+    private function isPrivateArea(Request $request): bool
+    {
+        $host = $request->getHost();
+
+        foreach (['admin_host', 'vendor_host', 'delivery_host'] as $key) {
+            $panelHost = config('app.'.$key);
+
+            if (is_string($panelHost) && $panelHost !== '' && $panelHost === $host) {
+                return true;
+            }
+        }
+
+        return $request->is(
+            'admin', 'admin/*',
+            'login', 'register', 'logout',
+            'forgot-password', 'reset-password', 'reset-password/*',
+            'two-factor-challenge', 'confirm-password', 'mfa-required',
+            'email/verify', 'email/verify/*',
+            'user/*',
+        );
     }
 
     private function policy(string $nonce): string
