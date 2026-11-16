@@ -611,6 +611,8 @@
 
     @include('partials._admin-loader-overlay')
 
+    @include('partials._admin-action-progress')
+
     @fluxScripts
 
     {{-- Auto-scroll sidebar so active menu item is always visible --}}

@@ -1,7 +1,5 @@
 <div class="max-w-[1600px] w-full mx-auto flex-1">
 
-    @include('partials._admin-loader-target', ['target' => 'edit'])
-
     @push('page-header-actions')
         <flux:button variant="ghost" size="sm" class="admin-back-btn" icon="arrow-left" href="{{ route('admin.tags') }}" wire:navigate>
             Back
