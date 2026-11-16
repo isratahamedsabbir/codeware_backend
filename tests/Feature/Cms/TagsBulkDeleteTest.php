@@ -1,6 +1,6 @@
 <?php
 
-use App\Livewire\Admin\Tags\Index as TagsIndex;
+use App\Livewire\Admin\Tags\Form as TagsForm;
 use App\Models\Tag;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
@@ -15,16 +15,16 @@ beforeEach(function () {
 it('keeps the correct breadcrumb after a wire:click round trip', function () {
     $tag = Tag::factory()->create();
 
-    Livewire::test(TagsIndex::class)
+    Livewire::test(TagsForm::class)
         ->call('toggleSelect', $tag->id)
-        ->assertSee('Tags')
-        ->assertDontSee('Update');
+        ->assertSee('Tag Details')
+        ->assertDontSee('Update Tag');
 });
 
 it('hides the row checkboxes until a bulk selection is active', function () {
     $tags = Tag::factory()->count(2)->create();
 
-    $component = Livewire::test(TagsIndex::class);
+    $component = Livewire::test(TagsForm::class);
 
     $component->assertDontSeeHtml('type="checkbox"');
 
@@ -35,7 +35,7 @@ it('hides the row checkboxes until a bulk selection is active', function () {
 it('shows the bulk action toolbar only once something is selected', function () {
     $tag = Tag::factory()->create();
 
-    Livewire::test(TagsIndex::class)
+    Livewire::test(TagsForm::class)
         ->assertDontSee('Delete (')
         ->assertDontSee('Export (')
         ->call('toggleSelect', $tag->id)
@@ -49,7 +49,7 @@ it('shows the bulk action toolbar only once something is selected', function () 
 it('toggles a tag id in and out of the selection', function () {
     $tag = Tag::factory()->create();
 
-    Livewire::test(TagsIndex::class)
+    Livewire::test(TagsForm::class)
         ->call('toggleSelect', $tag->id)
         ->assertSet('selectedIds', [$tag->id])
         ->call('toggleSelect', $tag->id)
@@ -57,7 +57,7 @@ it('toggles a tag id in and out of the selection', function () {
 });
 
 it('does not open the bulk delete modal with nothing selected', function () {
-    Livewire::test(TagsIndex::class)
+    Livewire::test(TagsForm::class)
         ->call('confirmBulkDelete')
         ->assertNotDispatched('open-modal');
 });
@@ -65,7 +65,7 @@ it('does not open the bulk delete modal with nothing selected', function () {
 it('opens the bulk delete confirmation modal once something is selected', function () {
     $tag = Tag::factory()->create();
 
-    Livewire::test(TagsIndex::class)
+    Livewire::test(TagsForm::class)
         ->call('toggleSelect', $tag->id)
         ->call('confirmBulkDelete')
         ->assertDispatched('open-modal', name: 'tag-bulk-delete');
@@ -75,7 +75,7 @@ it('deletes every selected tag and clears the selection', function () {
     $tags = Tag::factory()->count(3)->create();
     $keep = Tag::factory()->create();
 
-    Livewire::test(TagsIndex::class)
+    Livewire::test(TagsForm::class)
         ->call('toggleSelect', $tags[0]->id)
         ->call('toggleSelect', $tags[1]->id)
         ->call('bulkDelete')
@@ -92,7 +92,7 @@ it('deletes every selected tag and clears the selection', function () {
 it('uses singular wording when only one tag is deleted', function () {
     $tag = Tag::factory()->create();
 
-    Livewire::test(TagsIndex::class)
+    Livewire::test(TagsForm::class)
         ->call('toggleSelect', $tag->id)
         ->call('bulkDelete')
         ->assertDispatched('notify', message: '1 tag deleted successfully');
@@ -101,13 +101,13 @@ it('uses singular wording when only one tag is deleted', function () {
 it('disables the per-row actions for every row once a bulk selection is active', function () {
     $tags = Tag::factory()->count(2)->create();
 
-    $component = Livewire::test(TagsIndex::class);
+    $component = Livewire::test(TagsForm::class);
 
-    $component->assertSeeHtml(route('admin.tags.edit', $tags[0]->id));
+    $component->assertSeeHtml('edit('.$tags[0]->id.')');
 
     $component->call('toggleSelect', $tags[0]->id)
-        ->assertDontSeeHtml(route('admin.tags.edit', $tags[0]->id))
-        ->assertDontSeeHtml(route('admin.tags.edit', $tags[1]->id));
+        ->assertDontSeeHtml('edit('.$tags[0]->id.')')
+        ->assertDontSeeHtml('edit('.$tags[1]->id.')');
 });
 
 it('exports only the requested tag ids as a downloadable csv', function () {

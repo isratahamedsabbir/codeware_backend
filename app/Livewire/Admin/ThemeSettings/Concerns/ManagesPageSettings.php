@@ -9,9 +9,10 @@ use App\Support\AdminActivity;
 use App\Support\Features;
 use App\Support\HeroSlides;
 use App\Support\Locale;
-use App\Support\ThemeSettings;
 use App\Support\Themes;
+use App\Support\ThemeSettings;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\Rule;
 
 /**
  * Theme Settings → the "Page Settings" card (mixed into the screen's component, so
@@ -310,11 +311,11 @@ trait ManagesPageSettings
     protected function pageSettingsRules(): array
     {
         if ($this->groups() !== null) {
-            return [['groupSeo.*' => ['nullable', 'integer', \Illuminate\Validation\Rule::exists('pages', 'id')->where('type', 'page')]], []];
+            return [['groupSeo.*' => ['nullable', 'integer', Rule::exists('pages', 'id')->where('type', 'page')]], []];
         }
 
         $rules = [
-            'seoSources.*' => ['nullable', 'integer', \Illuminate\Validation\Rule::exists('pages', 'id')->where('type', 'page')],
+            'seoSources.*' => ['nullable', 'integer', Rule::exists('pages', 'id')->where('type', 'page')],
             'cards.*.*.image' => ['nullable', 'string'],
             'cards.*.*.title' => ['nullable', 'string', 'max:255'],
             'cards.*.*.subtitle' => ['nullable', 'string', 'max:255'],

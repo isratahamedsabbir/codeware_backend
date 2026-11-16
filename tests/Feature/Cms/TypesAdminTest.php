@@ -1,7 +1,6 @@
 <?php
 
 use App\Livewire\Admin\Types\Form as TypeForm;
-use App\Livewire\Admin\Types\Index as TypeIndex;
 use App\Models\Category;
 use App\Models\PostCategory;
 use App\Models\ProductBrand;
@@ -33,14 +32,14 @@ it('renders the types index with the seeded pools and their usage counts', funct
     Category::factory()->create(['name' => ['en' => 'Appliances', 'bn' => '']]);
     Tag::factory()->create(['name' => ['en' => 'Sale', 'bn' => '']]);
 
-    $html = Livewire::test(TypeIndex::class)->assertOk()->html();
+    $html = Livewire::test(TypeForm::class)->assertOk()->html();
 
     expect($html)->toContain('Product')
         ->and($html)->toContain('Post');
 });
 
 it('searches types by name and slug', function () {
-    Livewire::test(TypeIndex::class)
+    Livewire::test(TypeForm::class)
         ->set('search', 'post')
         ->assertOk();
 });
@@ -102,13 +101,13 @@ it('edits a type without reactivating a deactivated one', function () {
 });
 
 it('toggles a type status from the index', function () {
-    Livewire::test(TypeIndex::class)
+    Livewire::test(TypeForm::class)
         ->call('toggleStatus', $this->productTypeId)
         ->assertHasNoErrors();
 
     expect(Type::findOrFail($this->productTypeId)->status)->toBe('inactive');
 
-    Livewire::test(TypeIndex::class)
+    Livewire::test(TypeForm::class)
         ->call('toggleStatus', $this->productTypeId)
         ->assertHasNoErrors();
 
@@ -118,10 +117,10 @@ it('toggles a type status from the index', function () {
 it('refuses to delete a type that categories, brands or tags still use', function () {
     Tag::factory()->create(['name' => ['en' => 'Featured', 'bn' => '']]);
 
-    Livewire::test(TypeIndex::class)
+    Livewire::test(TypeForm::class)
         ->call('confirmDelete', $this->productTypeId)
         ->call('delete')
-        ->assertDispatched('notify', fn ($event, $params) => ($params['message'] ?? '') === 'Product is still assigned to categories, brands or tags. Deactivate it instead.');
+        ->assertDispatched('notify', fn ($event, $params) => ($params['message'] ?? '') === 'Product is still assigned to categories, brands, tags or groups. Deactivate it instead.');
 
     expect(Type::find($this->productTypeId))->not->toBeNull();
 });
@@ -129,7 +128,7 @@ it('refuses to delete a type that categories, brands or tags still use', functio
 it('deletes an unused type', function () {
     $type = Type::create(['name' => ['en' => 'Dormant', 'bn' => ''], 'status' => 'active']);
 
-    Livewire::test(TypeIndex::class)
+    Livewire::test(TypeForm::class)
         ->call('confirmDelete', $type->id)
         ->call('delete')
         ->assertHasNoErrors();
@@ -141,7 +140,7 @@ it('bulk-deletes only the unused types and reports what it skipped', function ()
     $unused = Type::create(['name' => ['en' => 'Dormant', 'bn' => ''], 'status' => 'active']);
     ProductBrand::factory()->create(['name' => ['en' => 'Acme', 'bn' => '']]);
 
-    Livewire::test(TypeIndex::class)
+    Livewire::test(TypeForm::class)
         ->set('selectedIds', [$unused->id, $this->productTypeId])
         ->call('bulkDelete')
         // One summary notification, not one per skipped row.

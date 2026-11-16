@@ -1,4 +1,5 @@
 <?php
+
 use App\Livewire\Admin\ThemeSettings\Edit;
 use App\Livewire\Admin\ThemeSettings\Index as S;
 use App\Models\Page;
@@ -15,13 +16,18 @@ it('renders Theme Settings + Page Settings for every theme', function (string $s
     Page::factory()->published()->create(['title' => ['en' => 'About us', 'bn' => ''], 'slug' => 'about', 'type' => 'page']);
     // The default theme's one page is the seeded Default page (inactive, never in the nav).
     Page::factory()->create(['title' => ['en' => 'Default', 'bn' => ''], 'slug' => 'default', 'type' => 'page', 'status' => 'inactive']);
-    Setting::set('site_theme', $slug); Themes::forget();
+    Setting::set('site_theme', $slug);
+    Themes::forget();
     // Closed by default: the settings live in the dialog a card's Settings button opens.
     Livewire::test(S::class)->assertOk()->assertDontSee('Page Settings');
 
     $c = Livewire::test(Edit::class, ['slug' => $slug])->assertOk()->assertSee('Page Settings');
-    foreach ($mustSee as $t) $c->assertSee($t, false);
-    foreach ($mustNotSee as $t) $c->assertDontSee($t, false);
+    foreach ($mustSee as $t) {
+        $c->assertSee($t, false);
+    }
+    foreach ($mustNotSee as $t) {
+        $c->assertDontSee($t, false);
+    }
     $c->call('save')->assertHasNoErrors();
 })->with([
     'classic' => ['classic_ecommerce', ['Add slide', 'theme_classic_ecommerce_header_bg_color'], []],

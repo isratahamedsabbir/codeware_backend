@@ -1,7 +1,6 @@
 <?php
 
 use App\Livewire\Admin\Tags\Form as TagsForm;
-use App\Livewire\Admin\Tags\Index as TagsIndex;
 use App\Models\Tag;
 use App\Models\Type;
 use App\Models\User;
@@ -17,7 +16,7 @@ beforeEach(function () {
 });
 
 it('renders tags index component', function () {
-    Livewire::test(TagsIndex::class)
+    Livewire::test(TagsForm::class)
         ->assertStatus(200);
 });
 
@@ -25,7 +24,7 @@ it('shows each tag under its own type on the index, with no shared/legacy bucket
     Tag::factory()->create(['name' => ['en' => 'Product Tag', 'bn' => '']]);
     Tag::factory()->post()->create(['name' => ['en' => 'Post Tag', 'bn' => '']]);
 
-    $html = Livewire::test(TagsIndex::class)->html();
+    $html = Livewire::test(TagsForm::class)->html();
 
     expect($html)->toContain('Product Tag')
         ->and($html)->toContain('Post Tag')
@@ -37,7 +36,7 @@ it('filters the index to a single type', function () {
     Tag::factory()->create(['name' => ['en' => 'Product Only', 'bn' => '']]);
     Tag::factory()->post()->create(['name' => ['en' => 'Post Only', 'bn' => '']]);
 
-    Livewire::test(TagsIndex::class)
+    Livewire::test(TagsForm::class)
         ->set('typeFilter', (string) $this->postTypeId)
         ->assertSee('Post Only')
         ->assertDontSee('Product Only');
@@ -45,7 +44,7 @@ it('filters the index to a single type', function () {
 
 it('displays existing tags', function () {
     Tag::factory()->create(['name' => ['en' => 'Laravel', 'bn' => 'Laravel']]);
-    Livewire::test(TagsIndex::class)
+    Livewire::test(TagsForm::class)
         ->assertSee('Laravel');
 });
 
@@ -134,7 +133,7 @@ it('can move a tag to the other pool from the form', function () {
 
 it('can delete a tag', function () {
     $tag = Tag::factory()->create();
-    Livewire::test(TagsIndex::class)
+    Livewire::test(TagsForm::class)
         ->call('confirmDelete', $tag->id)
         ->call('delete');
 

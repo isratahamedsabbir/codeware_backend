@@ -22,6 +22,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\TestController;
+use App\Http\Controllers\Themes\SlugController;
 use App\Http\Controllers\VoucherController;
 use App\Models\Setting;
 use App\Support\Seo\Sitemap;
@@ -300,4 +301,4 @@ foreach (Themes::allRouteFiles() as $slug => $file) {
 // every real route (/login, /cart, /shop) always wins over a record that shares
 // its name. Unnamed, so the 'theme' guard passes it through and the controller
 // checks the active theme itself. See SlugController.
-Route::fallback(\App\Http\Controllers\Themes\SlugController::class)->middleware('referral');
+Route::fallback(SlugController::class)->middleware('referral');

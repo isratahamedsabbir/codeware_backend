@@ -3,8 +3,8 @@
 namespace App\Livewire\Admin\ThemeSettings;
 
 use App\Support\AdminActivity;
-use App\Support\ThemeSettings;
 use App\Support\Themes;
+use App\Support\ThemeSettings;
 
 /**
  * One theme's settings on a page of their own: /theme-settings/{slug}.
@@ -40,8 +40,8 @@ class Edit extends Index
         AdminActivity::log('updated', "Theme \"{$slug}\" settings downloaded as json");
 
         return response()->streamDownload(function () use ($json) {
-            echo $json."
-";
+            echo $json.'
+';
         }, "{$slug}-settings.json", ['Content-Type' => 'application/json']);
     }
 

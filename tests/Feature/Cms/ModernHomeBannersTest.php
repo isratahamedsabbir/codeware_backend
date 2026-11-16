@@ -4,8 +4,8 @@ use App\Livewire\Admin\ThemeSettings\Edit as ThemeSettingsEdit;
 use App\Models\Page;
 use App\Models\Setting;
 use App\Models\User;
-use App\Support\ThemeSettings;
 use App\Support\Themes;
+use App\Support\ThemeSettings;
 use Database\Seeders\RolePermissionSeeder;
 use Livewire\Livewire;
 

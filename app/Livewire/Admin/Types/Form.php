@@ -2,19 +2,22 @@
 
 namespace App\Livewire\Admin\Types;
 
+use App\Concerns\HasBulkSelection;
+use App\Concerns\HasPerPage;
 use App\Concerns\HasTranslatableFields;
-use App\Concerns\StaysOnForm;
+use App\Concerns\WithSearch;
 use App\Models\Type;
 use App\Support\AdminActivity;
 use App\Support\Slug;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Form extends Component
 {
+    use HasBulkSelection, HasPerPage, WithPagination, WithSearch;
     use HasTranslatableFields;
-    use StaysOnForm;
 
     public ?int $typeId = null;
 
@@ -38,6 +41,29 @@ class Form extends Component
         $this->typeId = $id;
         $this->hydrateTranslatable($type, ['name']);
         $this->slug = $type->slug;
+    }
+
+    /**
+     * Loads a type into the form beside the table, so editing never leaves the
+     * page. The table is the list; the form is the editor.
+     */
+    public function edit(int $id): void
+    {
+        $type = Type::findOrFail($id);
+
+        $this->resetValidation();
+        $this->typeId = $id;
+        $this->name = [];
+        $this->hydrateTranslatable($type, ['name']);
+        $this->slug = $type->slug;
+        $this->autoSlug = '';
+    }
+
+    /** Back to a blank "new type" form. */
+    public function resetForm(): void
+    {
+        $this->resetValidation();
+        $this->reset(['typeId', 'name', 'slug', 'autoSlug']);
     }
 
     /**
@@ -125,12 +151,143 @@ class Form extends Component
             "Type: {$this->primaryValue('name')}",
         );
 
-        $this->stayOnForm($creating, 'admin.types.edit', $this->typeId);
+        // The list is right beside the form, so a created type just clears it
+        // for the next one instead of navigating away.
+        if ($creating) {
+            $this->resetForm();
+        }
+    }
+
+    public string $statusFilter = '';
+
+    public ?int $deletingId = null;
+
+    public function updatedStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function toggleStatus(int $id): void
+    {
+        $type = Type::findOrFail($id);
+        $newStatus = $type->status === 'active' ? 'inactive' : 'active';
+
+        $type->update(['status' => $newStatus]);
+
+        AdminActivity::log('updated', "Type: {$type->name} ".($newStatus === 'active' ? 'activated' : 'deactivated'));
+        $this->dispatch('notify', message: 'Type status updated');
+    }
+
+    public function confirmDelete(int $id): void
+    {
+        $this->deletingId = $id;
+        $this->dispatch('open-modal', name: 'type-delete');
+    }
+
+    public function delete(): void
+    {
+        if ($this->deletingId) {
+            $type = Type::findOrFail($this->deletingId);
+
+            if ($this->isInUse($type)) {
+                $this->deletingId = null;
+                $this->dispatch('notify', message: "{$type->name} is still assigned to categories, brands, tags or groups. Deactivate it instead.");
+                $this->dispatch('close-modal', name: 'type-delete');
+
+                return;
+            }
+
+            $deletedId = $type->id;
+            AdminActivity::log('deleted', "Type: {$type->name}");
+            $type->delete();
+            $this->dispatch('notify', message: 'Type deleted successfully');
+            $this->deletingId = null;
+
+            // The type on screen is gone — fall back to a blank create form.
+            if ($this->typeId === $deletedId) {
+                $this->resetForm();
+            }
+        }
+        $this->dispatch('close-modal', name: 'type-delete');
+    }
+
+    public function confirmBulkDelete(): void
+    {
+        if ($this->selectedIds === []) {
+            return;
+        }
+
+        $this->dispatch('open-modal', name: 'type-bulk-delete');
+    }
+
+    public function bulkDelete(): void
+    {
+        $types = Type::whereIn('id', $this->selectedIds)->get();
+        $count = 0;
+        $skipped = 0;
+        $deletedCurrent = false;
+
+        foreach ($types as $type) {
+            if ($this->isInUse($type)) {
+                $skipped++;
+
+                continue;
+            }
+
+            AdminActivity::log('deleted', "Type: {$type->name}");
+            $deletedCurrent = $deletedCurrent || $type->id === $this->typeId;
+            $type->delete();
+            $count++;
+        }
+
+        $this->selectedIds = [];
+
+        // A bulk run is a mixed bag far more often than a single delete, so say
+        // what was left behind instead of letting it look like a full success.
+        $message = "{$count} ".Str::plural('type', $count).' deleted successfully';
+
+        if ($skipped > 0) {
+            $message .= " — {$skipped} still in use, deactivate ".($skipped === 1 ? 'it' : 'them').' instead';
+        }
+
+        $this->dispatch('notify', message: $message);
+        $this->dispatch('close-modal', name: 'type-bulk-delete');
+
+        if ($deletedCurrent) {
+            $this->resetForm();
+        }
+    }
+
+    /**
+     * Every category, brand, tag and group in that type would be left pointing
+     * at a row nothing renders any more, so a type in use can only be
+     * deactivated — that takes its rows out of circulation without orphaning
+     * them.
+     */
+    private function isInUse(Type $type): bool
+    {
+        return $type->categories()->exists()
+            || $type->brands()->exists()
+            || $type->tags()->exists()
+            || $type->groups()->exists();
     }
 
     public function render()
     {
-        return view('livewire.admin.types.form')
+        // The form is small, so the list sits beside it: pick a type to edit
+        // without going back to the index.
+        $types = Type::query()
+            ->withCount(['categories', 'brands', 'tags', 'groups'])
+            ->when($this->search, fn ($q) => $q->where(fn ($w) => $w
+                ->where('name->en', 'like', "%{$this->search}%")
+                ->orWhere('name->bn', 'like', "%{$this->search}%")
+                ->orWhere('slug', 'like', "%{$this->search}%")))
+            ->when($this->statusFilter, fn ($q) => $q->where('status', $this->statusFilter))
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->paginate($this->perPage);
+
+        return view('livewire.admin.types.form', ['types' => $types])
             ->layout('layouts.admin', ['title' => $this->typeId ? 'Edit Type' : 'New Type']);
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Admin\Categories\Form;
 use App\Livewire\Admin\Services\Form as ServiceForm;
 use App\Livewire\Admin\Types\Form as TypeForm;
 use App\Livewire\Admin\Vouchers\Form as VoucherForm;
@@ -62,7 +63,7 @@ it('fills the slug in on the forms that already did', function (string $form, st
         ->set("{$field}.en", 'Summer Sale')
         ->assertSet('slug', 'summer-sale');
 })->with([
-    'category' => [App\Livewire\Admin\Categories\Form::class, 'name'],
+    'category' => [Form::class, 'name'],
     'product' => [App\Livewire\Admin\Products\Form::class, 'name'],
     'post' => [App\Livewire\Admin\Posts\Form::class, 'title'],
     'page' => [App\Livewire\Admin\Pages\Form::class, 'title'],

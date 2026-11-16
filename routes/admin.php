@@ -41,6 +41,7 @@ use App\Livewire\Admin\Orders\Show;
 use App\Livewire\Admin\Posts\Form;
 use App\Livewire\Admin\Posts\Index;
 use App\Livewire\Admin\Profile;
+use App\Livewire\Admin\ThemeSettings\Edit;
 use App\Livewire\Security\MfaRequired;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -123,7 +124,7 @@ Route::middleware(['auth', 'admin', 'activity-log', 'mfa'])->group(function () {
     // Tags (shared the same way as Categories) — its own feature toggle, separate
     // from Categories.
     Route::middleware('feature:tags')->group(function () {
-        Route::get('/tags', App\Livewire\Admin\Tags\Index::class)->name('tags');
+        Route::get('/tags', App\Livewire\Admin\Tags\Form::class)->name('tags');
         Route::get('/tags/export', [TagExportController::class, 'export'])->name('tags.export');
         Route::get('/tags/create', App\Livewire\Admin\Tags\Form::class)->name('tags.create');
         Route::get('/tags/{id}/edit', App\Livewire\Admin\Tags\Form::class)->name('tags.edit');
@@ -174,7 +175,7 @@ Route::middleware(['auth', 'admin', 'activity-log', 'mfa'])->group(function () {
         // theme's settings (site_theme plus homepage copy/imagery), separate from
         // the general Settings page.
         Route::get('/theme-settings', App\Livewire\Admin\ThemeSettings\Index::class)->name('theme-settings');
-        Route::get('/theme-settings/{slug}', App\Livewire\Admin\ThemeSettings\Edit::class)->where('slug', '[A-Za-z0-9_-]+')->name('theme-settings.edit');
+        Route::get('/theme-settings/{slug}', Edit::class)->where('slug', '[A-Za-z0-9_-]+')->name('theme-settings.edit');
         Route::get('/seo', App\Livewire\Admin\Seo\Index::class)->name('seo');
         Route::get('/social', App\Livewire\Admin\Social\Index::class)->name('social');
         Route::get('/mobile-apps', App\Livewire\Admin\MobileApps\Index::class)->name('mobile-apps');
@@ -238,7 +239,7 @@ Route::middleware(['auth', 'admin', 'activity-log', 'mfa'])->group(function () {
     // meaningless without it, and behind its own toggle so a deployment that
     // has no taxonomy at all can drop the vocabulary along with it.
     Route::middleware('feature:types')->group(function () {
-        Route::get('/types', App\Livewire\Admin\Types\Index::class)->name('types');
+        Route::get('/types', App\Livewire\Admin\Types\Form::class)->name('types');
         Route::get('/types/create', App\Livewire\Admin\Types\Form::class)->name('types.create');
         Route::get('/types/{id}/edit', App\Livewire\Admin\Types\Form::class)->name('types.edit');
     });
@@ -246,7 +247,7 @@ Route::middleware(['auth', 'admin', 'activity-log', 'mfa'])->group(function () {
     // Groups — named groups filed under a Type, managed like Categories. The
     // Media Library files gallery images into the Gallery-type groups.
     Route::middleware('feature:groups')->group(function () {
-        Route::get('/groups', App\Livewire\Admin\Groups\Index::class)->name('groups');
+        Route::get('/groups', App\Livewire\Admin\Groups\Form::class)->name('groups');
         Route::get('/groups/create', App\Livewire\Admin\Groups\Form::class)->name('groups.create');
         Route::get('/groups/{id}/edit', App\Livewire\Admin\Groups\Form::class)->name('groups.edit');
     });

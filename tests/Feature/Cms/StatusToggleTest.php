@@ -6,7 +6,7 @@ use App\Livewire\Admin\Pages\Index as PagesIndex;
 use App\Livewire\Admin\Posts\Index as PostsIndex;
 use App\Livewire\Admin\Products\Form;
 use App\Livewire\Admin\Products\Index as ProductsIndex;
-use App\Livewire\Admin\Tags\Index as TagsIndex;
+use App\Livewire\Admin\Tags\Form as TagsForm;
 use App\Models\CmsSection;
 use App\Models\Page;
 use App\Models\Post;
@@ -82,7 +82,7 @@ it('toggles a post status, sets published_at once, and syncs its paired page fro
 it('toggles a tag status from the list', function () {
     $tag = Tag::factory()->create(['status' => 'inactive']);
 
-    Livewire::test(TagsIndex::class)->call('toggleStatus', $tag->id);
+    Livewire::test(TagsForm::class)->call('toggleStatus', $tag->id);
 
     expect($tag->fresh()->status)->toBe('active');
 });
@@ -112,7 +112,7 @@ it('does not expose a status field on the product form', function () {
 });
 
 it('creates new records inactive by default across resources', function () {
-    Livewire::test(App\Livewire\Admin\Tags\Form::class)
+    Livewire::test(TagsForm::class)
         ->set('name.en', 'Fresh Tag')
         ->call('save');
 

@@ -5,6 +5,7 @@ use App\Livewire\Admin\Products\Form as ProductForm;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\Product;
+use App\Models\Seo;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Support\Facades\Schema;
@@ -156,7 +157,7 @@ it('writes NULL, not empty json, when every locale is cleared', function () {
     $page->refresh();
 
     expect($page->seo->getRawOriginal('seo_title'))->toBeNull()
-        ->and(\App\Models\Seo::whereNull('seo_title')->where('page_id', $page->id)->exists())->toBeTrue()
+        ->and(Seo::whereNull('seo_title')->where('page_id', $page->id)->exists())->toBeTrue()
         ->and($page->seo_title)->toBeNull();
 });
 

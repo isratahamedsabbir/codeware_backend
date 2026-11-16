@@ -4,10 +4,15 @@ use App\Livewire\Admin\ThemeSettings\Edit as ThemeSettingsEdit;
 use App\Livewire\Admin\ThemeSettings\Index as ThemeSettingsScreen;
 use App\Models\CmsSection;
 use App\Models\Page;
+use App\Models\Seo;
 use App\Models\Setting;
 use App\Models\User;
+use App\Support\Frontend;
 use App\Support\Themes;
+use App\Support\ThemeSettings;
+use Database\Seeders\PageSeeder;
 use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 
 /*
@@ -141,8 +146,8 @@ it('saves the classic home banners: promo tiles to settings, their links to them
         ->assertHasNoErrors();
 
     expect(Setting::get('home_promo_banner_1'))->toBe('media/tile-one.jpg')
-        ->and(\App\Support\ThemeSettings::text('classic_ecommerce', 'theme_classic_ecommerce_promo_1_link'))->toBe('/shop?sort=newest')
-        ->and(\App\Support\ThemeSettings::text('classic_ecommerce', 'theme_classic_ecommerce_promo_2_link'))->toBe('/shop');
+        ->and(ThemeSettings::text('classic_ecommerce', 'theme_classic_ecommerce_promo_1_link'))->toBe('/shop?sort=newest')
+        ->and(ThemeSettings::text('classic_ecommerce', 'theme_classic_ecommerce_promo_2_link'))->toBe('/shop');
 });
 
 it('renders a card\'s subtitle, button and text colour on every theme that serves pages', function (string $slug) {
@@ -188,12 +193,12 @@ it('does not change the live theme when another theme is saved', function () {
         ->call('save');
 
     expect(Setting::get('site_theme'))->toBe('portfolio')
-        ->and(\App\Support\ThemeSettings::text('news', 'theme_news_tagline'))->toBe('All the news');
+        ->and(ThemeSettings::text('news', 'theme_news_tagline'))->toBe('All the news');
 });
 
 it('serves an installed theme settings page and 404s one that is not installed', function () {
     // Mfa::isRequiredFor() reads the role flag, not the config switch.
-    \Illuminate\Support\Facades\DB::table('roles')->update(['mfa_enabled' => false]);
+    DB::table('roles')->update(['mfa_enabled' => false]);
 
     $this->get(route('admin.theme-settings.edit', 'news'))->assertOk()->assertSee('Page Settings');
     $this->get(route('admin.theme-settings.edit', 'no-such-theme'))->assertNotFound();
@@ -206,13 +211,13 @@ it('links every theme card Settings button to that theme settings page', functio
 });
 
 it('downloads a theme\'s saved settings as json, without the manifest', function () {
-    \App\Support\ThemeSettings::merge('news', ['theme_news_tagline' => 'All the news', 'theme_news_accent_color' => '#1d4ed8']);
+    ThemeSettings::merge('news', ['theme_news_tagline' => 'All the news', 'theme_news_accent_color' => '#1d4ed8']);
 
     $component = Livewire::test(ThemeSettingsEdit::class, ['slug' => 'news'])->call('downloadSettings');
 
     $component->assertFileDownloaded('news-settings.json');
 
-    $json = json_decode(\App\Support\ThemeSettings::text('news', 'theme_news_tagline') ? json_encode(\App\Support\ThemeSettings::settings('news')) : '{}', true);
+    $json = json_decode(ThemeSettings::text('news', 'theme_news_tagline') ? json_encode(ThemeSettings::settings('news')) : '{}', true);
     expect($json)->toHaveKey('theme_news_tagline', 'All the news')
         ->and($json)->not->toHaveKey('name')
         ->and($json)->not->toHaveKey('version');
@@ -374,13 +379,13 @@ function withCleanDefaultThemeFile(Closure $test): void
     $data = json_decode($original, true);
     unset($data['pages']['home']['seo']);
     file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-    \App\Support\ThemeSettings::forget('default');
+    ThemeSettings::forget('default');
 
     try {
         $test();
     } finally {
         file_put_contents($file, $original);
-        \App\Support\ThemeSettings::forget('default');
+        ThemeSettings::forget('default');
     }
 }
 
@@ -409,7 +414,7 @@ it('selects the Default page as a group\'s SEO source and saves the one picked',
             ->call('save')
             ->assertHasNoErrors();
 
-        expect(\App\Support\ThemeSettings::text('default', 'theme_default_home_seo'))->toBe((string) $other->id);
+        expect(ThemeSettings::text('default', 'theme_default_home_seo'))->toBe((string) $other->id);
     });
 });
 
@@ -423,7 +428,7 @@ it('serves the SEO picked for the Home group on the default theme home page', fu
     Themes::forget();
 
     withCleanDefaultThemeFile(function () use ($source) {
-        \App\Support\ThemeSettings::merge('default', ['theme_default_home_seo' => (string) $source->id]);
+        ThemeSettings::merge('default', ['theme_default_home_seo' => (string) $source->id]);
 
         $this->get('/')
             ->assertOk()
@@ -433,14 +438,14 @@ it('serves the SEO picked for the Home group on the default theme home page', fu
 });
 
 it('seeds the Default page: inactive, with an SEO row, out of the nav', function () {
-    $this->seed(\Database\Seeders\PageSeeder::class);
+    $this->seed(PageSeeder::class);
 
     $page = Page::where('type', 'page')->where('slug', 'default')->first();
 
     expect($page)->not->toBeNull()
         ->and($page->status)->toBe('inactive')
-        ->and(\App\Models\Seo::where('page_id', $page->id)->exists())->toBeTrue()
-        ->and(\App\Support\Frontend::navPages()->pluck('slug')->all())->not->toContain('default');
+        ->and(Seo::where('page_id', $page->id)->exists())->toBeTrue()
+        ->and(Frontend::navPages()->pluck('slug')->all())->not->toContain('default');
 });
 
 it('falls back to the Default page when a group\'s saved SEO page no longer exists', function () {
@@ -452,7 +457,7 @@ it('falls back to the Default page when a group\'s saved SEO page no longer exis
         $data = json_decode($original, true);
         $data['pages']['home']['seo'] = 987654;
         file_put_contents($file, json_encode($data));
-        \App\Support\ThemeSettings::forget('default');
+        ThemeSettings::forget('default');
 
         Livewire::test(ThemeSettingsEdit::class, ['slug' => 'default'])
             ->assertSet('groupSeo.home', $default->id)
@@ -460,7 +465,7 @@ it('falls back to the Default page when a group\'s saved SEO page no longer exis
             ->assertHasNoErrors();
     } finally {
         file_put_contents($file, $original);
-        \App\Support\ThemeSettings::forget('default');
+        ThemeSettings::forget('default');
     }
 });
 
@@ -479,12 +484,12 @@ it('serves the picked page\'s own SEO even when that page borrows another page\'
         $data = json_decode($original, true);
         $data['pages']['home']['seo'] = $source->id;
         file_put_contents($file, json_encode($data));
-        \App\Support\ThemeSettings::forget('default');
+        ThemeSettings::forget('default');
 
-        expect(\App\Support\ThemeSettings::groupSeoPage('default', 'home')->seo_title)->toBe('About own title');
+        expect(ThemeSettings::groupSeoPage('default', 'home')->seo_title)->toBe('About own title');
     } finally {
         file_put_contents($file, $original);
-        \App\Support\ThemeSettings::forget('default');
+        ThemeSettings::forget('default');
     }
 });
 

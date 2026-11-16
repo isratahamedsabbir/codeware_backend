@@ -305,9 +305,9 @@ it('leaves the loader to the portfolio theme alone', function () {
 |--------------------------------------------------------------------------
 */
 
-function defaultSeoPage(array $seo = []): \App\Models\Page
+function defaultSeoPage(array $seo = []): Page
 {
-    return \App\Models\Page::factory()->create(array_merge([
+    return Page::factory()->create(array_merge([
         'title' => ['en' => 'Default', 'bn' => ''], 'slug' => 'default', 'type' => 'page', 'status' => 'inactive',
     ], $seo));
 }
