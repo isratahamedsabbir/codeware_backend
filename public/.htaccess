@@ -104,3 +104,17 @@
         Header set Cache-Control "public, max-age=0, must-revalidate"
     </FilesMatch>
 </IfModule>
+
+# ─────────────────────────────────────────────────────────────────────────────
+# X-Robots-Tag for uploaded media
+#
+# Files under /storage (the storage:link symlink) are served straight by the web
+# server and never reach Laravel, so the SecurityHeaders middleware can't stamp
+# them. Say it explicitly: images are indexable (Google Images), PDFs/docs too.
+# Change to "noindex" here if uploads should ever stay out of search results.
+# ─────────────────────────────────────────────────────────────────────────────
+<IfModule mod_headers.c>
+    <If "%{REQUEST_URI} =~ m#^/storage/#">
+        Header set X-Robots-Tag "index, follow"
+    </If>
+</IfModule>

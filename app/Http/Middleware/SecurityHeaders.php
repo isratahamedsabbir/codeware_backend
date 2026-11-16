@@ -32,6 +32,11 @@ class SecurityHeaders
         // else (redirects, Livewire/JSON responses, error pages).
         if ($this->isPrivateArea($request)) {
             $headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+        } elseif (! $headers->has('X-Robots-Tag')) {
+            // Public pages: say "indexable" explicitly so SEO audits don't flag
+            // the header as missing. A page's own noindex still wins — it is
+            // emitted in the <meta robots> tag, and the strictest directive applies.
+            $headers->set('X-Robots-Tag', 'index, follow');
         }
 
         if (! app()->environment(['local', 'testing']) && $request->isSecure()) {

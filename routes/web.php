@@ -254,6 +254,19 @@ Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 Route::get('/sitemap-{group}.xml', SitemapController::class)->whereIn('group', Sitemap::GROUPS)->name('sitemap.group');
 Route::get('/robots.txt', RobotsController::class)->name('robots');
 
+// Uploaded media. Normally the web server serves /storage/* straight from the
+// public/storage symlink and this route never runs; when a request does fall
+// through to PHP (missing symlink, nginx/Cloudflare rules...) it is served here,
+// with the X-Robots-Tag header static delivery can't add on its own.
+Route::get('/storage/{path}', function (string $path) {
+    $root = realpath(storage_path('app/public'));
+    $file = $root ? realpath($root.DIRECTORY_SEPARATOR.$path) : false;
+
+    abort_unless($file && is_file($file) && str_starts_with($file, $root.DIRECTORY_SEPARATOR), 404);
+
+    return response()->file($file, ['X-Robots-Tag' => 'index, follow']);
+})->where('path', '.*')->name('storage.file');
+
 // Every theme's storefront routes, one file per theme — but only the pages the
 // active theme can actually serve answer. The 'theme' guard each file is wrapped
 // in 404s a route whose page the active theme has no template for, so /shop is a
