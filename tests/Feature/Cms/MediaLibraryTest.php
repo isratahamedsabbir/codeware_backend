@@ -44,6 +44,21 @@ it('deletes media and removes from storage', function () {
     Storage::disk('public')->assertMissing('media/test.jpg');
 });
 
+it('downloads a media file using its original filename', function () {
+    Storage::disk('public')->put('media/test.jpg', 'fake-content');
+    $media = MediaLibrary::factory()->create([
+        'path' => 'media/test.jpg',
+        'disk' => 'public',
+        'original_filename' => 'original-photo.jpg',
+    ]);
+
+    Livewire::test(MediaIndex::class)
+        ->call('selectMedia', $media->id)
+        ->assertSee('Download')
+        ->call('downloadMedia', $media->id)
+        ->assertFileDownloaded('original-photo.jpg');
+});
+
 it('renders picker modal', function () {
     Livewire::test(PickerModal::class)
         ->assertStatus(200);

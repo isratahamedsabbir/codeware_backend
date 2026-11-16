@@ -225,6 +225,11 @@
                     <div class="flex items-center gap-2" x-data="{
                             isPicker: new URLSearchParams(window.location.search).get('picker') === '1',
                         }">
+                        <button type="button" x-show="!isPicker" wire:click="downloadMedia({{ $selectedMedia->id }})"
+                            class="rounded-md border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium tracking-wide text-slate-600 transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1">
+                            Download
+                        </button>
+
                         <button type="button" wire:click="viewDetails({{ $selectedMedia->id }})"
                             class="rounded-md border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium tracking-wide text-slate-600 transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1">
                             Edit Details

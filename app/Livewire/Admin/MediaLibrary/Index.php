@@ -212,6 +212,16 @@ class Index extends Component
         $this->showDetailsModal = true;
     }
 
+    public function downloadMedia(int $mediaId)
+    {
+        $media = MediaLibrary::findOrFail($mediaId);
+        $this->authorize('view', $media);
+
+        abort_unless(Storage::disk($media->disk)->exists($media->path), 404);
+
+        return Storage::disk($media->disk)->download($media->path, $media->original_filename);
+    }
+
     public function closeDetailsModal(): void
     {
         $this->showDetailsModal = false;
