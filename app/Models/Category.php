@@ -50,7 +50,7 @@ class Category extends Model
 
     public array $translatable = ['name', 'description'];
 
-    protected $fillable = ['kind', 'type_id', 'parent_id', 'name', 'description', 'icon', 'sort_order', 'status', 'featured'];
+    protected $fillable = ['kind', 'type_id', 'parent_id', 'name', 'description', 'icon', 'banner', 'sort_order', 'status', 'featured'];
 
     protected static function booted(): void
     {

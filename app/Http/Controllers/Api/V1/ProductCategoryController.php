@@ -54,6 +54,7 @@ class ProductCategoryController extends Controller
             'name' => $category->getTranslation('name', $locale, useFallbackLocale: true),
             'slug' => $category->slug,
             'icon' => $category->icon,
+            'banner' => $category->banner,
             'sort_order' => $category->sort_order,
             'page' => $this->formatPage($category->page),
         ];

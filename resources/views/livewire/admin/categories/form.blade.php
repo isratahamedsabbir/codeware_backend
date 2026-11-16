@@ -71,11 +71,9 @@
 
         {{-- ── SIDEBAR ── --}}
         <div class="w-[320px] shrink-0 space-y-5">
-            @include('partials._admin-custom-code-picker')
-
             @if ($this->isProductPool)
-                <x-admin-section-card variant="postbox" persist-key="category-settings" title="Category Settings" :collapsed="false"
-                    body-class="p-3 space-y-4" description="Icon and parent category.">
+                <x-admin-section-card variant="postbox" persist-key="category-parent" title="Parent Category" :collapsed="false"
+                    body-class="p-3 space-y-4" description="Nest this under another category.">
                     <flux:field>
                         <flux:label>Parent category<x-field-hint text="Leave as top-level, or nest this under an existing category to make it a subcategory." /></flux:label>
                         <flux:select wire:model="parentId">
@@ -86,9 +84,18 @@
                         </flux:select>
                         <flux:error name="parentId" />
                     </flux:field>
+                </x-admin-section-card>
 
+                <x-admin-section-card variant="postbox" persist-key="category-icon" title="Icon" :collapsed="false"
+                    body-class="p-3" description="Small category icon.">
                     <x-media-picker model="icon" label="Icon" size-hint="64 × 64, transparent" placeholder="Select icon image from library"
                         :picker-id="$iconPickerId" mimes="png,webp,avif" :max-size-mb="1" only-images dropzone />
+                </x-admin-section-card>
+
+                <x-admin-section-card variant="postbox" persist-key="category-banner" title="Banner Image" :collapsed="false"
+                    body-class="p-3" description="Wide image for the category page.">
+                    <x-media-picker model="banner" label="Banner" size-hint="1600 × 400" placeholder="Select banner image from library"
+                        :picker-id="$bannerPickerId" mimes="jpg,jpeg,png,webp,avif" :max-size-mb="2" only-images dropzone />
                 </x-admin-section-card>
             @endif
         </div>

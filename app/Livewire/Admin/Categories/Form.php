@@ -58,7 +58,12 @@ class Form extends Component
     #[Validate('nullable|string')]
     public ?string $icon = null;
 
+    #[Validate('nullable|string')]
+    public ?string $banner = null;
+
     public string $iconPickerId = '';
+
+    public string $bannerPickerId = '';
 
     // ── Post category only ──
     public array $description = [];
@@ -66,6 +71,7 @@ class Form extends Component
     public function mount(?int $id = null): void
     {
         $this->iconPickerId = 'icon-picker-'.Str::uuid()->toString();
+        $this->bannerPickerId = 'banner-picker-'.Str::uuid()->toString();
 
         // Preselects the type when arriving from the Categories index's
         // "New category" button (which links here with ?type=<id> for whichever
@@ -89,6 +95,7 @@ class Form extends Component
         $this->hydrateTranslatable($category, ['name', 'description']);
         $this->slug = $category->slug ?? '';
         $this->icon = $category->icon ?? null;
+        $this->banner = $category->banner ?? null;
 
         $this->pageId = $category->page?->id;
         $this->hydrateSeoFieldsFromPage($category->page);
@@ -280,6 +287,7 @@ class Form extends Component
             'name' => $this->translatablePayload('name'),
             'description' => $this->isProductPool ? null : ($this->translatablePayload('description') ?: null),
             'icon' => $this->isProductPool ? ($this->icon ?: null) : null,
+            'banner' => $this->isProductPool ? ($this->banner ?: null) : null,
             'parent_id' => $this->isProductPool ? $this->parentId : null,
         ];
 

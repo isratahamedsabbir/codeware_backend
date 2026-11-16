@@ -24,6 +24,8 @@ return new class extends Migration
             $table->json('name');
             $table->json('description')->nullable();
             $table->string('icon')->nullable();
+            // Wide banner shown at the top of a product category's storefront page.
+            $table->string('banner')->nullable();
             // Brand logos only — see the ProductBrand model.
             $table->string('logo')->nullable();
             $table->string('status', 20)->default('active');
