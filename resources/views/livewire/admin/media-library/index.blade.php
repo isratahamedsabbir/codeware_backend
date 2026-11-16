@@ -130,6 +130,10 @@
                             </div>
                         @endif
 
+                        @if ($item->is_gallery)
+                            <span class="absolute bottom-1.5 left-1.5 rounded bg-primary px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow">Gallery</span>
+                        @endif
+
                         {{-- Selected check --}}
                         @if (! $bulkMode && $isSelected)
                             <div class="absolute right-1.5 top-1.5">
@@ -175,6 +179,14 @@
                     <button type="button" wire:click="clearSelection" @disabled(count($selectedMediaIds) === 0)
                         class="rounded-md border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium tracking-wide text-slate-600 transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
                         Clear
+                    </button>
+                    <button type="button" wire:click="setGalleryForSelected(true)" @disabled(count($selectedMediaIds) === 0)
+                        class="rounded-md border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium tracking-wide text-slate-600 transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+                        Add to Gallery
+                    </button>
+                    <button type="button" wire:click="setGalleryForSelected(false)" @disabled(count($selectedMediaIds) === 0)
+                        class="rounded-md border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium tracking-wide text-slate-600 transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+                        Remove from Gallery
                     </button>
                     <button type="button" wire:click="deleteSelectedMedia" wire:confirm="Delete the selected items? This cannot be undone."
                         @disabled(count($selectedMediaIds) === 0)
@@ -229,6 +241,13 @@
                             class="rounded-md border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium tracking-wide text-slate-600 transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1">
                             Download
                         </button>
+
+                        @if ($selectedMedia->isImage())
+                            <button type="button" x-show="!isPicker" wire:click="toggleGallery({{ $selectedMedia->id }})"
+                                class="rounded-md border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium tracking-wide text-slate-600 transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1">
+                                {{ $selectedMedia->is_gallery ? 'Remove from Gallery' : 'Add to Gallery' }}
+                            </button>
+                        @endif
 
                         <button type="button" wire:click="viewDetails({{ $selectedMedia->id }})"
                             class="rounded-md border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium tracking-wide text-slate-600 transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1">

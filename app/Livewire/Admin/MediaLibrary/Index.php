@@ -178,6 +178,33 @@ class Index extends Component
         $this->dispatch('notify', message: 'Selected media deleted successfully');
     }
 
+    /** Flip the gallery flag on a single image. */
+    public function toggleGallery(int $mediaId): void
+    {
+        $media = MediaLibrary::findOrFail($mediaId);
+        $this->authorize('update', $media);
+
+        $media->update(['is_gallery' => ! $media->is_gallery]);
+
+        $this->dispatch('notify', message: $media->is_gallery ? 'Added to gallery' : 'Removed from gallery');
+    }
+
+    /** Set the gallery flag on every ctrl-selected item at once. */
+    public function setGalleryForSelected(bool $value): void
+    {
+        $items = MediaLibrary::query()->whereIn('id', $this->selectedMediaIds)->get();
+
+        foreach ($items as $media) {
+            $this->authorize('update', $media);
+        }
+
+        foreach ($items as $media) {
+            $media->update(['is_gallery' => $value]);
+        }
+
+        $this->dispatch('notify', message: $value ? 'Selected items added to gallery' : 'Selected items removed from gallery');
+    }
+
     public function confirmSelection(): void
     {
         if ($this->selectedMediaId) {

@@ -38,6 +38,7 @@ class MediaLibrary extends Model
         return [
             'metadata' => 'array',
             'file_size' => 'integer',
+            'is_gallery' => 'boolean',
         ];
     }
 
