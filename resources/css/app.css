@@ -1302,3 +1302,55 @@ html.dark body.admin-panel table > tbody > tr:hover {
         max-width: 100%;
     }
 }
+
+/* ── Admin datatables: every list table scrolls sideways inside its bordered
+   card instead of squeezing columns or breaking the page, with a scrollbar that
+   is actually visible. Matches the wrapper by shape (a div whose direct child is
+   a table) so new lists get it without any markup. ── */
+body.admin-panel div:has(> table.divide-y) {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(100, 116, 139, 0.45) rgba(100, 116, 139, 0.08);
+}
+
+body.admin-panel div:has(> table.divide-y) > table {
+    min-width: 720px;
+}
+
+body.admin-panel div:has(> table.divide-y)::-webkit-scrollbar {
+    height: 8px;
+}
+
+body.admin-panel div:has(> table.divide-y)::-webkit-scrollbar-track {
+    background: rgba(100, 116, 139, 0.08);
+    border-radius: 999px;
+}
+
+body.admin-panel div:has(> table.divide-y)::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.45);
+    border-radius: 999px;
+}
+
+body.admin-panel div:has(> table.divide-y)::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.7);
+}
+
+/* Balanced columns on every admin list, the way the Types table sizes them:
+   content-sized (auto layout, no wrapping) with the spare width shared out, and
+   the table scrolls sideways when it runs out of room. Per-page <colgroup>
+   percentages and inline table-layout:fixed made some lists lopsided (a lone ID
+   column swallowing the leftover), so they are neutralised here; the ID column
+   keeps its own 4.5rem rule above. Detail rows / empty states (colspan) may wrap. */
+body.admin-panel div:has(> table.divide-y) > table {
+    table-layout: auto !important;
+    white-space: nowrap;
+}
+
+:where(body.admin-panel div:has(> table.divide-y) > table) > colgroup > col {
+    width: auto !important;
+}
+
+body.admin-panel div:has(> table.divide-y) > table td[colspan] {
+    white-space: normal;
+}
