@@ -236,6 +236,27 @@
                     {{-- Actions --}}
                     <div class="flex items-center gap-2" x-data="{
                             isPicker: new URLSearchParams(window.location.search).get('picker') === '1',
+                            copied: false,
+                            copyLink(url) {
+                                const full = new URL(url, window.location.origin).href;
+                                const done = () => { this.copied = true; setTimeout(() => this.copied = false, 2000); };
+
+                                if (navigator.clipboard && window.isSecureContext) {
+                                    navigator.clipboard.writeText(full).then(done);
+                                    return;
+                                }
+
+                                // Plain-http fallback (local dev hosts).
+                                const ta = document.createElement('textarea');
+                                ta.value = full;
+                                ta.style.position = 'fixed';
+                                ta.style.opacity = '0';
+                                document.body.appendChild(ta);
+                                ta.select();
+                                document.execCommand('copy');
+                                ta.remove();
+                                done();
+                            },
                         }">
                         <button type="button" x-show="!isPicker" wire:click="downloadMedia({{ $selectedMedia->id }})"
                             class="rounded-md border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium tracking-wide text-slate-600 transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1">
@@ -270,6 +291,14 @@
                             </a>
                         @endif
 
+                        <button type="button" x-show="!isPicker" @click="copyLink(@js($selectedMedia->url))"
+                            class="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium tracking-wide text-slate-600 transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1">
+                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.2 10.8a4 4 0 0 1 0 5.6l-2.8 2.8a4 4 0 0 1-5.6-5.6l1.4-1.4m10.4-2.8 1.4-1.4a4 4 0 0 0-5.6-5.6L10.2 5.2a4 4 0 0 0 0 5.6" />
+                            </svg>
+                            <span x-text="copied ? 'Copied!' : 'Copy link'"></span>
+                        </button>
+
                         <button type="button" x-show="isPicker"
                             @click="
                                 const urlParams = new URLSearchParams(window.location.search);
@@ -289,7 +318,7 @@
 
                         <button type="button" wire:click="deleteMedia({{ $selectedMedia->id }})"
                             wire:confirm="Are you sure?"
-                            class="rounded-md px-3.5 py-2 text-xs font-medium tracking-wide text-red-600 transition-colors hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-1">
+                            class="rounded-md bg-red-600 px-3.5 py-2 text-xs font-medium tracking-wide text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1">
                             Delete
                         </button>
 

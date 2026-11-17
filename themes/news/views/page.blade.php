@@ -10,6 +10,9 @@
 
 @include('theme-news::partials._header')
 
+@if ($page->hasBuilderContent())
+<main class="page-builder-content">{!! $page->builderHtml() !!}</main>
+@else
 <main class="mx-auto max-w-4xl px-4 pt-10 sm:px-6">
     <h1 class="nw-serif border-b-2 border-zinc-900 pb-3 text-3xl font-bold text-zinc-900 sm:text-4xl">{{ $page->getTranslation('title', 'en', false) }}</h1>
 
@@ -47,6 +50,7 @@
         </section>
     @endif
 </main>
+@endif
 
 @include('theme-news::partials._footer')
 

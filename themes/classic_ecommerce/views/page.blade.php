@@ -18,6 +18,9 @@
 ])
 @endunless
 
+@if ($page->hasBuilderContent())
+<main class="page-builder-content">{!! $page->builderHtml() !!}</main>
+@else
 <main>
     @php $block = \App\Support\PageBlocks::for($page->slug); @endphp
 
@@ -171,6 +174,7 @@
         </section>
     @endif
 </main>
+@endif
 
 @include('theme-classic_ecommerce::partials._footer')
 

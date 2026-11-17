@@ -136,6 +136,8 @@ Route::middleware(['auth', 'admin', 'activity-log', 'mfa'])->group(function () {
         Route::get('/pages/export', [PageExportController::class, 'export'])->name('pages.export');
         Route::get('/pages/create', App\Livewire\Admin\Pages\Form::class)->name('pages.create');
         Route::get('/pages/{id}/edit', App\Livewire\Admin\Pages\Form::class)->name('pages.edit');
+        Route::post('/pages/builder/assets', [App\Http\Controllers\Admin\BuilderAssetController::class, 'store'])->name('pages.builder.assets');
+        Route::get('/pages/{id}/builder', App\Livewire\Admin\Pages\Builder::class)->name('pages.builder');
     });
 
     // CMS — freeform titles/descriptions/buttons/cards/images sections, always scoped

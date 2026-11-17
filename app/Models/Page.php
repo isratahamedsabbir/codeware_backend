@@ -46,6 +46,43 @@ class Page extends Model
         'constant' => 'array',
     ];
 
+    public function builds(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PageBuild::class);
+    }
+
+    /** The page builder's row for a locale, if the page was designed there. */
+    public function build(?string $locale = null): ?PageBuild
+    {
+        $locale ??= app()->getLocale();
+
+        return $this->builds->firstWhere('locale', $locale);
+    }
+
+    /**
+     * What the storefront prints for a locale: that locale's own design, else the
+     * primary locale's — a page is designed once and only needs a second design
+     * when a language really differs.
+     */
+    public function renderedBuild(?string $locale = null): ?PageBuild
+    {
+        return $this->build($locale) ?? $this->build(\App\Support\Locale::primary());
+    }
+
+    /** True when the page was designed in the GrapesJS builder (for this locale or the primary one). */
+    public function hasBuilderContent(?string $locale = null): bool
+    {
+        return filled($this->renderedBuild($locale)?->html);
+    }
+
+    /** The builder's output, ready to print: its CSS in a <style> followed by its HTML. */
+    public function builderHtml(?string $locale = null): string
+    {
+        $build = $this->renderedBuild($locale);
+
+        return '<style>'.($build?->css ?? '').'</style>'.($build?->html ?? '');
+    }
+
     protected static function booted(): void
     {
         // The SEO fields are proxied to the page's `seos` row (HasSeo); the row is

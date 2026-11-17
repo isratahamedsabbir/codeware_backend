@@ -61,6 +61,8 @@ export default defineConfig({
             input: {
                 app: 'resources/css/app.css',
                 'app-js': 'resources/js/app.js',
+                // The GrapesJS page builder: a standalone full-screen page (layouts/builder), not part of the admin bundle.
+                'page-builder': 'resources/js/page-builder.js',
                 // Its own entry, because it has to be loadable on a page that
                 // is *not* an admin page: the two-factor challenge and the
                 // forced-enrolment screen are both plain Blade views on the
