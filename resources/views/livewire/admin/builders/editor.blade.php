@@ -1,6 +1,6 @@
 <div>{{-- Livewire root. wire:ignore below: GrapesJS owns that whole subtree, a morph would wipe it. --}}
 <div class="pb-root flex h-screen flex-col bg-white text-slate-800" wire:ignore id="page-builder"
-     x-data="pageBuilder(@js(['project' => $project, 'blocks' => $blocks, 'assets' => $assets, 'locale' => $locale, 'pageTitle' => $page->getTranslation('title', $locale, false) ?: 'Untitled page', 'seo' => $seo, 'canonicalBases' => $canonicalBases, 'uploadUrl' => route('admin.pages.builder.assets'), 'csrf' => csrf_token()]))">
+     x-data="pageBuilder(@js(['project' => $project, 'blocks' => $blocks, 'assets' => $assets, 'locale' => $locale, 'pageTitle' => $design->name ?: 'Untitled', 'uploadUrl' => route('admin.builders.assets'), 'csrf' => csrf_token()]))">
 
     {{-- ── Top bar ───────────────────────────────────────────── --}}
     <header class="pb-top">
@@ -8,12 +8,10 @@
             <button type="button" class="pb-icon" :class="{ 'pb-icon-on': showLeft }" title="Toggle components" @click="togglePanel('left')">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>
             </button>
-            <div class="pb-logo" x-text="pageTitle.slice(0, 2).toUpperCase()">{{ mb_strtoupper(mb_substr($page->getTranslation('title', $locale, false) ?: 'P', 0, 2)) }}</div>
+            <div class="pb-logo" x-text="pageTitle.slice(0, 2).toUpperCase()">{{ mb_strtoupper(mb_substr($design->name ?: 'B', 0, 2)) }}</div>
             <div class="min-w-0 leading-tight">
-                <div class="truncate text-[15px] font-semibold" x-text="pageTitle">{{ $page->getTranslation('title', $locale, false) ?: 'Untitled page' }}</div>
+                <div class="truncate text-[15px] font-semibold" x-text="pageTitle">{{ $design->name ?: 'Untitled' }}</div>
                 <div class="flex items-center gap-1.5 text-xs text-slate-500">
-                    <span class="inline-block h-2 w-2 rounded-full {{ $page->status === 'active' ? 'bg-emerald-500' : 'bg-amber-400' }}"></span>
-                    {{ $page->status === 'active' ? 'Published' : 'Draft' }}
                     <span x-show="status" class="ml-2 text-slate-400" x-text="status"></span>
                 </div>
             </div>
@@ -47,10 +45,10 @@
             <button type="button" class="pb-icon" :class="{ 'pb-icon-on': showRight }" title="Toggle properties" @click="togglePanel('right')">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></svg>
             </button>
-            <a href="{{ route('admin.pages') }}" class="pb-exit">
+            <a href="{{ route('admin.builders') }}" class="pb-exit">
                 <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Exit
             </a>
-            <button type="button" class="pb-save" :disabled="saving || seoSaving" @click="saveAll()">
+            <button type="button" class="pb-save" :disabled="saving" @click="save()">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg> Save
             </button>
         </div>
@@ -124,144 +122,11 @@
                             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
                         </div>
                         <div class="min-w-0">
-                            <div class="truncate font-semibold" x-text="pageTitle">{{ $page->getTranslation('title', $locale, false) ?: 'Page' }}</div>
+                            <div class="truncate font-semibold" x-text="pageTitle">{{ $design->name ?: 'Builder' }}</div>
                             <div class="text-xs text-slate-500">Select a block on the canvas to edit it</div>
                         </div>
                     </div>
 
-                    <details open class="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
-                        <summary class="cursor-pointer border-b border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">Search Engine (SEO)</summary>
-                        <div class="space-y-4 p-4">
-                            <p class="text-xs leading-relaxed text-slate-500">Text fields are saved for the selected language.</p>
-                            @if ($page->seo_page_id)
-                                <p class="rounded-lg bg-amber-50 p-3 text-xs leading-relaxed text-amber-800">Public SEO is borrowed from another page. These fields edit this page’s own SEO.</p>
-                            @endif
-
-                            <label class="block space-y-1">
-                                <span class="text-xs font-medium text-slate-600">Meta title</span>
-                                <input type="text" maxlength="255" x-model="seo.seo_title" class="pb-seo-input">
-                            </label>
-                            <label class="block space-y-1">
-                                <span class="text-xs font-medium text-slate-600">Meta description</span>
-                                <textarea rows="3" x-model="seo.seo_description" class="pb-seo-input"></textarea>
-                            </label>
-
-                            <div class="border-t border-slate-100 pt-4">
-                                <h3 class="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">Canonical URL</h3>
-                                <label class="mb-3 block space-y-1">
-                                    <span class="text-xs font-medium text-slate-600">Base URL</span>
-                                    <select x-model="seo.canonical_base" class="pb-seo-input">
-                                        <option value="">Select base…</option>
-                                        @foreach ($canonicalBases as $base)
-                                            <option value="{{ $base }}">{{ $base }}</option>
-                                        @endforeach
-                                    </select>
-                                </label>
-                                <label class="block space-y-1">
-                                    <span class="text-xs font-medium text-slate-600">Canonical path</span>
-                                    <input type="text" maxlength="255" x-model="seo.canonical_slug" class="pb-seo-input">
-                                </label>
-                            </div>
-
-                            <div class="border-t border-slate-100 pt-4">
-                                <h3 class="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">Open Graph</h3>
-                                <label class="mb-3 block space-y-1">
-                                    <span class="text-xs font-medium text-slate-600">OG title</span>
-                                    <input type="text" maxlength="255" x-model="seo.og_title" class="pb-seo-input">
-                                </label>
-                                <label class="mb-3 block space-y-1">
-                                    <span class="text-xs font-medium text-slate-600">OG description</span>
-                                    <textarea rows="3" x-model="seo.og_description" class="pb-seo-input"></textarea>
-                                </label>
-                                <div class="space-y-1">
-                                    <span class="text-xs font-medium text-slate-600">OG image</span>
-                                    <button type="button" @click="pickSeoImage('og_image')"
-                                        class="relative flex h-28 w-full flex-col items-center justify-center gap-1.5 overflow-hidden rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-3 transition-colors hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                                        <template x-if="seo.og_image">
-                                            <img :src="seo.og_image" alt="" class="absolute inset-0 h-full w-full object-cover">
-                                        </template>
-                                        <template x-if="!seo.og_image">
-                                            <div class="flex flex-col items-center gap-1">
-                                                <span class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-400">
-                                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z" /></svg>
-                                                </span>
-                                                <span class="text-sm font-semibold text-slate-700">OG image Upload</span>
-                                                <span class="text-xs text-slate-400">Recommended: 1200 × 630</span>
-                                                <span class="mt-0.5 text-[10px] text-slate-300">Max 2MB · JPG, PNG, WEBP, AVIF</span>
-                                            </div>
-                                        </template>
-                                        <template x-if="seo.og_image">
-                                            <span class="absolute inset-0 flex items-center justify-center bg-black/40 text-xs font-semibold text-white opacity-0 transition-opacity hover:opacity-100">Change image</span>
-                                        </template>
-                                        <template x-if="seo.og_image">
-                                            <span role="button" tabindex="0" @click.stop="seo.og_image = ''" @keydown.enter.stop="seo.og_image = ''"
-                                                class="absolute right-1 top-1 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-white shadow transition-colors hover:bg-red-50">
-                                                <svg class="h-3 w-3 text-red-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                                            </span>
-                                        </template>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="border-t border-slate-100 pt-4">
-                                <h3 class="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">Twitter Card</h3>
-                                <label class="mb-3 block space-y-1">
-                                    <span class="text-xs font-medium text-slate-600">Twitter title</span>
-                                    <input type="text" maxlength="255" x-model="seo.twitter_title" class="pb-seo-input">
-                                </label>
-                                <label class="mb-3 block space-y-1">
-                                    <span class="text-xs font-medium text-slate-600">Twitter description</span>
-                                    <textarea rows="3" x-model="seo.twitter_description" class="pb-seo-input"></textarea>
-                                </label>
-                                <div class="space-y-1">
-                                    <span class="text-xs font-medium text-slate-600">Twitter image</span>
-                                    <button type="button" @click="pickSeoImage('twitter_image')"
-                                        class="relative flex h-28 w-full flex-col items-center justify-center gap-1.5 overflow-hidden rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-3 transition-colors hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                                        <template x-if="seo.twitter_image">
-                                            <img :src="seo.twitter_image" alt="" class="absolute inset-0 h-full w-full object-cover">
-                                        </template>
-                                        <template x-if="!seo.twitter_image">
-                                            <div class="flex flex-col items-center gap-1">
-                                                <span class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-400">
-                                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z" /></svg>
-                                                </span>
-                                                <span class="text-sm font-semibold text-slate-700">Twitter image Upload</span>
-                                                <span class="text-xs text-slate-400">Recommended: 1200 × 600</span>
-                                                <span class="mt-0.5 text-[10px] text-slate-300">Max 2MB · JPG, PNG, WEBP, AVIF</span>
-                                            </div>
-                                        </template>
-                                        <template x-if="seo.twitter_image">
-                                            <span class="absolute inset-0 flex items-center justify-center bg-black/40 text-xs font-semibold text-white opacity-0 transition-opacity hover:opacity-100">Change image</span>
-                                        </template>
-                                        <template x-if="seo.twitter_image">
-                                            <span role="button" tabindex="0" @click.stop="seo.twitter_image = ''" @keydown.enter.stop="seo.twitter_image = ''"
-                                                class="absolute right-1 top-1 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-white shadow transition-colors hover:bg-red-50">
-                                                <svg class="h-3 w-3 text-red-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                                            </span>
-                                        </template>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="space-y-3 border-t border-slate-100 pt-4">
-                                <label class="flex items-center justify-between text-sm text-slate-700">
-                                    <span>No index</span>
-                                    <input type="checkbox" x-model="seo.no_index" class="size-4 rounded border-slate-300 text-blue-600">
-                                </label>
-                                <label class="flex items-center justify-between text-sm text-slate-700">
-                                    <span>No follow</span>
-                                    <input type="checkbox" x-model="seo.no_follow" class="size-4 rounded border-slate-300 text-blue-600">
-                                </label>
-                            </div>
-
-                            <div class="flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
-                                <span x-show="seoStatus" class="text-xs text-slate-500" x-text="seoStatus"></span>
-                                <button type="button" class="pb-seo-save" :disabled="seoSaving" @click="saveSeo()">
-                                    <span x-text="seoSaving ? 'Saving…' : 'Save SEO'"></span>
-                                </button>
-                            </div>
-                        </div>
-                    </details>
                 </div>
 
                 <div x-show="hasSelection">
@@ -310,13 +175,6 @@
         .pb-search-wrap{display:flex;align-items:center;gap:8px;background:#f1f5f9;border-radius:10px;padding:0 12px;color:#94a3b8}
         .pb-search-wrap input{flex:1;border:0;background:transparent;padding:10px 0;font-size:14px;outline:none;color:#0f172a}
         .pb-search-wrap input::-webkit-search-cancel-button{display:none}
-        .pb-seo-input{width:100%;border:1px solid #cbd5e1;border-radius:8px;background:#fff;padding:8px 10px;color:#0f172a;font-size:13px;outline:none}
-        .pb-seo-input:focus{border-color:#60a5fa;box-shadow:0 0 0 3px rgba(96,165,250,.2)}
-        .pb-seo-pick{display:inline-flex;align-items:center;gap:6px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;padding:6px 10px;color:#334155;font-size:12px;font-weight:600}
-        .pb-seo-pick:hover{background:#f1f5f9}
-        .pb-seo-clear{font-size:12px;font-weight:600;color:#dc2626}
-        .pb-seo-save{border-radius:8px;background:#1d4ed8;padding:8px 12px;color:#fff;font-size:12px;font-weight:700}
-        .pb-seo-save:hover{background:#1e40af}.pb-seo-save:disabled{opacity:.6}
 
         .pb-devbar{padding:12px 24px}
         .pb-devbar-in{display:flex;align-items:center;justify-content:center;gap:4px;max-width:900px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:6px 10px}

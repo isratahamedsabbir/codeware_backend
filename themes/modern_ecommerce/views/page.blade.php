@@ -15,9 +15,7 @@
     $pageTitle = $page->getTranslation('title', app()->getLocale(), false);
 @endphp
 
-@if ($page->hasBuilderContent())
-    <main class="page-builder-content">{!! $page->builderHtml() !!}</main>
-@elseif ($block === 'frontend.contact-form')
+@if ($block === 'frontend.contact-form')
     @include('theme-modern_ecommerce::partials._contact-page')
 @else
     @include('theme-modern_ecommerce::partials._page-banner', [

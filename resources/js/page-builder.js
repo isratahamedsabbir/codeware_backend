@@ -21,8 +21,6 @@ const plugin = (m) => {
     return m;
 };
 
-const SEO_PICKER = 'builder-seo-';
-
 // SweetAlert2 stands in for the browser's confirm()/prompt()/status text.
 const toastBox = Swal.mixin({
     toast: true,
@@ -68,7 +66,7 @@ const DEVICES = { desktop: 'Desktop', tablet: 'Tablet', mobile: 'Mobile portrait
 const USER_ICON = '<svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z"/><path d="m3 7 9 5 9-5M12 12v10"/></svg>';
 
 /*
- * Alpine component behind admin/pages/builder.blade.php. Registered on
+ * Alpine component behind admin/builders/editor.blade.php. Registered on
  * alpine:init like the other admin components, so it exists before Alpine
  * evaluates the x-data that uses it.
  *
@@ -78,13 +76,10 @@ const USER_ICON = '<svg viewBox="0 0 24 24" width="38" height="38" fill="none" s
  * provides ($refs).
  */
 document.addEventListener('alpine:init', () => {
-    window.Alpine.data('pageBuilder', ({ project, blocks = [], assets = [], locale, pageTitle, seo = {}, canonicalBases = [], uploadUrl, csrf }) => ({
+    window.Alpine.data('pageBuilder', ({ project, blocks = [], assets = [], locale, pageTitle, uploadUrl, csrf }) => ({
         editor: null,
         locale,
         pageTitle,
-        seo,
-        canonicalBases,
-        seoSnapshot: '',
         device: 'desktop',
         left: 'blocks',
         right: 'style',
@@ -96,22 +91,10 @@ document.addEventListener('alpine:init', () => {
         showRight: true,
         zoom: 100,
         saving: false,
-        seoSaving: false,
         status: '',
-        seoStatus: '',
         history: { undo: false, redo: false },
 
         init() {
-            this.seoSnapshot = JSON.stringify(this.seo);
-
-            // The media library picker answers with 'mediaPickerSelected' — keep only our own SEO picks.
-            window.addEventListener('mediaPickerSelected', (ev) => {
-                const d = Array.isArray(ev.detail) ? ev.detail[0] : ev.detail;
-                if (!d || !String(d.pickerId || '').startsWith(SEO_PICKER)) return;
-
-                this.seo[d.pickerId.slice(SEO_PICKER.length)] = d.url || '';
-            });
-
             const editor = (this.editor = grapesjs.init({
                 container: this.$refs.gjs,
                 height: '100%',
@@ -264,14 +247,14 @@ document.addEventListener('alpine:init', () => {
         async switchLocale(nextLocale, select) {
             if (nextLocale === this.locale) return;
 
-            if (this.editor.getDirtyCount() > 0 || this.hasUnsavedSeo()) {
-                if (!await confirmBox({ title: 'Save changes first?', text: 'Save the page and SEO changes before switching languages.', confirmText: 'Save & switch', icon: 'question', danger: false })) {
+            if (this.editor.getDirtyCount() > 0) {
+                if (!await confirmBox({ title: 'Save changes first?', text: 'Save the page before switching languages.', confirmText: 'Save & switch', icon: 'question', danger: false })) {
                     select.value = this.locale;
 
                     return;
                 }
 
-                if (!await this.saveAll()) {
+                if (!await this.save()) {
                     select.value = this.locale;
 
                     return;
@@ -286,8 +269,6 @@ document.addEventListener('alpine:init', () => {
                 this.editor.loadProjectData(result.project || { pages: [] });
                 this.locale = nextLocale;
                 this.pageTitle = result.title;
-                this.seo = result.seo;
-                this.seoSnapshot = JSON.stringify(this.seo);
                 this.status = `Editing ${select.options[select.selectedIndex].text}`;
             } catch (error) {
                 console.error('Could not switch builder language', error);
@@ -426,53 +407,6 @@ document.addEventListener('alpine:init', () => {
                 this.saving = false;
                 setTimeout(() => (this.status = ''), 2500);
             }
-        },
-
-        // Opens the media library to choose the OG / Twitter image (field: og_image | twitter_image).
-        pickSeoImage(field) {
-            window.dispatchEvent(new CustomEvent('open-media-picker', {
-                detail: { pickerId: SEO_PICKER + field, onlyImages: true, mimes: 'jpg,jpeg,png,gif,webp,avif', maxSizeKb: 2048 },
-            }));
-        },
-
-        hasUnsavedSeo() {
-            return JSON.stringify(this.seo) !== this.seoSnapshot;
-        },
-
-        async saveSeo() {
-            if (this.seoSaving) return false;
-
-            this.seoSaving = true;
-            this.seoStatus = 'Saving SEO…';
-
-            try {
-                await this.$wire.saveSeo(JSON.parse(JSON.stringify(this.seo)));
-                this.seoSnapshot = JSON.stringify(this.seo);
-                this.seoStatus = 'SEO saved';
-                toast('success', 'SEO saved');
-                return true;
-            } catch (error) {
-                console.error('Could not save page SEO', error);
-                this.seoStatus = 'Could not save SEO';
-                toast('error', 'Could not save SEO');
-                return false;
-            } finally {
-                this.seoSaving = false;
-                setTimeout(() => (this.seoStatus = ''), 2500);
-            }
-        },
-
-        async saveAll() {
-            const builderDirty = this.editor.getDirtyCount() > 0;
-            const seoDirty = this.hasUnsavedSeo();
-
-            if (builderDirty || !seoDirty) {
-                if (!await this.save()) return false;
-            }
-
-            if (seoDirty && !await this.saveSeo()) return false;
-
-            return true;
         },
 
         destroy() {

@@ -3,7 +3,7 @@
  *
  * Every block carries its own CSS under a `cw-` prefix, so it looks right the
  * moment it is dropped and never leans on the theme's stylesheet (page content
- * is stored as plain HTML + CSS, see page_builds). Colours are plain values the
+ * is stored as plain HTML + CSS, see builders). Colours are plain values the
  * Style Manager can change element by element.
  */
 

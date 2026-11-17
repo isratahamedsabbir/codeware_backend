@@ -129,6 +129,7 @@ class AdminMenuSeeder extends Seeder
         ]);
 
         $this->standalone('Pages', 'document', 'admin.pages', 20);
+        $this->standalone('Builder', 'squares-2x2', 'admin.builders', 21);
 
         // No Portfolio group: projects, experience, skills and testimonials are
         // edited on the Theme Settings screen, which is already in the sidebar

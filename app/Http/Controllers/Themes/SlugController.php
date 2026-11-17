@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Themes;
 
+use App\Models\BuilderDesign;
 use App\Models\Page;
 use App\Models\ProductBrand;
 use App\Models\JobPost;
@@ -57,6 +58,14 @@ class SlugController
         $record = SlugRecord::where('slug', Slug::lower($slug))->first();
 
         abort_unless($record, 404);
+
+        // A builder design is its own public page — not a theme template, no theme route.
+        if ($record->sluggable_type === BuilderDesign::class || $record->sluggable_type === (new BuilderDesign)->getMorphClass()) {
+            abort_if($prefixType !== null, 404);
+            $design = BuilderDesign::findOrFail($record->sluggable_id);
+
+            return view('builders.show', ['design' => $design]);
+        }
 
         [$name, $feature, $urlType] = $this->target($record) ?? abort(404);
 
