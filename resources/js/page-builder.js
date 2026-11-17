@@ -120,8 +120,8 @@ document.addEventListener('alpine:init', () => {
                 undoManager: { trackSelection: false },
                 panels: { defaults: [] },
                 blockManager: { appendTo: this.$refs.blocks },
-                // showWrapper: false lists the page's own blocks at the top level instead of one collapsed "Body" row.
-                layerManager: { appendTo: this.$refs.layers, showWrapper: false },
+                // Keep the page body in Outline so users can expand it and select the whole page.
+                layerManager: { appendTo: this.$refs.layers, showWrapper: true },
                 // componentFirst: styling a block changes that one element, not every element sharing its class.
                 selectorManager: { componentFirst: true },
                 styleManager: { appendTo: this.$refs.styles },
