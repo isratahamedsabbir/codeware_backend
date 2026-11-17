@@ -8,6 +8,8 @@ import tooltip from 'grapesjs-tooltip';
 import styleBg from 'grapesjs-style-bg';
 import parserPostcss from 'grapesjs-parser-postcss';
 import 'grapesjs/dist/css/grapes.min.css';
+import Swal from 'sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css';
 import { registerBlocks, blockLabel } from './page-builder-blocks';
 // The media-library picker modal (a Livewire component) is built on this Alpine component.
 import './chunk-upload';
@@ -20,6 +22,46 @@ const plugin = (m) => {
 };
 
 const SEO_PICKER = 'builder-seo-';
+
+// SweetAlert2 stands in for the browser's confirm()/prompt()/status text.
+const toastBox = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+});
+const toast = (icon, title) => toastBox.fire({ icon, title });
+
+const confirmBox = async ({ title, text = '', confirmText = 'Yes', icon = 'warning', danger = true }) => {
+    const r = await Swal.fire({
+        title,
+        text,
+        icon,
+        showCancelButton: true,
+        confirmButtonText: confirmText,
+        cancelButtonText: 'Cancel',
+        reverseButtons: true,
+        focusCancel: true,
+        confirmButtonColor: danger ? '#dc2626' : '#1d4ed8',
+    });
+
+    return r.isConfirmed;
+};
+
+const askName = async (title) => {
+    const r = await Swal.fire({
+        title,
+        input: 'text',
+        inputPlaceholder: 'e.g. Pricing section',
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        confirmButtonColor: '#1d4ed8',
+        inputValidator: (v) => (v && v.trim() ? undefined : 'Please enter a name'),
+    });
+
+    return r.isConfirmed ? r.value.trim() : null;
+};
 
 const DEVICES = { desktop: 'Desktop', tablet: 'Tablet', mobile: 'Mobile portrait' };
 
@@ -78,7 +120,8 @@ document.addEventListener('alpine:init', () => {
                 undoManager: { trackSelection: false },
                 panels: { defaults: [] },
                 blockManager: { appendTo: this.$refs.blocks },
-                layerManager: { appendTo: this.$refs.layers },
+                // showWrapper: false lists the page's own blocks at the top level instead of one collapsed "Body" row.
+                layerManager: { appendTo: this.$refs.layers, showWrapper: false },
                 // componentFirst: styling a block changes that one element, not every element sharing its class.
                 selectorManager: { componentFirst: true },
                 styleManager: { appendTo: this.$refs.styles },
@@ -99,6 +142,18 @@ document.addEventListener('alpine:init', () => {
                 ],
                 projectData: project || undefined,
             }));
+
+            // GrapesJS lets the page body ('wrapper') carry only background styles; allow the usual page-level ones too.
+            const sides = ['top', 'right', 'bottom', 'left'];
+            editor.getWrapper().set('stylable', [
+                'background', 'background-color', 'background-image', 'background-repeat', 'background-attachment', 'background-position', 'background-size',
+                'padding', 'margin', ...sides.map((x) => `padding-${x}`), ...sides.map((x) => `margin-${x}`),
+                'color', 'font-family', 'font-size', 'font-weight', 'line-height', 'letter-spacing', 'text-align', 'min-height',
+            ]);
+
+            // Keep Alpine's reactivity away from the GrapesJS editor (and so every model it returns):
+            // proxying that whole object graph is slow and breaks identity checks inside GrapesJS.
+            Object.defineProperty(editor, '__v_skip', { value: true, configurable: true });
 
             registerBlocks(editor);
             const tabsBlock = editor.Blocks.get('tabs');
@@ -199,17 +254,18 @@ document.addEventListener('alpine:init', () => {
         },
 
         async deleteBlock(id) {
-            if (!window.confirm('Delete this block? Pages already using it keep their copy.')) return;
+            if (!await confirmBox({ title: 'Delete this block?', text: 'Pages already using it keep their copy.', confirmText: 'Delete' })) return;
 
             await this.$wire.deleteBlock(id);
             this.removeBlock(id);
+            toast('success', 'Block deleted');
         },
 
         async switchLocale(nextLocale, select) {
             if (nextLocale === this.locale) return;
 
             if (this.editor.getDirtyCount() > 0 || this.hasUnsavedSeo()) {
-                if (!window.confirm('Save page and SEO changes before switching languages?')) {
+                if (!await confirmBox({ title: 'Save changes first?', text: 'Save the page and SEO changes before switching languages.', confirmText: 'Save & switch', icon: 'question', danger: false })) {
                     select.value = this.locale;
 
                     return;
@@ -237,14 +293,15 @@ document.addEventListener('alpine:init', () => {
                 console.error('Could not switch builder language', error);
                 select.value = this.locale;
                 this.status = 'Could not switch language';
+                toast('error', 'Could not switch language');
             } finally {
                 setTimeout(() => (this.status = ''), 2500);
             }
         },
 
-        deleteSelected() {
+        async deleteSelected() {
             const selected = this.editor.getSelected();
-            if (!selected || !window.confirm('Delete this element? You can undo this action.')) return;
+            if (!selected || !await confirmBox({ title: 'Delete this element?', text: 'You can undo this action.', confirmText: 'Delete' })) return;
 
             selected.remove();
         },
@@ -274,15 +331,16 @@ document.addEventListener('alpine:init', () => {
                     const comp = ed.getSelected();
                     if (!comp) return;
 
-                    const name = window.prompt('Name this block');
-                    if (!name || !name.trim()) return;
+                    const name = await askName('Name this block');
+                    if (!name) return;
 
                     const css = ed.CodeManager.getCode(comp, 'css', { cssc: ed.Css });
                     const content = comp.toHTML() + (css ? `<style>${css}</style>` : '');
-                    const id = await this.$wire.saveBlock(name.trim(), content);
+                    const id = await this.$wire.saveBlock(name, content);
 
-                    this.addBlock({ id, name: name.trim(), content });
+                    this.addBlock({ id, name, content });
                     this.tidyCategories();
+                    toast('success', 'Saved as a reusable block');
                 },
             });
 
@@ -321,7 +379,7 @@ document.addEventListener('alpine:init', () => {
             if (this.previewing === on) return;
 
             this.previewing = on;
-            on ? this.editor.runCommand('core:preview') : this.editor.stopCommand('core:preview');
+            on ? this.editor.runCommand('preview') : this.editor.stopCommand('preview');
             this.$nextTick(() => this.editor.refresh());
         },
 
@@ -331,7 +389,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         showCode() {
-            this.editor.runCommand('core:open-code');
+            this.editor.runCommand('export-template');
         },
 
         toggleOutline() {
@@ -339,8 +397,8 @@ document.addEventListener('alpine:init', () => {
             c.isActive('sw-visibility') ? c.stop('sw-visibility') : c.run('sw-visibility');
         },
 
-        clearAll() {
-            if (window.confirm('Remove everything from this page?')) {
+        async clearAll() {
+            if (await confirmBox({ title: 'Clear the whole page?', text: 'Everything on this page will be removed. You can undo this action.', confirmText: 'Clear page' })) {
                 this.editor.Components.clear();
                 this.editor.Css.clear();
             }
@@ -358,9 +416,11 @@ document.addEventListener('alpine:init', () => {
 
                 this.editor.getModel().set('changesCount', 0);
                 this.status = 'Saved';
+                toast('success', 'Page saved');
                 return true;
             } catch (e) {
                 this.status = 'Could not save';
+                toast('error', 'Could not save the page');
                 return false;
             } finally {
                 this.saving = false;
@@ -389,10 +449,12 @@ document.addEventListener('alpine:init', () => {
                 await this.$wire.saveSeo(JSON.parse(JSON.stringify(this.seo)));
                 this.seoSnapshot = JSON.stringify(this.seo);
                 this.seoStatus = 'SEO saved';
+                toast('success', 'SEO saved');
                 return true;
             } catch (error) {
                 console.error('Could not save page SEO', error);
                 this.seoStatus = 'Could not save SEO';
+                toast('error', 'Could not save SEO');
                 return false;
             } finally {
                 this.seoSaving = false;

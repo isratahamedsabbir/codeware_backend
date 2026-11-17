@@ -69,7 +69,6 @@
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
                         <input type="search" x-model.debounce.150ms="search" placeholder="Search blocks…">
                     </div>
-                    <p class="mt-3 text-xs text-slate-400">Drag a block onto the page</p>
                 </div>
                 <div x-ref="blocks"></div>
             </div>
@@ -129,7 +128,6 @@
                             <div class="text-xs text-slate-500">Select a block on the canvas to edit it</div>
                         </div>
                     </div>
-                    <a href="{{ route('admin.pages.edit', $page->id) }}" target="_blank" class="mt-3 block text-sm text-blue-600 hover:underline">Edit title, slug &amp; SEO →</a>
 
                     <details open class="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
                         <summary class="cursor-pointer border-b border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">Search Engine (SEO)</summary>
@@ -177,17 +175,31 @@
                                 </label>
                                 <div class="space-y-1">
                                     <span class="text-xs font-medium text-slate-600">OG image</span>
-                                    <template x-if="seo.og_image">
-                                        <img :src="seo.og_image" alt="" class="h-32 w-full rounded-lg border border-slate-200 bg-slate-50 object-cover">
-                                    </template>
-                                    <input type="text" maxlength="255" x-model="seo.og_image" placeholder="Choose from the library or paste a URL" class="pb-seo-input">
-                                    <div class="flex items-center gap-2">
-                                        <button type="button" class="pb-seo-pick" @click="pickSeoImage('og_image')">
-                                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-9 9"/></svg>
-                                            Choose from library
-                                        </button>
-                                        <button type="button" class="pb-seo-clear" x-show="seo.og_image" @click="seo.og_image = ''">Remove</button>
-                                    </div>
+                                    <button type="button" @click="pickSeoImage('og_image')"
+                                        class="relative flex h-28 w-full flex-col items-center justify-center gap-1.5 overflow-hidden rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-3 transition-colors hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                        <template x-if="seo.og_image">
+                                            <img :src="seo.og_image" alt="" class="absolute inset-0 h-full w-full object-cover">
+                                        </template>
+                                        <template x-if="!seo.og_image">
+                                            <div class="flex flex-col items-center gap-1">
+                                                <span class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z" /></svg>
+                                                </span>
+                                                <span class="text-sm font-semibold text-slate-700">OG image Upload</span>
+                                                <span class="text-xs text-slate-400">Recommended: 1200 × 630</span>
+                                                <span class="mt-0.5 text-[10px] text-slate-300">Max 2MB · JPG, PNG, WEBP, AVIF</span>
+                                            </div>
+                                        </template>
+                                        <template x-if="seo.og_image">
+                                            <span class="absolute inset-0 flex items-center justify-center bg-black/40 text-xs font-semibold text-white opacity-0 transition-opacity hover:opacity-100">Change image</span>
+                                        </template>
+                                        <template x-if="seo.og_image">
+                                            <span role="button" tabindex="0" @click.stop="seo.og_image = ''" @keydown.enter.stop="seo.og_image = ''"
+                                                class="absolute right-1 top-1 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-white shadow transition-colors hover:bg-red-50">
+                                                <svg class="h-3 w-3 text-red-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                            </span>
+                                        </template>
+                                    </button>
                                 </div>
                             </div>
 
@@ -203,17 +215,31 @@
                                 </label>
                                 <div class="space-y-1">
                                     <span class="text-xs font-medium text-slate-600">Twitter image</span>
-                                    <template x-if="seo.twitter_image">
-                                        <img :src="seo.twitter_image" alt="" class="h-32 w-full rounded-lg border border-slate-200 bg-slate-50 object-cover">
-                                    </template>
-                                    <input type="text" maxlength="255" x-model="seo.twitter_image" placeholder="Choose from the library or paste a URL" class="pb-seo-input">
-                                    <div class="flex items-center gap-2">
-                                        <button type="button" class="pb-seo-pick" @click="pickSeoImage('twitter_image')">
-                                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-9 9"/></svg>
-                                            Choose from library
-                                        </button>
-                                        <button type="button" class="pb-seo-clear" x-show="seo.twitter_image" @click="seo.twitter_image = ''">Remove</button>
-                                    </div>
+                                    <button type="button" @click="pickSeoImage('twitter_image')"
+                                        class="relative flex h-28 w-full flex-col items-center justify-center gap-1.5 overflow-hidden rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-3 transition-colors hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                        <template x-if="seo.twitter_image">
+                                            <img :src="seo.twitter_image" alt="" class="absolute inset-0 h-full w-full object-cover">
+                                        </template>
+                                        <template x-if="!seo.twitter_image">
+                                            <div class="flex flex-col items-center gap-1">
+                                                <span class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z" /></svg>
+                                                </span>
+                                                <span class="text-sm font-semibold text-slate-700">Twitter image Upload</span>
+                                                <span class="text-xs text-slate-400">Recommended: 1200 × 600</span>
+                                                <span class="mt-0.5 text-[10px] text-slate-300">Max 2MB · JPG, PNG, WEBP, AVIF</span>
+                                            </div>
+                                        </template>
+                                        <template x-if="seo.twitter_image">
+                                            <span class="absolute inset-0 flex items-center justify-center bg-black/40 text-xs font-semibold text-white opacity-0 transition-opacity hover:opacity-100">Change image</span>
+                                        </template>
+                                        <template x-if="seo.twitter_image">
+                                            <span role="button" tabindex="0" @click.stop="seo.twitter_image = ''" @keydown.enter.stop="seo.twitter_image = ''"
+                                                class="absolute right-1 top-1 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-white shadow transition-colors hover:bg-red-50">
+                                                <svg class="h-3 w-3 text-red-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                            </span>
+                                        </template>
+                                    </button>
                                 </div>
                             </div>
 
@@ -322,14 +348,40 @@
         .pb-root .pb-del{position:absolute;z-index:1;right:30px;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:6px;color:#94a3b8;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;pointer-events:auto}
         .pb-root .pb-del:hover{background:#fee2e2;color:#dc2626}
 
-        .pb-root .gjs-sm-sector-title,.pb-root .gjs-layer-title{background:#fff!important;border-bottom:1px solid #e2e8f0!important;color:#0f172a!important;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:12px 16px}
-        .pb-root .gjs-sm-sector-title{display:flex;align-items:center}
+        /* ── Right panel: style manager + settings ── */
+        .pb-root .gjs-sm-sector{border-bottom:1px solid #e2e8f0}
+        .pb-root .gjs-sm-sector-title{display:flex;align-items:center;gap:6px;background:#fff!important;border:0!important;color:#0f172a!important;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:14px 16px;cursor:pointer}
+        .pb-root .gjs-sm-sector-title:hover{background:#f8fafc!important}
+        .pb-root .gjs-sm-sector-label{font-weight:700}
+        .pb-root .gjs-sm-properties{padding:4px 12px 14px}
+        .pb-root .gjs-sm-label,.pb-root .gjs-trt-trait .gjs-label{font-size:12px;font-weight:600;color:#64748b!important}
+        .pb-root .gjs-sm-property--full .gjs-sm-label{color:#2563eb!important}
+        .pb-root .gjs-sm-property--parent .gjs-sm-label{color:#d97706!important}
+        .pb-root .gjs-sm-composite.gjs-sm-property > .gjs-sm-properties,.pb-root .gjs-sm-property.gjs-sm-composite .gjs-sm-properties{background:#f8fafc!important;border:1px solid #e2e8f0;border-radius:10px;padding:10px}
+        .pb-root .gjs-field{background:#fff!important;border:1px solid #e2e8f0;border-radius:8px;color:#0f172a;box-shadow:none}
+        .pb-root .gjs-field:focus-within{border-color:#60a5fa;box-shadow:0 0 0 3px rgba(96,165,250,.2)}
+        .pb-root .gjs-field input,.pb-root .gjs-field select,.pb-root .gjs-field textarea{color:#0f172a!important;font-size:13px}
+        .pb-root .gjs-field input::placeholder{color:#94a3b8}
+        .pb-root .gjs-field-units select,.pb-root .gjs-field-arrows{color:#64748b}
+        .pb-root .gjs-radio-items{border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;background:#fff}
+        .pb-root .gjs-radio-item-label{color:#475569;font-size:12px;font-weight:600;border-color:#e2e8f0}
+        .pb-root .gjs-radio-item input:checked + .gjs-radio-item-label{background:#2563eb!important;color:#fff!important}
         .pb-root .gjs-clm-tags{padding:6px 4px}
-        .pb-root .gjs-field{background:#f1f5f9;color:#0f172a;border-radius:8px}
-        .pb-root .gjs-field input,.pb-root .gjs-field select{color:#0f172a}
+        .pb-root .gjs-trt-traits{padding:6px 4px}
+        .pb-root .gjs-trt-trait{display:flex;align-items:center;gap:12px;padding:8px 14px;font-size:13px;color:#334155}
+        .pb-root .gjs-trt-trait .gjs-label-wrp{flex:0 0 34%}
+        .pb-root .gjs-trt-trait .gjs-field-wrp{flex:1;min-width:0}
+
+        /* ── Left panel: outline ── */
         .pb-root .gjs-layer{color:#334155}
-        .pb-root .gjs-layer.gjs-selected .gjs-layer-title{background:#dbeafe}
-        .pb-root .gjs-trt-trait{padding:8px 14px}
+        .pb-root .gjs-layer-item.gjs-one-bg{background:#fff!important;border:0!important;border-radius:8px;margin:1px 8px;padding:2px 8px;min-height:34px;transition:background .12s}
+        .pb-root .gjs-layer.gjs-hovered > .gjs-layer-item.gjs-one-bg,.pb-root .gjs-layer-item.gjs-one-bg:hover{background:#f1f5f9!important}
+        .pb-root .gjs-layer.gjs-selected > .gjs-layer-item.gjs-one-bg{background:#dbeafe!important}
+        .pb-root .gjs-layer.gjs-selected > .gjs-layer-item .gjs-layer-name{color:#1d4ed8}
+        .pb-root .gjs-layer-title{background:transparent!important;border:0!important;padding:6px 4px;font-size:13px;font-weight:600;letter-spacing:0;text-transform:none;color:#0f172a}
+        .pb-root .gjs-layer-count{font-size:11px;color:#94a3b8}
+        .pb-root .gjs-layer-vis,.pb-root .gjs-layer-move,.pb-root .gjs-layer-caret{color:#94a3b8}
+        .pb-root .gjs-layer-vis:hover,.pb-root .gjs-layer-move:hover{color:#2563eb}
 
         /* The page sits on the grey stage as a rounded card. */
         .pb-root .gjs-editor-cont{background:#f1f5f9}
