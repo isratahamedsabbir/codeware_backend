@@ -201,3 +201,28 @@ it('counts only the unread ones in the admin filter', function () {
 
     expect(Booking::new()->count())->toBe(2);
 });
+
+it('lets an admin create a booking by hand', function () {
+    $service = Service::factory()->published()->create();
+
+    Livewire::test(BookingsIndex::class)
+        ->set('newServiceId', (string) $service->id)
+        ->set('newName', 'Phone Caller')
+        ->set('newEmail', 'caller@example.com')
+        ->set('newPhone', '01700000000')
+        ->call('createBooking')
+        ->assertHasNoErrors()
+        ->assertDispatched('notify');
+
+    expect(Booking::where('email', 'caller@example.com')->first())
+        ->service_id->toBe($service->id)
+        ->status->toBe(Booking::STATUS_NEW);
+});
+
+it('rejects a hand-made booking without a service', function () {
+    Livewire::test(BookingsIndex::class)
+        ->set('newName', 'X')
+        ->set('newEmail', 'x@example.com')
+        ->call('createBooking')
+        ->assertHasErrors(['newServiceId']);
+});

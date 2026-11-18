@@ -16,10 +16,13 @@
             @include('partials._admin-breadcrumbs', ['routeName' => 'admin.bookings'])
         </div>
 
-        {{-- No "New booking" button, and deliberately no create route: a
-             booking is a visitor's message, so there is nothing here to author
-             and an empty create form would be the only page on this screen with
-             no purpose. --}}
+        {{-- Bookings normally arrive from the storefront; this lets an admin
+             key in one taken by phone or in person. --}}
+        <div class="page-header-actions flex items-center gap-2 shrink-0">
+            <flux:button variant="ghost" size="sm" icon="plus" wire:click="openCreateBooking">
+                Create Booking
+            </flux:button>
+        </div>
     </div>
 
     <div class="bg-white rounded-[5px] shadow-sm overflow-hidden">
@@ -188,6 +191,64 @@
             {{ $bookings->links() }}
         </div>
     </div>
+
+    {{-- Create booking --}}
+    <flux:modal name="booking-create" class="md:w-[520px] max-w-full"
+        x-on:open-modal.window="if ($event.detail.name === 'booking-create') $flux.modal('booking-create').show()"
+        x-on:close-modal.window="if ($event.detail.name === 'booking-create') $flux.modal('booking-create').close()">
+        <div class="space-y-4">
+            <flux:heading>Create Booking</flux:heading>
+
+            <flux:field>
+                <flux:label>Service</flux:label>
+                <flux:select wire:model="newServiceId">
+                    <flux:select.option value="">Select service…</flux:select.option>
+                    @foreach ($services as $service)
+                        <flux:select.option value="{{ $service->id }}">{{ $service->name }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <flux:error name="newServiceId" />
+            </flux:field>
+            <flux:field>
+                <flux:label>Full name</flux:label>
+                <flux:input wire:model="newName" />
+                <flux:error name="newName" />
+            </flux:field>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <flux:field>
+                    <flux:label>Email</flux:label>
+                    <flux:input type="email" wire:model="newEmail" />
+                    <flux:error name="newEmail" />
+                </flux:field>
+                <flux:field>
+                    <flux:label>Phone (optional)</flux:label>
+                    <flux:input wire:model="newPhone" />
+                    <flux:error name="newPhone" />
+                </flux:field>
+            </div>
+            <flux:field>
+                <flux:label>Message (optional)</flux:label>
+                <flux:textarea wire:model="newMessage" rows="3" />
+                <flux:error name="newMessage" />
+            </flux:field>
+            <flux:field>
+                <flux:label>Status</flux:label>
+                <flux:select wire:model="newStatus">
+                    <flux:select.option value="new">New</flux:select.option>
+                    <flux:select.option value="completed">Completed</flux:select.option>
+                </flux:select>
+            </flux:field>
+
+            <div class="flex gap-2 pt-1">
+                <flux:button size="sm" variant="primary" wire:click="createBooking" wire:loading.attr="disabled" wire:target="createBooking">
+                    Create Booking
+                </flux:button>
+                <flux:modal.close>
+                    <flux:button size="sm" variant="ghost">Cancel</flux:button>
+                </flux:modal.close>
+            </div>
+        </div>
+    </flux:modal>
 
     {{-- Delete confirmation --}}
     <flux:modal name="booking-delete" class="md:w-80"

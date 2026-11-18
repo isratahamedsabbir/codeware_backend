@@ -5,7 +5,9 @@ namespace App\Livewire\Admin\Bookings;
 use App\Concerns\HasPerPage;
 use App\Concerns\WithSearch;
 use App\Models\Booking;
+use App\Models\Service;
 use App\Support\AdminActivity;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -31,6 +33,54 @@ class Index extends Component
     public string $statusFilter = '';
 
     public ?int $deletingId = null;
+
+    // ── Create Booking (an admin keys in a request taken by phone / in person) ──
+
+    public string $newServiceId = '';
+
+    public string $newName = '';
+
+    public string $newEmail = '';
+
+    public string $newPhone = '';
+
+    public string $newMessage = '';
+
+    public string $newStatus = Booking::STATUS_NEW;
+
+    public function openCreateBooking(): void
+    {
+        $this->reset(['newServiceId', 'newName', 'newEmail', 'newPhone', 'newMessage', 'newStatus']);
+        $this->resetValidation();
+        $this->dispatch('open-modal', name: 'booking-create');
+    }
+
+    public function createBooking(): void
+    {
+        $validated = $this->validate([
+            'newServiceId' => ['required', 'integer', Rule::exists('services', 'id')->where('status', 'active')->whereNull('deleted_at')],
+            'newName' => ['required', 'string', 'max:255'],
+            'newEmail' => ['required', 'email', 'max:255'],
+            'newPhone' => ['nullable', 'string', 'max:32'],
+            'newMessage' => ['nullable', 'string', 'max:5000'],
+            'newStatus' => ['required', Rule::in(Booking::STATUSES)],
+        ]);
+
+        $booking = Booking::create([
+            'service_id' => (int) $validated['newServiceId'],
+            'full_name' => $validated['newName'],
+            'email' => $validated['newEmail'],
+            'phone_number' => $validated['newPhone'] ?: null,
+            'message' => $validated['newMessage'] ?: null,
+            'status' => $validated['newStatus'],
+        ]);
+
+        AdminActivity::log('created', "Booking #{$booking->id} created for {$booking->full_name}");
+
+        $this->dispatch('close-modal', name: 'booking-create');
+        $this->dispatch('notify', message: 'Booking created');
+        $this->resetPage();
+    }
 
     public function updatedStatusFilter(): void
     {
@@ -111,6 +161,8 @@ class Index extends Component
             // gets a handful of rows a week, and a stale badge that disagrees
             // with the list underneath it is worse than the query.
             'newCount' => Booking::new()->count(),
+
+            'services' => Service::active()->orderBy('name->en')->get(['id', 'name']),
         ])->layout('layouts.admin', ['title' => 'Bookings', 'hidePageHeading' => true]);
     }
 }
