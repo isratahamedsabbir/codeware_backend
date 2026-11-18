@@ -61,7 +61,96 @@ const askName = async (title) => {
     return r.isConfirmed ? r.value.trim() : null;
 };
 
-const DEVICES = { desktop: 'Desktop', tablet: 'Tablet', mobile: 'Mobile portrait' };
+/*
+ * Code editor modal for the selected element: HTML and CSS side by side, CodeMirror (bundled with
+ * GrapesJS) for highlighting and line numbers. Resolves {html, css} on Apply, null on Cancel.
+ */
+function openCodeEditor(editor, { title, html, css }) {
+    return new Promise((resolve) => {
+        const root = document.createElement('div');
+        root.className = 'pb-code';
+        root.innerHTML = `
+            <div class="pb-code-box" role="dialog" aria-modal="true" aria-label="Edit code">
+                <header class="pb-code-head">
+                    <div><strong>Edit code</strong><span></span></div>
+                    <button type="button" class="pb-code-x" data-act="cancel" title="Close (Esc)">&times;</button>
+                </header>
+                <div class="pb-code-tabs">
+                    <button type="button" data-tab="html" class="on">HTML</button>
+                    <button type="button" data-tab="css">CSS</button>
+                </div>
+                <div class="pb-code-panes">
+                    <section data-pane="html" class="on"><h4>HTML</h4><div class="pb-code-ed"></div></section>
+                    <section data-pane="css"><h4>CSS</h4><div class="pb-code-ed"></div></section>
+                </div>
+                <footer class="pb-code-foot">
+                    <p>Scripts and inline handlers (<code>onclick</code>…) are removed when you apply.</p>
+                    <div><button type="button" class="pb-code-btn" data-act="cancel">Cancel</button><button type="button" class="pb-code-btn pb-code-primary" data-act="apply">Apply <kbd>Ctrl ↵</kbd></button></div>
+                </footer>
+            </div>`;
+        root.querySelector('.pb-code-head span').textContent = title;
+        document.body.appendChild(root);
+
+        const make = (name, value, el) => {
+            const v = editor.CodeManager.createViewer({
+                codeName: name, theme: 'hopscotch', readOnly: false, lineNumbers: true, lineWrapping: false,
+                autoBeautify: true, autoCloseTags: true, autoCloseBrackets: true, indentUnit: 2, tabSize: 2,
+            });
+            el.appendChild(v.getElement());
+            v.setContent(value);
+
+            return v;
+        };
+        const [htmlEl, cssEl] = root.querySelectorAll('.pb-code-ed');
+        const htmlV = make('htmlmixed', html, htmlEl);
+        const cssV = make('css', css, cssEl);
+        const refresh = () => requestAnimationFrame(() => { htmlV.refresh?.(); cssV.refresh?.(); });
+        refresh();
+
+        // Narrow screens show one pane at a time.
+        root.querySelectorAll('[data-tab]').forEach((t) => t.addEventListener('click', () => {
+            root.querySelectorAll('[data-tab]').forEach((x) => x.classList.toggle('on', x === t));
+            root.querySelectorAll('[data-pane]').forEach((p) => p.classList.toggle('on', p.dataset.pane === t.dataset.tab));
+            refresh();
+        }));
+
+        const close = (value) => {
+            document.removeEventListener('keydown', onKey, true);
+            root.remove();
+            resolve(value);
+        };
+        const apply = () => close({ html: htmlV.getContent(), css: cssV.getContent() });
+        const onKey = (e) => {
+            if (e.key === 'Escape') { e.stopPropagation(); close(null); }
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); apply(); }
+        };
+        document.addEventListener('keydown', onKey, true);
+        root.addEventListener('mousedown', (e) => { if (e.target === root) close(null); });
+        root.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click', () => (b.dataset.act === 'apply' ? apply() : close(null))));
+    });
+}
+
+/** Inert parse, so nothing in the pasted code runs while it is cleaned; returns '' when nothing is left. */
+function cleanHtml(code) {
+    const doc = new DOMParser().parseFromString(`<body>${code}</body>`, 'text/html');
+    const css = [...doc.querySelectorAll('style')].map((s) => s.textContent).join('\n');
+    doc.querySelectorAll('style, script, iframe, object, embed, link, meta, base').forEach((n) => n.remove());
+    doc.body.querySelectorAll('*').forEach((n) => {
+        [...n.attributes].forEach((a) => {
+            const bad = a.name.startsWith('on') || (['href', 'src', 'action', 'formaction', 'xlink:href'].includes(a.name) && /^\s*(javascript|data:text\/html)/i.test(a.value));
+            if (bad) n.removeAttribute(a.name);
+        });
+    });
+    // A <style> typed into the HTML pane still counts: keep it as a style block next to the markup.
+    const body = doc.body.innerHTML.trim();
+
+    return body ? (css.trim() ? `${body}<style>${css}</style>` : body) : '';
+}
+
+/** No script-ish values in pasted CSS (legacy expression()/javascript: urls, @import). */
+const stripScriptsFromCss = (css) => String(css).replace(/expression\s*\(|javascript\s*:|@import[^;]*;?/gi, '');
+
+const DEVICES ={ desktop: 'Desktop', tablet: 'Tablet', mobile: 'Mobile portrait' };
 
 const USER_ICON = '<svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z"/><path d="m3 7 9 5 9-5M12 12v10"/></svg>';
 
@@ -76,7 +165,7 @@ const USER_ICON = '<svg viewBox="0 0 24 24" width="38" height="38" fill="none" s
  * provides ($refs).
  */
 document.addEventListener('alpine:init', () => {
-    window.Alpine.data('pageBuilder', ({ project, blocks = [], assets = [], locale, pageTitle, uploadUrl, csrf }) => ({
+    window.Alpine.data('pageBuilder', ({ project, blocks = [], assets = [], categories = [], locale, pageTitle, uploadUrl, csrf }) => ({
         editor: null,
         locale,
         pageTitle,
@@ -91,6 +180,7 @@ document.addEventListener('alpine:init', () => {
         showRight: true,
         zoom: 100,
         saving: false,
+        ready: false,
         status: '',
         history: { undo: false, redo: false },
 
@@ -138,7 +228,7 @@ document.addEventListener('alpine:init', () => {
             // proxying that whole object graph is slow and breaks identity checks inside GrapesJS.
             Object.defineProperty(editor, '__v_skip', { value: true, configurable: true });
 
-            registerBlocks(editor);
+            registerBlocks(editor, { categories });
             const tabsBlock = editor.Blocks.get('tabs');
             if (tabsBlock) {
                 const definition = tabsBlock.toJSON();
@@ -148,6 +238,26 @@ document.addEventListener('alpine:init', () => {
             blocks.forEach((b) => this.addBlock(b));
             this.tidyCategories();
             this.enableSaveAsBlock();
+
+            // Canvas polish, injected into the page iframe: a calmer hover/selection outline and smooth scrolling.
+            editor.on('canvas:frame:load', ({ el }) => {
+                const doc = el?.contentDocument;
+                if (!doc || doc.getElementById('pb-frame-polish')) return;
+
+                const style = doc.createElement('style');
+                style.id = 'pb-frame-polish';
+                style.textContent = `
+                    html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+                    .gjs-dashed *[data-gjs-highlightable]{outline:1px dashed rgba(100,116,139,.35)!important;outline-offset:-1px}
+                    .gjs-hovered{outline:2px solid rgba(37,99,235,.45)!important;outline-offset:-2px;transition:outline-color .15s}
+                    .gjs-selected{outline:2px solid #2563eb!important;outline-offset:-2px}
+                    .gjs-placeholder{border-color:#2563eb!important;background:rgba(37,99,235,.15)!important}
+                    ::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:8px;border:2px solid transparent;background-clip:content-box}`;
+                doc.head.appendChild(style);
+            });
+
+            // The skeleton overlay lifts once the canvas has been laid out.
+            this.$nextTick(() => setTimeout(() => { this.ready = true; }, 150));
 
             // The delete button on a saved block's card. GrapesJS starts a drag on mousedown anywhere on
             // a block and swallows the click that follows, so the button is caught first, in the capture phase.
@@ -203,7 +313,7 @@ document.addEventListener('alpine:init', () => {
         // ── components list ───────────────────────────────────────
 
         tidyCategories() {
-            const order = ['Sections', 'Content', 'Layout', 'My blocks'];
+            const order = ['Sections', 'Dynamic', 'Content', 'Layout', 'My blocks'];
 
             this.editor.Blocks.getCategories().forEach((c) => c.set('open', false));
 
@@ -325,12 +435,41 @@ document.addEventListener('alpine:init', () => {
                 },
             });
 
+            // </> icon in the toolbar: edit the selected element's HTML + CSS by hand.
+            editor.Commands.add('edit-code', {
+                run: async (ed) => {
+                    const comp = ed.getSelected();
+                    if (!comp) return;
+
+                    const result = await openCodeEditor(ed, {
+                        title: comp.getName() || 'Element',
+                        html: comp.toHTML(),
+                        css: ed.CodeManager.getCode(comp, 'css', { cssc: ed.Css }) || '',
+                    });
+                    if (!result) return;
+
+                    const html = cleanHtml(result.html);
+                    if (!html) return toast('error', 'Nothing left after cleaning the code');
+
+                    const [fresh] = [].concat(comp.replaceWith(html));
+                    const css = stripScriptsFromCss(result.css);
+                    if (css.trim()) ed.Css.addRules(css);
+                    if (fresh) ed.select(fresh);
+                    toast('success', 'Code applied');
+                },
+            });
+
             editor.on('component:selected', (comp) => {
                 const toolbar = comp.get('toolbar') || [];
                 if (!comp.get('removable') || toolbar.some((t) => t.command === 'save-as-block')) return;
 
                 comp.set('toolbar', [
                     ...toolbar,
+                    {
+                        label: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>',
+                        attributes: { title: 'Edit code' },
+                        command: 'edit-code',
+                    },
                     {
                         label: '<svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4Zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm3-10H5V5h10v4Z"/></svg>',
                         attributes: { title: 'Save as reusable block' },

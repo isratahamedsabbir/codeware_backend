@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Concerns\HasSlug;
+use App\Support\Builder\DynamicBlocks;
 use App\Support\Locale;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -63,6 +64,6 @@ class BuilderDesign extends Model
     {
         $locale = $this->localeFor($locale);
 
-        return '<style>'.($this->css[$locale] ?? '').'</style>'.($this->html[$locale] ?? '');
+        return '<style>'.($this->css[$locale] ?? '').'</style>'.DynamicBlocks::render($this->html[$locale] ?? '');
     }
 }

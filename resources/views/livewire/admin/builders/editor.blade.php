@@ -1,6 +1,11 @@
 <div>{{-- Livewire root. wire:ignore below: GrapesJS owns that whole subtree, a morph would wipe it. --}}
 <div class="pb-root flex h-screen flex-col bg-white text-slate-800" wire:ignore id="page-builder"
-     x-data="pageBuilder(@js(['project' => $project, 'blocks' => $blocks, 'assets' => $assets, 'locale' => $locale, 'pageTitle' => $design->name ?: 'Untitled', 'uploadUrl' => route('admin.builders.assets'), 'csrf' => csrf_token()]))">
+     x-data="pageBuilder(@js(['project' => $project, 'blocks' => $blocks, 'assets' => $assets, 'categories' => $categories, 'locale' => $locale, 'pageTitle' => $design->name ?: 'Untitled', 'uploadUrl' => route('admin.builders.assets'), 'csrf' => csrf_token()]))">
+
+    {{-- Shown until GrapesJS has mounted, so the editor never flashes half-built. --}}
+    <div class="pb-boot" x-show="!ready" x-transition.opacity.duration.300ms>
+        <div class="pb-spin"></div><span>Loading editor…</span>
+    </div>
 
     {{-- ── Top bar ───────────────────────────────────────────── --}}
     <header class="pb-top">
@@ -110,7 +115,7 @@
         </main>
 
         {{-- ── Right: page / element properties ───────────────── --}}
-        <aside class="pb-side border-l" x-show="showRight && !previewing">
+        <aside class="pb-side border-l" x-show="showRight && !previewing" x-transition.opacity.duration.150ms>
             <div class="pb-side-head">
                 <span class="px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500" x-text="hasSelection ? selectedName || 'Element' : 'Page'"></span>
             </div>
@@ -205,6 +210,25 @@
         .pb-root .gjs-block-label small{font-size:12px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
         .pb-root .pb-del{position:absolute;z-index:1;right:30px;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:6px;color:#94a3b8;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;pointer-events:auto}
         .pb-root .pb-del:hover{background:#fee2e2;color:#dc2626}
+        .pb-code{position:fixed;inset:0;z-index:10050;background:rgba(15,23,42,.55);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:24px}
+        .pb-code-box{width:min(1280px,100%);height:min(780px,100%);background:#fff;border-radius:16px;box-shadow:0 30px 80px -20px rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden;font-family:system-ui,sans-serif;color:#0f172a}
+        .pb-code-head{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid #e2e8f0}
+        .pb-code-head strong{font-size:16px}.pb-code-head span{margin-left:10px;padding:2px 10px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-size:12px;font-weight:600}
+        .pb-code-x{width:32px;height:32px;border:0;border-radius:8px;background:transparent;font-size:24px;line-height:1;color:#64748b;cursor:pointer}.pb-code-x:hover{background:#f1f5f9}
+        .pb-code-tabs{display:none;gap:6px;padding:10px 20px 0}
+        .pb-code-tabs button{border:0;background:#f1f5f9;padding:6px 14px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer}.pb-code-tabs button.on{background:#1d4ed8;color:#fff}
+        .pb-code-panes{flex:1;min-height:0;display:grid;grid-template-columns:1.4fr 1fr;gap:1px;background:#1e293b}
+        .pb-code-panes section{display:flex;flex-direction:column;min-width:0;min-height:0;background:#2b2b2b}
+        .pb-code-panes h4{margin:0;padding:8px 16px;background:#1e293b;color:#94a3b8;font:600 11px/1 system-ui;letter-spacing:.08em;text-transform:uppercase}
+        .pb-code-ed{flex:1;min-height:0;position:relative}
+        .pb-code-ed .CodeMirror{position:absolute;inset:0;height:100%;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+        .pb-code-foot{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 20px;border-top:1px solid #e2e8f0;background:#f8fafc}
+        .pb-code-foot p{margin:0;font-size:12.5px;color:#64748b}.pb-code-foot code{background:#e2e8f0;padding:1px 5px;border-radius:4px}
+        .pb-code-foot>div{display:flex;gap:10px;flex:none}
+        .pb-code-btn{border:1px solid #cbd5e1;background:#fff;padding:9px 18px;border-radius:9px;font-weight:600;font-size:14px;cursor:pointer}.pb-code-btn:hover{background:#f1f5f9}
+        .pb-code-primary{background:#1d4ed8;border-color:#1d4ed8;color:#fff}.pb-code-primary:hover{background:#1e40af}
+        .pb-code-primary kbd{margin-left:6px;opacity:.7;font:11px system-ui}
+        @media(max-width:900px){.pb-code{padding:0}.pb-code-box{border-radius:0}.pb-code-tabs{display:flex}.pb-code-panes{display:block;position:relative}.pb-code-panes section{display:none;height:100%}.pb-code-panes section.on{display:flex}.pb-code-foot p{display:none}}
 
         /* ── Right panel: style manager + settings ── */
         .pb-root .gjs-sm-sector{border-bottom:1px solid #e2e8f0}
@@ -247,6 +271,48 @@
         .pb-root .gjs-frame-wrapper{background:#fff;border-radius:12px;box-shadow:0 10px 30px -12px rgba(15,23,42,.25);overflow:hidden}
         .pb-root .gjs-toolbar{background-color:#2563eb;border-radius:8px}
         .pb-root .gjs-badge{background-color:#2563eb;color:#fff;border-radius:4px}
+
+        /* ── Polish: motion, focus, scrollbars, panel skin ─────────────────── */
+        .pb-root{position:relative;--pb-ring:0 0 0 3px rgba(37,99,235,.28)}
+        .pb-root button,.pb-root select,.pb-root a{transition:background-color .15s,color .15s,border-color .15s,box-shadow .15s,transform .1s,opacity .15s}
+        .pb-root button:not(:disabled):active{transform:scale(.97)}
+        .pb-root button:focus-visible,.pb-root select:focus-visible,.pb-root a:focus-visible,.pb-root input:focus-visible{outline:none;box-shadow:var(--pb-ring)}
+        .pb-save:hover:not(:disabled){box-shadow:0 8px 20px -6px rgba(29,78,216,.65);transform:translateY(-1px)}
+        .pb-subtabs button{position:relative}
+        .pb-subtabs button:hover{color:#334155}
+        .pb-subtabs button.pb-head-on{color:#0f172a}
+        .pb-root .gjs-frame-wrapper{transition:width .28s cubic-bezier(.4,0,.2,1)}
+        .pb-root .gjs-cv-canvas{background:#eef2f7}
+        .pb-root .gjs-block{cursor:grab}.pb-root .gjs-block:hover{transform:translateY(-1px)}.pb-root .gjs-block:active{cursor:grabbing}
+
+        /* thin scrollbars on every panel */
+        .pb-root *{scrollbar-width:thin;scrollbar-color:#cbd5e1 transparent}
+        .pb-root ::-webkit-scrollbar{width:8px;height:8px}
+        .pb-root ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:8px;border:2px solid transparent;background-clip:content-box}
+        .pb-root ::-webkit-scrollbar-thumb:hover{background:#94a3b8;background-clip:content-box}
+
+        /* Style / Settings panels */
+        .pb-root .gjs-sm-sector,.pb-root .gjs-trt-traits{border:0}
+        .pb-root .gjs-sm-sector-title,.pb-root .gjs-sm-sector__title{padding:14px 20px;border-bottom:1px solid #eef2f7;background:#fff;font-size:11px;font-weight:700;letter-spacing:.08em;color:#334155;cursor:pointer;transition:background-color .15s}
+        .pb-root .gjs-sm-sector-title:hover,.pb-root .gjs-sm-sector__title:hover{background:#f8fafc}
+        .pb-root .gjs-sm-properties{padding:14px 20px 8px;background:#fcfdff;border-bottom:1px solid #eef2f7}
+        .pb-root .gjs-sm-label,.pb-root .gjs-label{color:#475569;font-size:12px;font-weight:600}
+        .pb-root .gjs-field{background:#f1f5f9;border:1px solid transparent;border-radius:8px;color:#0f172a;transition:border-color .15s,background-color .15s,box-shadow .15s}
+        .pb-root .gjs-field:hover{background:#e9eef5}
+        .pb-root .gjs-field:focus-within{background:#fff;border-color:#2563eb;box-shadow:var(--pb-ring)}
+        .pb-root .gjs-field input,.pb-root .gjs-field select,.pb-root .gjs-field textarea{color:#0f172a;font-size:13px}
+        .pb-root .gjs-trt-trait{padding:10px 20px}
+        .pb-root .gjs-layer-title{transition:background-color .12s}
+        .pb-root .gjs-layer:not(.gjs-selected) .gjs-layer-title:hover{background:#f1f5f9}
+
+        /* Loading overlay */
+        .pb-boot{position:absolute;inset:0;z-index:60;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#64748b;font:600 14px system-ui}
+        .pb-spin{width:34px;height:34px;border-radius:50%;border:3px solid #dbeafe;border-top-color:#2563eb;animation:pb-spin .8s linear infinite}
+        @keyframes pb-spin{to{transform:rotate(360deg)}}
+        .pb-code{animation:pb-fade .15s ease-out}.pb-code-box{animation:pb-pop .2s cubic-bezier(.2,.8,.2,1)}
+        @keyframes pb-fade{from{opacity:0}}
+        @keyframes pb-pop{from{opacity:0;transform:translateY(10px) scale(.985)}}
+        @media (prefers-reduced-motion:reduce){.pb-root *,.pb-code,.pb-code-box{animation:none!important;transition:none!important}}
     </style>
 </div>
     <livewire:admin.media-library.picker-modal key="builder-picker-modal" />
