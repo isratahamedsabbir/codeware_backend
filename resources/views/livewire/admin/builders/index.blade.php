@@ -92,7 +92,7 @@
                             {{-- Actions --}}
                             <td class="sticky right-0 z-10 bg-white group-hover/row:bg-indigo-100 border-l border-zinc-100 px-4 py-2">
                                 <x-admin-row-actions :actions="[
-                                    ['href' => url('/'.$design->slug), 'icon' => 'external-link', 'label' => __('View'), 'color' => 'cyan-500', 'external' => true],
+                                    ['href' => rtrim((string) config('app.url'), '/').'/'.$design->slug, 'icon' => 'external-link', 'label' => __('View'), 'color' => 'cyan-500', 'external' => true],
                                     ['href' => route('admin.builders.edit', $design->id), 'icon' => 'pencil', 'label' => __('Open builder'), 'color' => 'primary', 'external' => true],
                                     ['wireClick' => 'confirmDelete(' . $design->id . ')', 'icon' => 'trash', 'label' => __('Delete'), 'color' => 'rose-500'],
                                 ]" />

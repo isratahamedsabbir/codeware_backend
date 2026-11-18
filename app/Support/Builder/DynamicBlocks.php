@@ -2,11 +2,13 @@
 
 namespace App\Support\Builder;
 
+use App\Livewire\Frontend\DynamicBlock;
 use App\Models\Post;
 use App\Models\Product;
 use App\Models\ProductBrand;
 use App\Models\Service;
 use App\Support\UrlStructure;
+use Livewire\Livewire;
 
 /**
  * Dynamic blocks of the page builder.
@@ -21,6 +23,8 @@ class DynamicBlocks
 {
     /** Hard ceiling, so a typo in a placeholder can't print the whole catalogue. */
     private const MAX_ITEMS = 24;
+
+    private const TYPES = ['products', 'posts', 'services', 'brands'];
 
     public static function render(string $html): string
     {
@@ -38,16 +42,32 @@ class DynamicBlocks
                 $first = ! isset($styled[$styleKey]);
                 $styled[$styleKey] = true;
 
-                return match ($m[2]) {
-                    'products' => self::products($options, $first),
-                    'posts' => self::posts($options, $first),
-                    'services' => self::services($options, $first),
-                    'brands' => self::brands($options, $first),
-                    default => $m[0],
-                };
+                if (! in_array($m[2], self::TYPES, true)) {
+                    return $m[0];
+                }
+
+                // Each block is a lazy Livewire component: the page paints at once, the data loads after.
+                return Livewire::mount(DynamicBlock::class, [
+                    'type' => $m[2],
+                    'options' => $options,
+                    'withStyle' => $first,
+                    'lazy' => true,
+                ]);
             },
             $html,
         ) ?? $html;
+    }
+
+    /** The markup of one block, built from live data. Called by the DynamicBlock Livewire component. */
+    public static function block(string $type, array $options, bool $withStyle = true): string
+    {
+        return match ($type) {
+            'products' => self::products($options, $withStyle),
+            'posts' => self::posts($options, $withStyle),
+            'services' => self::services($options, $withStyle),
+            'brands' => self::brands($options, $withStyle),
+            default => '',
+        };
     }
 
     /** @return array<string, string> the placeholder's data-* attributes, without the "data-" */

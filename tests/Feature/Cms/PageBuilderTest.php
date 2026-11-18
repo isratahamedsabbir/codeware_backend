@@ -141,12 +141,13 @@ it('replaces a products placeholder with live products and keeps plain HTML unto
     $product = Product::factory()->create(['name' => ['en' => 'Blue Mug'], 'price' => 120, 'status' => 'active']);
     $draft = Product::factory()->create(['name' => ['en' => 'Hidden Mug'], 'status' => 'inactive']);
 
-    $html = DynamicBlocks::render('<h1>Hi</h1><div data-cw="products" data-limit="4" data-columns="2"></div>');
+    $html = DynamicBlocks::block('products', ['limit' => '4', 'columns' => '2']);
 
-    expect($html)->toContain('<h1>Hi</h1>')
-        ->toContain('Blue Mug')
-        ->not->toContain('Hidden Mug')
-        ->not->toContain('data-cw="products"')
+    expect($html)->toContain('Blue Mug')->not->toContain('Hidden Mug');
+
+    // The page keeps plain HTML as is and swaps each placeholder for a lazy Livewire block.
+    $page = DynamicBlocks::render('<h1>Hi</h1><div data-cw="products" data-limit="4"></div>');
+    expect($page)->toContain('<h1>Hi</h1>')->toContain('wire:id')->not->toContain('data-cw="products"')
         ->and(DynamicBlocks::render('<p>x</p>'))->toBe('<p>x</p>');
 });
 
@@ -156,9 +157,8 @@ it('filters dynamic products by category, clamps the limit, escapes output and p
     $out = Product::factory()->published()->create(['name' => ['en' => 'Other Cup']]);
     $in->categories()->attach($cat->id);
 
-    $html = DynamicBlocks::render(
-        '<div data-cw="products" data-category="'.$cat->id.'" data-limit="9999"></div><div data-cw="products" data-category="abc" data-columns="99"></div>'
-    );
+    $html = DynamicBlocks::block('products', ['category' => (string) $cat->id, 'limit' => '9999'], true)
+        .DynamicBlocks::block('products', ['category' => 'abc', 'columns' => '99'], false);
 
     expect($html)->toContain('&lt;b&gt;In&lt;/b&gt; Mug')
         ->not->toContain('<b>In</b>')
@@ -173,9 +173,9 @@ it('renders the posts, services and brands dynamic blocks', function () {
     $service = \App\Models\Service::factory()->create(['name' => ['en' => 'Web Design'], 'status' => 'active']);
     $brand = \App\Models\ProductBrand::factory()->create(['name' => ['en' => 'Acme'], 'status' => 'active', 'logo' => 'https://x.test/acme.png']);
 
-    $html = \App\Support\Builder\DynamicBlocks::render(
-        '<div data-cw="posts" data-limit="3"></div><div data-cw="services"></div><div data-cw="brands"></div>'
-    );
+    $html = DynamicBlocks::block('posts', ['limit' => '3'], true)
+        .DynamicBlocks::block('services', [], false)
+        .DynamicBlocks::block('brands', [], true);
 
     expect($html)->toContain('Hello Post')->not->toContain('Secret Draft')
         ->toContain('Web Design')

@@ -340,6 +340,49 @@
         .pb-root .gjs-sm-sector-title::after{content:"";flex:none;margin-left:auto;width:7px;height:7px;border-right:2px solid #94a3b8;border-bottom:2px solid #94a3b8;transform:rotate(-45deg);transition:transform .15s}
         .pb-root .gjs-sm-sector.gjs-sm-open .gjs-sm-sector-title::after{transform:rotate(45deg);border-color:#2563eb}
         .pb-root .gjs-sm-properties{padding:12px 12px 6px;background:#fff;border-bottom:0}
+        /* One compact control size (32px) across both panels and the canvas toolbar. */
+        .pb-side-head button{padding:10px 16px;font-size:11px}
+        .pb-subtabs button{padding:8px 0}
+        .pb-search-wrap{height:32px;border-radius:8px;padding:0 10px}
+        .pb-search-wrap input{padding:0;font-size:12px}
+        .pb-devbar{padding:8px 12px;gap:10px}
+        .pb-devbar-in{height:32px;border-radius:8px;padding:0 6px;gap:2px}
+        .pb-devbar-in button{min-width:28px;height:26px;border-radius:6px}
+        .pb-devbar-in svg{width:15px;height:15px}
+        .pb-devbar .pb-icon{flex:none}
+        .pb-sep{height:16px;margin:0 4px}
+        .pb-root .gjs-block-categories{padding:2px 12px 12px}
+        .pb-root .gjs-sm-sectors{padding:10px 12px 12px}
+        .pb-root .gjs-block-category,.pb-root .gjs-sm-sector{margin:0 0 6px;border-radius:8px}
+        .pb-root .gjs-block-category .gjs-title,.pb-root .gjs-sm-sector-title,.pb-root .gjs-sm-sector__title{height:32px;padding:0 12px;font-size:11px;box-sizing:border-box}
+        .pb-root .gjs-block-category .gjs-title::before,.pb-root .gjs-sm-sector-title::before{width:5px;height:5px}
+        .pb-root .gjs-block-category .gjs-title::after,.pb-root .gjs-sm-sector-title::after{width:6px;height:6px}
+        .pb-root .gjs-blocks-c{padding:8px 8px 0}
+        .pb-root .gjs-block{margin:0 0 8px;padding:7px 28px 7px 10px;gap:10px;border-radius:8px}
+        .pb-root .gjs-block__media{flex-basis:32px;width:32px;height:32px;border-radius:8px}
+        .pb-root .gjs-block__media svg{width:18px;height:18px}
+        .pb-root .gjs-block-label{font-size:12px}
+        .pb-root .gjs-block-label small{font-size:11px}
+        /* Every strip is the same height: 32px controls, 40px rows. */
+        .pb-pill{height:32px;box-sizing:border-box;padding:2px;border-radius:8px}
+        .pb-pill button{height:26px;padding:0 10px;border-radius:6px;font-size:12px}
+        .pb-seg-on{box-shadow:0 1px 2px rgba(15,23,42,.1)}
+        .pb-side-head,.pb-subtabs{height:40px;box-sizing:border-box;align-items:stretch}
+        .pb-side-head button,.pb-subtabs button{display:flex;align-items:center;justify-content:center;height:100%;padding:0 16px;font-size:11px}
+        .pb-side-head > span{display:flex;align-items:center;padding:0 16px!important;font-size:11px}
+        .pb-subtabs button{padding:0}
+        .pb-devbar{height:48px;box-sizing:border-box;padding:0 12px}
+        .pb-devbar-in{height:32px;box-sizing:border-box}
+        .pb-search-wrap{height:32px;box-sizing:border-box}
+        .pb-top{height:48px}
+        /* Canvas toolbar: a little roomier than the rest. */
+        .pb-devbar{height:60px}
+        .pb-devbar-in{height:42px;border-radius:10px;padding:0 10px;gap:4px}
+        .pb-devbar-in button{min-width:34px;height:32px;border-radius:8px}
+        .pb-devbar-in svg{width:18px;height:18px}
+        .pb-devbar .pb-icon{width:38px;height:38px;border-radius:10px}
+        .pb-zoom{font-size:13px;padding:0 10px}
+        .pb-sep{height:20px;margin:0 8px}
 </style>
 </div>
     <livewire:admin.media-library.picker-modal key="builder-picker-modal" />
