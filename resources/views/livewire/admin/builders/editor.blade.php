@@ -325,7 +325,22 @@
         @keyframes pb-fade{from{opacity:0}}
         @keyframes pb-pop{from{opacity:0;transform:translateY(10px) scale(.985)}}
         @media (prefers-reduced-motion:reduce){.pb-root *,.pb-code,.pb-code-box{animation:none!important;transition:none!important}}
-    </style>
+            /* Right panel sectors: the same card accordion as the Components list on the left. */
+        .pb-root .gjs-sm-sectors{padding:12px 16px 16px}
+        .pb-root .gjs-sm-sector{margin:0 0 8px;border:1px solid #e2e8f0!important;border-radius:12px;background:#fff;overflow:hidden;transition:border-color .12s,box-shadow .12s}
+        .pb-root .gjs-sm-sector:hover{border-color:#cbd5e1!important}
+        .pb-root .gjs-sm-sector.gjs-sm-open{border-color:#bfdbfe!important;box-shadow:0 4px 14px -8px rgba(37,99,235,.35)}
+        .pb-root .gjs-sm-sector-title,.pb-root .gjs-sm-sector__title{display:flex;align-items:center;gap:10px;padding:13px 14px;border:0!important;background:#fff!important;color:#334155!important;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;transition:background .12s,color .12s}
+        .pb-root .gjs-sm-sector-title:hover{background:#f8fafc!important;color:#0f172a!important}
+        .pb-root .gjs-sm-sector.gjs-sm-open .gjs-sm-sector-title{background:#eff6ff!important;color:#1d4ed8!important;border-bottom:1px solid #dbeafe!important}
+        .pb-root .gjs-sm-sector-caret{display:none}
+        .pb-root .gjs-sm-sector-title::before{content:"";flex:none;width:6px;height:6px;border-radius:50%;background:#cbd5e1}
+        .pb-root .gjs-sm-sector.gjs-sm-open .gjs-sm-sector-title::before{background:#2563eb}
+        .pb-root .gjs-sm-sector-label{margin:0;font-weight:700}
+        .pb-root .gjs-sm-sector-title::after{content:"";flex:none;margin-left:auto;width:7px;height:7px;border-right:2px solid #94a3b8;border-bottom:2px solid #94a3b8;transform:rotate(-45deg);transition:transform .15s}
+        .pb-root .gjs-sm-sector.gjs-sm-open .gjs-sm-sector-title::after{transform:rotate(45deg);border-color:#2563eb}
+        .pb-root .gjs-sm-properties{padding:12px 12px 6px;background:#fff;border-bottom:0}
+</style>
 </div>
     <livewire:admin.media-library.picker-modal key="builder-picker-modal" />
 </div>
