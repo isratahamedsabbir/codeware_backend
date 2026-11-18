@@ -28,6 +28,9 @@
                  look as every other admin index page's header buttons
                  (see resources/css/app.css). --}}
             <div class="page-header-actions flex items-center gap-2 shrink-0">
+                <flux:button variant="ghost" size="sm" icon="plus" wire:click="openCreateOrder">
+                    Create Order
+                </flux:button>
                 @can('access-admin-system')
                     <flux:button variant="ghost" size="sm" icon="cog-6-tooth"
                         x-on:click="$dispatch('open-modal', { name: 'cancellation-rule-settings' })">
@@ -350,5 +353,118 @@
         </div>
     </flux:modal>
 @endcan
+
+{{-- Create Order — an admin keys in an order for a customer. --}}
+<flux:modal name="create-order" class="md:w-[720px] max-w-full"
+    x-on:open-modal.window="if ($event.detail.name === 'create-order') $flux.modal('create-order').show()"
+    x-on:close-modal.window="if ($event.detail.name === 'create-order') $flux.modal('create-order').close()">
+    <div class="space-y-5">
+        <flux:heading>Create Order</flux:heading>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <flux:field>
+                <flux:label>Customer name</flux:label>
+                <flux:input wire:model="newName" />
+                <flux:error name="newName" />
+            </flux:field>
+            <flux:field>
+                <flux:label>Email</flux:label>
+                <flux:input type="email" wire:model="newEmail" />
+                <flux:error name="newEmail" />
+            </flux:field>
+            <flux:field>
+                <flux:label>Phone</flux:label>
+                <flux:input wire:model="newPhone" />
+                <flux:error name="newPhone" />
+            </flux:field>
+            <flux:field>
+                <flux:label>Shipping address</flux:label>
+                <flux:input wire:model="newAddress" />
+                <flux:error name="newAddress" />
+            </flux:field>
+        </div>
+
+        <div class="space-y-2">
+            <flux:label>Products</flux:label>
+            @foreach ($newItems as $i => $item)
+                <div class="flex items-start gap-2" wire:key="new-item-{{ $i }}">
+                    <div class="flex-1">
+                        <flux:select wire:model="newItems.{{ $i }}.product_id">
+                            <flux:select.option value="">Select product…</flux:select.option>
+                            @foreach ($createProducts as $p)
+                                <flux:select.option value="{{ $p->id }}">{{ $p->label }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:error name="newItems.{{ $i }}.product_id" />
+                    </div>
+                    <div class="w-24">
+                        <flux:input type="number" min="1" wire:model="newItems.{{ $i }}.quantity" />
+                        <flux:error name="newItems.{{ $i }}.quantity" />
+                    </div>
+                    <flux:button size="sm" variant="ghost" icon="trash" wire:click="removeNewItem({{ $i }})" />
+                </div>
+            @endforeach
+            <flux:error name="newItems" />
+            <flux:button size="sm" variant="ghost" icon="plus" wire:click="addNewItem">Add product</flux:button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <flux:field>
+                <flux:label>Payment method</flux:label>
+                <flux:select wire:model="newPaymentMethod">
+                    <flux:select.option value="">Select…</flux:select.option>
+                    @foreach (\App\Support\PaymentMethods::available() as $key => $label)
+                        <flux:select.option value="{{ $key }}">{{ $label }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <flux:error name="newPaymentMethod" />
+            </flux:field>
+            <flux:field>
+                <flux:label>Payment status</flux:label>
+                <flux:select wire:model="newPaymentStatus">
+                    @foreach (\App\Models\Order::PAYMENT_STATUSES as $s)
+                        <flux:select.option value="{{ $s }}">{{ ucfirst($s) }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+            </flux:field>
+            <flux:field>
+                <flux:label>Order status</flux:label>
+                <flux:select wire:model="newStatus">
+                    @foreach (\App\Models\Order::STATUSES as $s)
+                        <flux:select.option value="{{ $s }}">{{ ucfirst($s) }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+            </flux:field>
+            <flux:field>
+                <flux:label>Shipping method</flux:label>
+                <flux:select wire:model="newShippingMethodId">
+                    <flux:select.option value="">None</flux:select.option>
+                    @foreach ($shippingMethods as $m)
+                        <flux:select.option value="{{ $m->id }}">{{ $m->name }} ({{ $m->cost }})</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <flux:error name="newShippingMethodId" />
+            </flux:field>
+            <flux:field>
+                <flux:label>Coupon code</flux:label>
+                <flux:input wire:model="newCoupon" />
+                <flux:error name="newCoupon" />
+            </flux:field>
+            <flux:field>
+                <flux:label>Notes</flux:label>
+                <flux:input wire:model="newNotes" />
+            </flux:field>
+        </div>
+
+        <div class="flex gap-2 pt-1">
+            <flux:button size="sm" variant="primary" wire:click="createOrder" wire:loading.attr="disabled" wire:target="createOrder">
+                Create Order
+            </flux:button>
+            <flux:modal.close>
+                <flux:button size="sm" variant="ghost">Cancel</flux:button>
+            </flux:modal.close>
+        </div>
+    </div>
+</flux:modal>
 
 </div>

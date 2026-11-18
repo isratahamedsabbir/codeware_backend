@@ -254,3 +254,37 @@ describe('send custom email', function () {
         });
     });
 });
+
+it('lets an admin create an order on behalf of a customer', function () {
+    Mail::fake();
+    $product = Product::factory()->published()->create(['price' => 100]);
+    $method = array_key_first(\App\Support\PaymentMethods::available());
+
+    Livewire::test(OrdersIndex::class)
+        ->set('newName', 'Walk In')
+        ->set('newEmail', 'walkin@example.com')
+        ->set('newPhone', '01700000000')
+        ->set('newAddress', 'Dhaka')
+        ->set('newPaymentMethod', $method)
+        ->set('newPaymentStatus', 'paid')
+        ->set('newItems', [['product_id' => (string) $product->id, 'quantity' => 2]])
+        ->call('createOrder')
+        ->assertHasNoErrors();
+
+    $order = Order::where('customer_email', 'walkin@example.com')->firstOrFail();
+    $customer = User::where('email', 'walkin@example.com')->firstOrFail();
+
+    expect($order->user_id)->toBe($customer->id)
+        ->and($order->user_id)->not->toBe($this->admin->id)
+        ->and($order->payment_status)->toBe('paid')
+        ->and($order->items)->toHaveCount(1)
+        ->and($order->transactions->first()->status)->toBe('success');
+});
+
+it('rejects an admin-created order without products', function () {
+    Livewire::test(OrdersIndex::class)
+        ->set('newName', 'X')
+        ->set('newItems', [['product_id' => '', 'quantity' => 1]])
+        ->call('createOrder')
+        ->assertHasErrors(['newItems.0.product_id']);
+});

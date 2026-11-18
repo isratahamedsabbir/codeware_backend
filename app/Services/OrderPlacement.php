@@ -47,7 +47,7 @@ class OrderPlacement
      *     notes?: ?string,
      * }  $customer
      */
-    public function placeProducts(array $items, array $customer, ?string $couponCode = null, ?int $shippingMethodId = null): Order
+    public function placeProducts(array $items, array $customer, ?string $couponCode = null, ?int $shippingMethodId = null, bool $onBehalfOfCustomer = false): Order
     {
         $rawItems = collect($items);
 
@@ -106,13 +106,16 @@ class OrderPlacement
 
         $total = round($taxable + $vat + $shippingCost, 2);
 
-        $signedInId = auth()->id();
+        // An admin keying in an order for a customer (Admin → Orders → Create
+        // Order) is signed in, but the order is not theirs: it belongs to the
+        // account holding the customer's email, and no visitor referral applies.
+        $signedInId = $onBehalfOfCustomer ? null : auth()->id();
 
         // Read before the transaction and only cleared after it commits, rather
         // than consumed as part of the write: a failure anywhere below rolls the
         // order back, and the shopper is about to retry it — dropping the
         // attribution on that retry would lose the referral permanently.
-        $referrerId = Referral::idFor($signedInId);
+        $referrerId = $onBehalfOfCustomer ? null : Referral::idFor($signedInId);
 
         // Resolved inside the transaction, not before it: a guest's account is a
         // row written there, and it has to roll back with the order if anything
@@ -170,7 +173,9 @@ class OrderPlacement
 
         // The link has done its job. A second order placed in the same session
         // is the buyer's own, not their referrer's.
-        Referral::forget();
+        if (! $onBehalfOfCustomer) {
+            Referral::forget();
+        }
 
         return $order;
     }

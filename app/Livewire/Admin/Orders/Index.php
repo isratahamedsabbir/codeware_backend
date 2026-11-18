@@ -9,11 +9,16 @@ use App\Concerns\WithSearch;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Setting;
+use App\Models\ShippingMethod;
 use App\Services\OrderEmailService;
+use App\Services\OrderPlacement;
 use App\Support\AdminActivity;
+use App\Support\PaymentMethods;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -115,6 +120,115 @@ class Index extends Component
 
         $this->dispatch('close-modal', name: 'cancellation-rule-settings');
         $this->dispatch('notify', message: 'Cancellation rule saved.');
+    }
+
+    // ── Create Order (an admin keys in an order on a customer's behalf) ──
+
+    public string $newName = '';
+
+    public string $newEmail = '';
+
+    public string $newPhone = '';
+
+    public string $newAddress = '';
+
+    public string $newPaymentMethod = '';
+
+    public string $newPaymentStatus = 'pending';
+
+    public string $newStatus = 'pending';
+
+    public string $newShippingMethodId = '';
+
+    public string $newCoupon = '';
+
+    public string $newNotes = '';
+
+    /** @var array<int, array{product_id: string, quantity: int|string}> */
+    public array $newItems = [['product_id' => '', 'quantity' => 1]];
+
+    public function openCreateOrder(): void
+    {
+        $this->resetCreateOrder();
+        $this->dispatch('open-modal', name: 'create-order');
+    }
+
+    public function addNewItem(): void
+    {
+        $this->newItems[] = ['product_id' => '', 'quantity' => 1];
+    }
+
+    public function removeNewItem(int $index): void
+    {
+        unset($this->newItems[$index]);
+        $this->newItems = array_values($this->newItems) ?: [['product_id' => '', 'quantity' => 1]];
+    }
+
+    private function resetCreateOrder(): void
+    {
+        $this->reset([
+            'newName', 'newEmail', 'newPhone', 'newAddress', 'newPaymentMethod',
+            'newPaymentStatus', 'newStatus', 'newShippingMethodId', 'newCoupon', 'newNotes', 'newItems',
+        ]);
+        $this->resetValidation();
+    }
+
+    public function createOrder(OrderPlacement $placement): void
+    {
+        $this->validate([
+            'newName' => 'required|string|max:255',
+            'newEmail' => 'required|email|max:255',
+            'newPhone' => 'required|string|max:30',
+            'newAddress' => 'required|string|max:2000',
+            'newPaymentMethod' => ['required', Rule::in(array_keys(PaymentMethods::available()))],
+            'newPaymentStatus' => ['required', Rule::in(Order::PAYMENT_STATUSES)],
+            'newStatus' => ['required', Rule::in(Order::STATUSES)],
+            'newShippingMethodId' => ['nullable', 'integer', Rule::exists('shipping_methods', 'id')->where('status', 'active')],
+            'newCoupon' => 'nullable|string|max:50',
+            'newNotes' => 'nullable|string|max:1000',
+            'newItems' => 'required|array|min:1',
+            'newItems.*.product_id' => ['required', 'integer', Rule::exists('products', 'id')->where('status', 'active')->where('is_upcoming', false)],
+            'newItems.*.quantity' => 'required|integer|min:1|max:1000',
+        ], [
+            'newItems.*.product_id.required' => 'Pick a product for every row.',
+        ]);
+
+        try {
+            $order = $placement->placeProducts(
+                array_map(fn (array $i) => ['product_id' => (int) $i['product_id'], 'quantity' => (int) $i['quantity']], $this->newItems),
+                [
+                    'customer_name' => $this->newName,
+                    'customer_email' => $this->newEmail,
+                    'customer_phone' => $this->newPhone,
+                    'shipping_address' => $this->newAddress,
+                    'payment_method' => $this->newPaymentMethod,
+                    'notes' => $this->newNotes ?: null,
+                ],
+                $this->newCoupon ?: null,
+                $this->newShippingMethodId !== '' ? (int) $this->newShippingMethodId : null,
+                onBehalfOfCustomer: true,
+            );
+        } catch (ValidationException $e) {
+            // Service errors use API field names; surface them on this form's fields.
+            throw ValidationException::withMessages(collect($e->errors())->mapWithKeys(fn ($m, $k) => [match ($k) {
+                'coupon_code' => 'newCoupon',
+                'shipping_method_id' => 'newShippingMethodId',
+                default => 'newItems',
+            } => $m])->all());
+        }
+
+        $order->update(['status' => $this->newStatus, 'payment_status' => $this->newPaymentStatus]);
+
+        if ($this->newPaymentStatus === 'paid') {
+            $order->transactions()->latest()->first()?->update(['status' => 'success', 'paid_at' => now()]);
+        }
+
+        AdminActivity::log('created', "Created Order #{$order->order_number} on behalf of {$order->customer_name}");
+
+        $this->resetCreateOrder();
+        $this->dispatch('close-modal', name: 'create-order');
+        $this->dispatch('notify', message: "Order {$order->order_number} created.");
+        $this->resetPage();
     }
 
     public function updatedStatusFilter(): void
@@ -236,6 +350,10 @@ class Index extends Component
                 ->with('referrer:id,name,code')
                 ->latest()
                 ->paginate($this->perPage),
+            'createProducts' => Product::where('status', 'active')->where('is_upcoming', false)
+                ->orderBy('name->en')->limit(500)->get(['id', 'name'])
+                ->map(fn (Product $p) => (object) ['id' => $p->id, 'label' => $p->getTranslation('name', 'en', false)]),
+            'shippingMethods' => ShippingMethod::active()->get(['id', 'name', 'cost']),
         ])->layout('layouts.admin', ['title' => 'Orders', 'hidePageHeading' => true]);
     }
 }
