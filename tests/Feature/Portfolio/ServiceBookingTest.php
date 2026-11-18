@@ -203,6 +203,9 @@ it('counts only the unread ones in the admin filter', function () {
 });
 
 it('lets an admin create a booking by hand', function () {
+    $this->seed(RolePermissionSeeder::class);
+    $this->actingAs(User::factory()->admin()->create());
+
     $service = Service::factory()->published()->create();
 
     Livewire::test(BookingsIndex::class)
@@ -220,6 +223,9 @@ it('lets an admin create a booking by hand', function () {
 });
 
 it('rejects a hand-made booking without a service', function () {
+    $this->seed(RolePermissionSeeder::class);
+    $this->actingAs(User::factory()->admin()->create());
+
     Livewire::test(BookingsIndex::class)
         ->set('newName', 'X')
         ->set('newEmail', 'x@example.com')
