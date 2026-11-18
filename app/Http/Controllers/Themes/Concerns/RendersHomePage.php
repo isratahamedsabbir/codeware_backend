@@ -38,6 +38,11 @@ trait RendersHomePage
         $theme = Themes::active();
         $seoPage = Themes::manifest($theme)['groups'] !== null ? ThemeSettings::groupSeoPage($theme, 'home') : null;
 
+        // Page Settings → Home → Builder: a design picked there is the home page.
+        if (Themes::manifest($theme)['groups'] !== null && ($design = ThemeSettings::groupBuilder($theme, 'home'))) {
+            return view('builders.show', ['design' => $design]);
+        }
+
         return $this->view('index', [
             'seoPage' => $seoPage,
             'page' => $homePage,

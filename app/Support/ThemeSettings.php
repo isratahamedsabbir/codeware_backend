@@ -468,6 +468,18 @@ class ThemeSettings
     }
 
     /**
+     * The builder design picked in Page Settings → {group} → Builder, or null when
+     * none is (or the picked one has since been deleted). When set, that group's
+     * public page prints the design instead of the theme's own template.
+     */
+    public static function groupBuilder(string $slug, string $group): ?\App\Models\BuilderDesign
+    {
+        $id = (int) static::text($slug, $group.'_builder');
+
+        return $id > 0 ? \App\Models\BuilderDesign::find($id) : null;
+    }
+
+    /**
      * The page whose SEO a settings group ("home", "about"…) presents: the one
      * picked in Page Settings → {group} → SEO, else the seeded Default page, else
      * null (the site-wide defaults then apply). Hand the result to the layout as
@@ -796,6 +808,8 @@ class ThemeSettings
 
                         if ($field === 'seo') {
                             $out[$prefix.$pageKey.'_seo'] = $fieldValue;
+                        } elseif ($field === 'builder') {
+                            $out[$prefix.$pageKey.'_builder'] = $fieldValue;
                         } elseif (is_array($fieldValue) && $fieldValue !== [] && ! array_is_list($fieldValue)) {
                             foreach ($fieldValue as $sub => $subValue) {
                                 $out[$prefix.$field.'_'.$sub] = $subValue;
@@ -861,6 +875,12 @@ class ThemeSettings
             foreach ($groups->keys() as $pageKey) {
                 if ($field === $pageKey.'_seo') {
                     $pages[$pageKey]['seo'] = is_string($value) && ctype_digit($value) ? (int) $value : $value;
+
+                    continue 2;
+                }
+
+                if ($field === $pageKey.'_builder') {
+                    $pages[$pageKey]['builder'] = is_string($value) && ctype_digit($value) ? (int) $value : $value;
 
                     continue 2;
                 }

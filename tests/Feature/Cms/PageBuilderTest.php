@@ -101,3 +101,32 @@ it('uploads builder images into the media library', function () {
     expect($json['data'][0])->toHaveKeys(['src', 'name', 'type'])
         ->and(MediaLibrary::where('original_filename', 'hero.jpg')->exists())->toBeTrue();
 });
+
+it('shows the builder picked in Page Settings → Home as the home page', function () {
+    \App\Models\Setting::set('site_theme', 'default');
+    $design = BuilderDesign::create(['name' => 'Landing']);
+    $design->saveLocale('en', ['pages' => []], '<h1>From builder</h1>', '');
+
+    \App\Support\ThemeSettings::merge('default', ['theme_default_home_builder' => (string) $design->id]);
+
+    expect(\App\Support\ThemeSettings::groupBuilder('default', 'home')?->id)->toBe($design->id);
+
+    $this->get('/')->assertOk()->assertSee('<h1>From builder</h1>', false);
+
+    // Back to None: the theme's own home page again.
+    \App\Support\ThemeSettings::merge('default', ['theme_default_home_builder' => '']);
+    $this->get('/')->assertOk()->assertDontSee('<h1>From builder</h1>', false);
+});
+
+it('lets Page Settings pick a builder for a group', function () {
+    \App\Models\Setting::set('site_theme', 'default');
+    $design = BuilderDesign::create(['name' => 'Landing']);
+
+    Livewire::test(\App\Livewire\Admin\ThemeSettings\Edit::class, ['slug' => 'default'])
+        ->assertSee('Which builder should this page show?')
+        ->set('groupBuilder.home', $design->id)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(\App\Support\ThemeSettings::groupBuilder('default', 'home')?->id)->toBe($design->id);
+});

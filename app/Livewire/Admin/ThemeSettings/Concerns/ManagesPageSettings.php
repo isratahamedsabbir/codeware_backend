@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\ThemeSettings\Concerns;
 
 use App\Models\CmsSection;
+use App\Models\BuilderDesign;
 use App\Models\Page;
 use App\Models\Setting;
 use App\Support\AdminActivity;
@@ -51,6 +52,9 @@ trait ManagesPageSettings
     /** @var array<string, int|string> group key => id of the page whose SEO it uses */
     public array $groupSeo = [];
 
+    /** @var array<string, int|string> group key => id of the builder design it shows ('' = the theme's own page) */
+    public array $groupBuilder = [];
+
     /** @var array<int, int|string> page id => id of the page whose SEO it uses ('' = its own) */
     public array $seoSources = [];
 
@@ -82,6 +86,13 @@ trait ManagesPageSettings
                 $stored = (int) ThemeSettings::text($theme, $this->groupSeoKey($group['key']));
 
                 return [$group['key'] => $options->has($stored) ? $stored : ($defaultId ?? '')];
+            })->all();
+
+            $designs = $this->builderOptions();
+            $this->groupBuilder = $this->groups()->mapWithKeys(function (array $group) use ($theme, $designs) {
+                $stored = (int) ThemeSettings::text($theme, $this->groupBuilderKey($group['key']));
+
+                return [$group['key'] => $designs->has($stored) ? $stored : ''];
             })->all();
 
             if (! $this->groups()->contains('key', $this->selectedGroup)) {
@@ -117,6 +128,18 @@ trait ManagesPageSettings
     private function groupSeoKey(string $key): string
     {
         return 'theme_'.$this->pageTheme().'_'.$key.'_seo';
+    }
+
+    /** The theme.json key a group's chosen builder design is stored under. */
+    private function groupBuilderKey(string $key): string
+    {
+        return 'theme_'.$this->pageTheme().'_'.$key.'_builder';
+    }
+
+    /** @return Collection<int, string> builder design id => name */
+    private function builderOptions(): Collection
+    {
+        return BuilderDesign::orderBy('name')->pluck('name', 'id');
     }
 
     public function selectGroup(string $key): void
@@ -311,7 +334,10 @@ trait ManagesPageSettings
     protected function pageSettingsRules(): array
     {
         if ($this->groups() !== null) {
-            return [['groupSeo.*' => ['nullable', 'integer', Rule::exists('pages', 'id')->where('type', 'page')]], []];
+            return [[
+                'groupSeo.*' => ['nullable', 'integer', Rule::exists('pages', 'id')->where('type', 'page')],
+                'groupBuilder.*' => ['nullable', 'integer', Rule::exists('builders', 'id')->where('type', 'design')],
+            ], []];
         }
 
         $rules = [
@@ -339,6 +365,7 @@ trait ManagesPageSettings
 
             foreach ($this->groups() as $group) {
                 $values[$this->groupSeoKey($group['key'])] = (string) ($this->groupSeo[$group['key']] ?? '');
+                $values[$this->groupBuilderKey($group['key'])] = (string) ($this->groupBuilder[$group['key']] ?? '');
             }
 
             if (ThemeSettings::exists($theme)) {
@@ -465,6 +492,7 @@ trait ManagesPageSettings
             'psPrimary' => Locale::primary(),
             'psHomeSlug' => Themes::manifest($this->pageTheme())['home_page'],
             'psSeoOptions' => $this->seoOptions(),
+            'psBuilderOptions' => $this->groups() !== null ? $this->builderOptions() : collect(),
             'psTheme' => $this->pageTheme(),
             'psFeatureOn' => Features::enabled('pages'),
             'psBanners' => $this->hasBanners() ? Themes::viewNamespace($this->pageTheme()).'::page-settings' : null,

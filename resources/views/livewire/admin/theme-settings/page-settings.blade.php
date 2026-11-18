@@ -53,6 +53,21 @@
                         </flux:field>
                     </x-admin-collapse-section>
 
+                    <x-admin-collapse-section icon="squares-2x2" title="Builder"
+                        description="Show a page made in the Builder instead of this page's own design."
+                        :open="$errors->has('groupBuilder.'.$psGroup['key'])">
+                        <flux:field>
+                            <flux:label>Which builder should this page show?</flux:label>
+                            <flux:select wire:model="groupBuilder.{{ $psGroup['key'] }}" wire:key="ps-group-builder-{{ $psGroup['key'] }}">
+                                <flux:select.option value="">{{ __('None - use the theme page') }}</flux:select.option>
+                                @foreach ($psBuilderOptions as $optionId => $optionLabel)
+                                    <flux:select.option value="{{ $optionId }}">{{ $optionLabel }}</flux:select.option>
+                                @endforeach
+                            </flux:select>
+                            <flux:error name="groupBuilder.{{ $psGroup['key'] }}" />
+                        </flux:field>
+                    </x-admin-collapse-section>
+
                     @if ($psGroupView)
                         @include($psGroupView)
                     @endif
