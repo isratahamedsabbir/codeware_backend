@@ -220,8 +220,14 @@
         .pb-root .gjs-block-label{display:flex;flex-direction:column;align-items:flex-start;flex:1;min-width:0;font-size:14px;line-height:1.25;text-align:left;padding:0}
         .pb-root .gjs-block-label b{font-weight:600;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
         .pb-root .gjs-block-label small{font-size:12px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-        .pb-root .pb-del{position:absolute;z-index:1;right:30px;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:6px;color:#94a3b8;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;pointer-events:auto}
-        .pb-root .pb-del:hover{background:#fee2e2;color:#dc2626}
+        .pb-root .pb-more{position:absolute;z-index:1;right:6px;top:50%;transform:translateY(-50%);width:24px;height:28px;border-radius:6px;color:#94a3b8;display:flex;align-items:center;justify-content:center;pointer-events:auto}
+        .pb-root .pb-more:hover{background:#f1f5f9;color:#334155}
+        .pb-root .gjs-block:has(.pb-more)::after{display:none}
+        .pb-root .gjs-block:has(.pb-more){padding-right:36px}
+        .pb-menu{position:fixed;z-index:10000;min-width:150px;padding:4px;border:1px solid #e2e8f0;border-radius:10px;background:#fff;box-shadow:0 12px 28px -8px rgba(15,23,42,.25)}
+        .pb-menu button{display:flex;align-items:center;gap:8px;width:100%;padding:7px 10px;border-radius:7px;font-size:12px;font-weight:600;color:#334155;text-align:left}
+        .pb-menu button:hover{background:#f1f5f9}
+        .pb-menu .pb-menu-danger{color:#dc2626}.pb-menu .pb-menu-danger:hover{background:#fef2f2}
         .pb-code{position:fixed;inset:0;z-index:10050;background:rgba(15,23,42,.55);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:24px}
         .pb-code-box{width:min(1280px,100%);height:min(780px,100%);background:#fff;border-radius:16px;box-shadow:0 30px 80px -20px rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden;font-family:system-ui,sans-serif;color:#0f172a}
         .pb-code-head{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid #e2e8f0}

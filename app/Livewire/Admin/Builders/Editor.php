@@ -67,6 +67,14 @@ class Editor extends Component
         return BuilderBlock::create(['name' => $name, 'content' => $content, 'user_id' => auth()->id()])->id;
     }
 
+    public function renameBlock(int $id, string $name): void
+    {
+        $name = trim($name);
+        abort_if($name === '' || mb_strlen($name) > 255, 422);
+
+        BuilderBlock::whereKey($id)->update(['name' => $name]);
+    }
+
     public function deleteBlock(int $id): void
     {
         BuilderBlock::whereKey($id)->delete();

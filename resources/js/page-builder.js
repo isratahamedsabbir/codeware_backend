@@ -47,13 +47,14 @@ const confirmBox = async ({ title, text = '', confirmText = 'Yes', icon = 'warni
     return r.isConfirmed;
 };
 
-const askName = async (title) => {
+const askName = async (title, value = '', confirmText = 'Save') => {
     const r = await Swal.fire({
         title,
         input: 'text',
+        inputValue: value,
         inputPlaceholder: 'e.g. Pricing section',
         showCancelButton: true,
-        confirmButtonText: 'Save',
+        confirmButtonText: confirmText,
         confirmButtonColor: '#1d4ed8',
         inputValidator: (v) => (v && v.trim() ? undefined : 'Please enter a name'),
     });
@@ -263,24 +264,28 @@ document.addEventListener('alpine:init', () => {
                 if (!editor.getSelected()) editor.select(editor.getWrapper()); // open on the page's own settings
             }, 150));
 
-            // The delete button on a saved block's card. GrapesJS starts a drag on mousedown anywhere on
-            // a block and swallows the click that follows, so the button is caught first, in the capture phase.
-            const delBtn = (target) => target instanceof Element ? target.closest('[data-del-block]') : null;
+            // The three-dot button on a saved block's card opens its menu (Rename / Duplicate / Delete).
+            // GrapesJS starts a drag on mousedown anywhere on a block and swallows the click that follows,
+            // so the button is caught first, in the capture phase.
+            const moreBtn = (target) => target instanceof Element ? target.closest('[data-block-menu]') : null;
             const stopBlockDrag = (e) => {
-                if (!delBtn(e.target)) return;
+                if (!moreBtn(e.target)) return;
 
                 e.stopPropagation();
             };
             this.$refs.blocks.addEventListener('pointerdown', stopBlockDrag, true);
             this.$refs.blocks.addEventListener('mousedown', stopBlockDrag, true);
             this.$refs.blocks.addEventListener('click', (e) => {
-                const btn = delBtn(e.target);
+                const btn = moreBtn(e.target);
                 if (!btn) return;
 
                 e.preventDefault();
                 e.stopPropagation();
-                this.deleteBlock(Number(btn.dataset.delBlock));
+                this.openBlockMenu(btn, Number(btn.dataset.blockMenu));
             }, true);
+            document.addEventListener('click', (e) => { if (!e.target.closest?.('.pb-menu')) this.closeBlockMenu(); });
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') this.closeBlockMenu(); });
+            this.$refs.blocks.addEventListener('scroll', () => this.closeBlockMenu(), true);
 
             const sync = () => {
                 const sel = editor.getSelected();
@@ -348,18 +353,80 @@ document.addEventListener('alpine:init', () => {
             });
         },
 
-        // A saved block, offered in the list under "My blocks" (with a delete button on its card).
+        // A saved block, offered in the list under "My blocks" (with a three-dot menu on its card).
         addBlock(b) {
+            (this.userBlocks ??= {})[b.id] = { name: b.name, content: b.content };
             this.editor.Blocks.add(`user-${b.id}`, {
-                label: `${blockLabel(b.name, 'Saved block')}<button type="button" class="pb-del" data-del-block="${b.id}" title="Delete this block">&times;</button>`,
+                label: this.userBlockLabel(b),
                 category: 'My blocks',
                 content: b.content,
                 media: USER_ICON,
             });
         },
 
+        userBlockLabel(b) {
+            return `${blockLabel(b.name, 'Saved block')}<button type="button" class="pb-more" data-block-menu="${b.id}" title="Options" aria-label="Block options"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>`;
+        },
+
         removeBlock(id) {
             this.editor.Blocks.remove(`user-${id}`);
+            delete this.userBlocks?.[id];
+        },
+
+        closeBlockMenu() {
+            this.blockMenu?.remove();
+            this.blockMenu = null;
+        },
+
+        openBlockMenu(btn, id) {
+            this.closeBlockMenu();
+
+            const items = [
+                ['rename', 'Rename', '<path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>'],
+                ['duplicate', 'Duplicate', '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>'],
+                ['delete', 'Delete', '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>'],
+            ];
+            const menu = document.createElement('div');
+            menu.className = 'pb-menu';
+            menu.innerHTML = items.map(([k, label, path]) => `<button type="button" data-act="${k}"${k === 'delete' ? ' class="pb-menu-danger"' : ''}><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8">${path}</svg>${label}</button>`).join('');
+            this.$root.appendChild(menu);
+
+            const r = btn.getBoundingClientRect();
+            menu.style.top = `${Math.min(r.bottom + 4, window.innerHeight - menu.offsetHeight - 8)}px`;
+            menu.style.left = `${Math.max(8, r.right - menu.offsetWidth)}px`;
+
+            menu.addEventListener('click', (e) => {
+                const act = e.target.closest('[data-act]')?.dataset.act;
+                if (!act) return;
+
+                this.closeBlockMenu();
+                if (act === 'rename') this.renameBlock(id);
+                if (act === 'duplicate') this.duplicateBlock(id);
+                if (act === 'delete') this.deleteBlock(id);
+            });
+            this.blockMenu = menu;
+        },
+
+        async renameBlock(id) {
+            const block = this.userBlocks?.[id];
+            const name = block && await askName('Rename block', block.name, 'Rename');
+            if (!name || name === block.name) return;
+
+            await this.$wire.renameBlock(id, name);
+            block.name = name;
+            this.editor.Blocks.get(`user-${id}`)?.set('label', this.userBlockLabel({ id, name }));
+            toast('success', 'Block renamed');
+        },
+
+        async duplicateBlock(id) {
+            const block = this.userBlocks?.[id];
+            if (!block) return;
+
+            const name = `${block.name} (copy)`.slice(0, 255);
+            const newId = await this.$wire.saveBlock(name, block.content);
+            this.addBlock({ id: newId, name, content: block.content });
+            this.tidyCategories();
+            toast('success', 'Block duplicated');
         },
 
         async deleteBlock(id) {
