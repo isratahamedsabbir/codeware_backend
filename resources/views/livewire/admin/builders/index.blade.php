@@ -94,6 +94,7 @@
                                 <x-admin-row-actions :actions="[
                                     ['href' => rtrim((string) config('app.url'), '/').'/'.$design->slug, 'icon' => 'external-link', 'label' => __('View'), 'color' => 'cyan-500', 'external' => true],
                                     ['href' => route('admin.builders.edit', $design->id), 'icon' => 'pencil', 'label' => __('Open builder'), 'color' => 'primary', 'external' => true],
+                                    ['wireClick' => 'duplicate(' . $design->id . ')', 'icon' => 'copy', 'label' => __('Duplicate'), 'color' => 'amber-500'],
                                     ['wireClick' => 'confirmDelete(' . $design->id . ')', 'icon' => 'trash', 'label' => __('Delete'), 'color' => 'rose-500'],
                                 ]" />
                             </td>

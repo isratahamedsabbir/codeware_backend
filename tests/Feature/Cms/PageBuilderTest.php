@@ -34,6 +34,20 @@ it('has no connection to pages or SEO', function () {
         ->and(method_exists(Editor::class, 'saveSeo'))->toBeFalse();
 });
 
+it('duplicates a builder with its content under a new name and address', function () {
+    $design = BuilderDesign::create(['name' => 'Landing', 'user_id' => auth()->id()]);
+    $design->saveLocale('en', ['pages' => []], '<h1>Hello</h1>', '.a{color:red}');
+
+    Livewire::test(Index::class)->call('duplicate', $design->id);
+
+    $copy = BuilderDesign::firstWhere('name', 'Landing (copy)');
+    expect($copy)->not->toBeNull()
+        ->and($copy->id)->not->toBe($design->id)
+        ->and($copy->slug)->not->toBe($design->slug)
+        ->and($copy->html['en'])->toBe('<h1>Hello</h1>')
+        ->and(BuilderDesign::count())->toBe(2);
+});
+
 it('creates a builder from the Builder menu and opens its editor', function () {
     Livewire::test(Index::class)
         ->set('name', 'Landing')

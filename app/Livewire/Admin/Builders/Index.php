@@ -66,6 +66,23 @@ class Index extends Component
         return $this->redirectRoute('admin.builders.edit', ['id' => $design->id, 'locale' => $this->locale]);
     }
 
+    /** A copy of a design in every language, under a new name and its own address. */
+    public function duplicate(int $id)
+    {
+        $source = BuilderDesign::findOrFail($id);
+
+        $copy = BuilderDesign::create([
+            'name' => mb_substr($source->name.' (copy)', 0, 255),
+            'project' => $source->project,
+            'html' => $source->html,
+            'css' => $source->css,
+            'user_id' => auth()->id(),
+        ]);
+
+        AdminActivity::log('duplicated', "Builder #{$source->id} → #{$copy->id}: {$copy->name}");
+        $this->dispatch('notify', message: 'Builder duplicated');
+    }
+
     public function confirmDelete(int $id): void
     {
         $this->deletingId = $id;
