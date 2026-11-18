@@ -10,21 +10,17 @@
     {{-- ── Top bar ───────────────────────────────────────────── --}}
     <header class="pb-top">
         <div class="flex min-w-0 items-center gap-3">
-            <button type="button" class="pb-icon" :class="{ 'pb-icon-on': showLeft }" title="Toggle components" @click="togglePanel('left')">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>
-            </button>
             <div class="pb-logo" x-text="pageTitle.slice(0, 2).toUpperCase()">{{ mb_strtoupper(mb_substr($design->name ?: 'B', 0, 2)) }}</div>
             <div class="min-w-0 leading-tight">
-                <div class="truncate text-[15px] font-semibold" x-text="pageTitle">{{ $design->name ?: 'Untitled' }}</div>
+                <div class="truncate text-[13px] font-semibold" x-text="pageTitle">{{ $design->name ?: 'Untitled' }}</div>
                 <div class="flex items-center gap-1.5 text-xs text-slate-500">
                     <span x-show="status" class="ml-2 text-slate-400" x-text="status"></span>
                 </div>
             </div>
-            <select class="pb-language" aria-label="Page content language" :value="locale" @change="switchLocale($event.target.value, $event.target)">
-                @foreach ($locales as $language)
-                    <option value="{{ $language['code'] }}">{{ $language['label'] }}</option>
-                @endforeach
-            </select>
+            <div class="pb-language" title="Language of this design">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9s1.3-6.3 3.8-9Z"/></svg>
+                <span class="pb-language-name" x-data="{ labels: @js(collect($locales)->pluck('label', 'code')) }" x-text="labels[locale] || locale"></span>
+            </div>
         </div>
 
         <div class="flex items-center gap-3">
@@ -47,9 +43,6 @@
         </div>
 
         <div class="flex items-center gap-2">
-            <button type="button" class="pb-icon" :class="{ 'pb-icon-on': showRight }" title="Toggle properties" @click="togglePanel('right')">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></svg>
-            </button>
             <a href="{{ route('admin.builders') }}" class="pb-exit">
                 <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Exit
             </a>
@@ -62,7 +55,7 @@
     <div class="flex min-h-0 flex-1">
         {{-- ── Left: components / outline ─────────────────────── --}}
         <aside class="pb-side border-r" x-show="showLeft && !previewing">
-            <div class="pb-side-head">
+            <div class="pb-side-head pb-tabs-2">
                 <button type="button" :class="{ 'pb-head-on': left === 'blocks' }" @click="left = 'blocks'">Components</button>
                 <button type="button" :class="{ 'pb-head-on': left === 'layers' }" @click="left = 'layers'">Outline</button>
             </div>
@@ -81,6 +74,9 @@
         {{-- ── Centre: device bar + canvas ────────────────────── --}}
         <main class="flex min-w-0 flex-1 flex-col bg-slate-100">
             <div class="pb-devbar" x-show="!previewing">
+                <button type="button" class="pb-icon" :class="{ 'pb-icon-on': showLeft }" title="Toggle components" @click="togglePanel('left')">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>
+                </button>
                 <div class="pb-devbar-in">
                     <button type="button" :class="{ 'pb-dev-on': device === 'mobile' }" title="Mobile" @click="setDevice('mobile')">
                         <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/></svg>
@@ -110,6 +106,9 @@
                         <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
                     </button>
                 </div>
+                <button type="button" class="pb-icon" :class="{ 'pb-icon-on': showRight }" title="Toggle properties" @click="togglePanel('right')">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></svg>
+                </button>
             </div>
             <div class="min-h-0 flex-1" x-ref="gjs"></div>
         </main>
@@ -137,8 +136,8 @@
                 <div x-show="hasSelection">
                     <div class="pb-subtabs">
                         <button type="button" :class="{ 'pb-head-on': right === 'style' }" @click="right = 'style'">Style</button>
-                        <button type="button" :class="{ 'pb-head-on': right === 'traits' }" @click="right = 'traits'">Settings</button>
-                        <button type="button" class="pb-delete-element" title="Delete selected element" @click="deleteSelected()">
+                        <button type="button" x-show="!isPage" :class="{ 'pb-head-on': right === 'traits' }" @click="right = 'traits'">Settings</button>
+                        <button type="button" x-show="!isPage" class="pb-delete-element" title="Delete selected element" @click="deleteSelected()">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
                             Delete
                         </button>
@@ -146,32 +145,36 @@
                     <div x-show="right === 'style'">
                         <div x-ref="styles"></div>
                     </div>
-                    <div x-show="right === 'traits'"><div x-ref="traits"></div></div>
+                    <div x-show="right === 'traits' && !isPage"><div x-ref="traits"></div></div>
                 </div>
             </div>
         </aside>
     </div>
 
     <style>
-        .pb-top{display:flex;align-items:center;justify-content:space-between;gap:12px;height:64px;padding:0 16px;border-bottom:1px solid #e2e8f0;background:#fff}
-        .pb-icon{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;color:#475569;border:1px solid transparent}
+        .pb-top{display:flex;align-items:center;justify-content:space-between;gap:12px;height:48px;padding:0 12px;border-bottom:1px solid #e2e8f0;background:#fff}
+        .pb-icon{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;color:#475569;border:1px solid transparent}
         .pb-icon:hover{background:#f1f5f9}.pb-icon-on{background:#eff6ff;color:#2563eb;border-color:#dbeafe}
-        .pb-logo{width:40px;height:40px;border-radius:12px;background:#1e3a8a;color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 0 0 3px #e0e7ff}
-        .pb-language{max-width:120px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:9px;background:#fff;color:#334155;font-size:13px;font-weight:600}
-        .pb-pill{display:flex;align-items:center;gap:2px;padding:4px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0}
-        .pb-pill button{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:9px;font-size:13px;font-weight:600;color:#64748b}
+        .pb-logo{width:30px;height:30px;border-radius:9px;background:#1e3a8a;color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 0 0 2px #e0e7ff}
+        .pb-language{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 0 0 10px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;color:#64748b;font-size:12px}
+        .pb-language-name{padding:0 10px 0 2px;color:#334155;font-size:12px;font-weight:600;white-space:nowrap}
+        .pb-top svg{width:15px;height:15px}
+        .pb-pill{display:flex;align-items:center;gap:2px;padding:3px;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0}
+        .pb-pill button{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:7px;font-size:12px;font-weight:600;color:#64748b}
         .pb-pill button:disabled{opacity:.35}
         .pb-pill button:hover:not(:disabled){color:#0f172a}
         .pb-seg-on{background:#fff;color:#0f172a!important;box-shadow:0 1px 3px rgba(15,23,42,.12)}
-        .pb-exit{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:10px;border:1px solid #e2e8f0;font-size:13px;font-weight:600;color:#334155}
-        .pb-exit:hover{background:#f8fafc}
-        .pb-save{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:10px;background:#1d4ed8;color:#fff;font-weight:700;font-size:14px;box-shadow:0 4px 14px -4px rgba(29,78,216,.6)}
+        .pb-exit{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:8px;border:1px solid #fecaca;background:#fef2f2;font-size:12px;font-weight:600;color:#dc2626}
+        .pb-exit:hover{background:#dc2626;border-color:#dc2626;color:#fff}
+        .pb-save{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 16px;border-radius:8px;background:#1d4ed8;color:#fff;font-weight:700;font-size:12px;box-shadow:0 4px 14px -4px rgba(29,78,216,.6)}
         .pb-save:hover{background:#1e40af}.pb-save:disabled{opacity:.6}
 
         .pb-side{display:flex;flex-direction:column;width:340px;flex-shrink:0;background:#fff;border-color:#e2e8f0}
         .pb-side-head{display:flex;border-bottom:1px solid #e2e8f0}
         .pb-side-head button{padding:14px 20px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8;border-bottom:2px solid transparent}
         .pb-head-on{color:#0f172a!important;border-color:#2563eb!important}
+        .pb-side-head.pb-tabs-2 button{flex:1 1 0;text-align:center}
+        .pb-side-head.pb-tabs-2 button:hover:not(.pb-head-on){color:#334155;background:#f8fafc}
         .pb-subtabs{display:flex;align-items:center;border-bottom:1px solid #e2e8f0}
         .pb-subtabs button{flex:1;padding:10px 0;font-size:12px;font-weight:700;color:#94a3b8;border-bottom:2px solid transparent}
         .pb-subtabs .pb-delete-element{display:inline-flex;flex:0 0 auto;align-items:center;gap:5px;padding:8px 10px;border:0;border-radius:7px;color:#dc2626;font-size:12px}
@@ -181,8 +184,8 @@
         .pb-search-wrap input{flex:1;border:0;background:transparent;padding:10px 0;font-size:14px;outline:none;color:#0f172a}
         .pb-search-wrap input::-webkit-search-cancel-button{display:none}
 
-        .pb-devbar{padding:12px 24px}
-        .pb-devbar-in{display:flex;align-items:center;justify-content:center;gap:4px;max-width:900px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:6px 10px}
+        .pb-devbar{display:flex;align-items:center;gap:12px;padding:12px 16px}
+        .pb-devbar-in{display:flex;align-items:center;justify-content:center;gap:4px;flex:1;min-width:0;max-width:900px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:6px 10px}
         .pb-devbar-in button{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:32px;border-radius:8px;color:#64748b}
         .pb-devbar-in button:hover{background:#f1f5f9}
         .pb-dev-on{color:#2563eb!important;background:#eff6ff}
@@ -196,10 +199,19 @@
         .pb-root .gjs-four-color,.pb-root .gjs-four-color-h:hover{color:#2563eb!important}
 
         /* Component cards: icon · name + description · drag dots */
-        .pb-root .gjs-block-categories{display:block}
-        .pb-root .gjs-block-category{border:0}
-        .pb-root .gjs-block-category .gjs-title{background:#fff;border:0;border-bottom:0;color:#64748b;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:18px 20px 8px}
-        .pb-root .gjs-blocks-c{display:block;padding:4px 16px 8px}
+        .pb-root .gjs-block-categories{display:block;padding:4px 16px 16px}
+        .pb-root .gjs-block-category{margin:0 0 8px;border:1px solid #e2e8f0;border-radius:12px;background:#fff;overflow:hidden;transition:border-color .12s,box-shadow .12s}
+        .pb-root .gjs-block-category:hover{border-color:#cbd5e1}
+        .pb-root .gjs-block-category.gjs-open{border-color:#bfdbfe;box-shadow:0 4px 14px -8px rgba(37,99,235,.35)}
+        .pb-root .gjs-block-category .gjs-title{display:flex;align-items:center;gap:10px;background:#fff;border:0;color:#334155;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:13px 14px;cursor:pointer;user-select:none;transition:background .12s,color .12s}
+        .pb-root .gjs-block-category .gjs-title:hover{background:#f8fafc;color:#0f172a}
+        .pb-root .gjs-block-category.gjs-open .gjs-title{background:#eff6ff;color:#1d4ed8;border-bottom:1px solid #dbeafe}
+        .pb-root .gjs-block-category .gjs-caret-icon{display:none}
+        .pb-root .gjs-block-category .gjs-title::before{content:"";flex:none;width:6px;height:6px;border-radius:50%;background:#cbd5e1}
+        .pb-root .gjs-block-category.gjs-open .gjs-title::before{background:#2563eb}
+        .pb-root .gjs-block-category .gjs-title::after{content:"";flex:none;margin-left:auto;width:7px;height:7px;border-right:2px solid #94a3b8;border-bottom:2px solid #94a3b8;transform:rotate(-45deg);transition:transform .15s}
+        .pb-root .gjs-block-category.gjs-open .gjs-title::after{transform:rotate(45deg);border-color:#2563eb}
+        .pb-root .gjs-blocks-c{display:block;padding:10px 10px 2px}
         .pb-root .gjs-block{position:relative;display:flex;flex-direction:row;align-items:center;gap:12px;width:100%;min-height:0;margin:0 0 10px;padding:10px 34px 10px 12px;border:1px solid #e2e8f0;border-radius:12px;background:#fff;box-shadow:0 1px 2px rgba(15,23,42,.04);color:#334155;text-align:left;transition:border-color .12s,box-shadow .12s}
         .pb-root .gjs-block:hover{border-color:#93c5fd;box-shadow:0 4px 14px -6px rgba(37,99,235,.35);color:#334155}
         .pb-root .gjs-block::after{content:"⋮⋮";position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#cbd5e1;letter-spacing:-2px;font-size:14px}

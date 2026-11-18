@@ -6,6 +6,7 @@ use App\Concerns\HasPerPage;
 use App\Concerns\WithSearch;
 use App\Models\BuilderDesign;
 use App\Support\AdminActivity;
+use App\Support\Locale;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -16,9 +17,27 @@ class Index extends Component
 
     public string $name = '';
 
+    /** The language the new design is first built in. */
+    public string $locale = '';
+
     public ?int $deletingId = null;
 
     public ?int $viewingId = null;
+
+    public function mount(): void
+    {
+        $this->locale = Locale::primary();
+    }
+
+    /** @return array<string, string> code => label */
+    public function localeOptions(): array
+    {
+        $options = Locale::active()
+            ->mapWithKeys(fn ($language) => [$language->code => $language->native_name ?: $language->name])
+            ->all();
+
+        return $options ?: [Locale::primary() => Locale::label(Locale::primary())];
+    }
 
     public function viewDetails(int $id): void
     {
@@ -34,6 +53,7 @@ class Index extends Component
     {
         $this->validate([
             'name' => 'required|string|max:255',
+            'locale' => ['required', 'in:'.implode(',', array_keys($this->localeOptions()))],
         ]);
 
         $design = BuilderDesign::create([
@@ -43,7 +63,7 @@ class Index extends Component
 
         AdminActivity::log('created', "Builder #{$design->id}: {$design->name}");
 
-        return $this->redirectRoute('admin.builders.edit', ['id' => $design->id]);
+        return $this->redirectRoute('admin.builders.edit', ['id' => $design->id, 'locale' => $this->locale]);
     }
 
     public function confirmDelete(int $id): void

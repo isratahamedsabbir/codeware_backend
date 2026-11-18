@@ -174,6 +174,7 @@ document.addEventListener('alpine:init', () => {
         right: 'style',
         search: '',
         hasSelection: false,
+        isPage: false,
         selectedName: '',
         previewing: false,
         showLeft: true,
@@ -257,7 +258,10 @@ document.addEventListener('alpine:init', () => {
             });
 
             // The skeleton overlay lifts once the canvas has been laid out.
-            this.$nextTick(() => setTimeout(() => { this.ready = true; }, 150));
+            this.$nextTick(() => setTimeout(() => {
+                this.ready = true;
+                if (!editor.getSelected()) editor.select(editor.getWrapper()); // open on the page's own settings
+            }, 150));
 
             // The delete button on a saved block's card. GrapesJS starts a drag on mousedown anywhere on
             // a block and swallows the click that follows, so the button is caught first, in the capture phase.
@@ -281,7 +285,19 @@ document.addEventListener('alpine:init', () => {
             const sync = () => {
                 const sel = editor.getSelected();
                 this.hasSelection = !!sel;
-                this.selectedName = sel ? sel.getName() : '';
+                this.isPage = !!sel && sel === editor.getWrapper();
+                this.selectedName = this.isPage ? 'Page' : (sel ? sel.getName() : '');
+                if (this.isPage) this.right = 'style'; // the page itself has no Settings tab
+
+                // Nothing selected (clicked empty space, switched language…): fall back to the page, so the panel is never blank.
+                if (!sel) {
+                    setTimeout(() => {
+                        if (!editor.getSelected()) {
+                            const w = editor.getWrapper();
+                            if (w) editor.select(w);
+                        }
+                    }, 0);
+                }
             };
             editor.on('component:selected', sync);
             editor.on('component:deselected', sync);
@@ -392,7 +408,7 @@ document.addEventListener('alpine:init', () => {
 
         async deleteSelected() {
             const selected = this.editor.getSelected();
-            if (!selected || !await confirmBox({ title: 'Delete this element?', text: 'You can undo this action.', confirmText: 'Delete' })) return;
+            if (!selected || selected === this.editor.getWrapper() || !await confirmBox({ title: 'Delete this element?', text: 'You can undo this action.', confirmText: 'Delete' })) return;
 
             selected.remove();
         },

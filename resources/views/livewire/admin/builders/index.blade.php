@@ -1,10 +1,33 @@
-@push('page-header-actions')
-    <flux:modal.trigger name="builder-create">
-        <flux:button variant="primary" size="sm" icon="plus">{{ __('Create builder') }}</flux:button>
-    </flux:modal.trigger>
-@endpush
+<div class="max-w-[1600px] w-full mx-auto flex-1">
 
-<div class="bg-white rounded-[5px] shadow-sm overflow-hidden">
+<div class="grid grid-cols-1 xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-4 items-start">
+
+    {{-- Create form, beside the list (same layout as Accessories → Types). --}}
+    <x-admin-section-card variant="postbox" :title="__('Builder Details')" :collapsible="false" class="w-full">
+        <flux:field>
+            <flux:label>{{ __('Name') }}<span class="text-red-500 ml-0.5">*</span></flux:label>
+            <flux:input wire:model="name" wire:keydown.enter="create" placeholder="{{ __('e.g. Landing page') }}" />
+            <flux:error name="name" />
+        </flux:field>
+
+        <flux:field>
+            <flux:label>{{ __('Language') }}<x-field-hint :text="__('The language you start designing in. You can add the other languages from the editor later.')" /></flux:label>
+            <select wire:model="locale"
+                class="w-full px-3 py-2 text-sm border border-zinc-200 rounded-lg outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-white">
+                @foreach ($this->localeOptions() as $code => $label)
+                    <option value="{{ $code }}">{{ $label }}</option>
+                @endforeach
+            </select>
+            <flux:error name="locale" />
+        </flux:field>
+
+        <div class="-mx-3 -mb-3 mt-4 flex items-center gap-3 flex-wrap rounded-b-[3px] border-t border-zinc-200 bg-zinc-50 px-3 py-3 dark:border-zinc-700 dark:bg-zinc-800/40">
+            <x-admin-save-button :label="__('Create Builder')" method="create" />
+        </div>
+    </x-admin-section-card>
+
+    {{-- Existing builders --}}
+    <div class="bg-white rounded-[5px] shadow-sm overflow-hidden">
 
     {{-- Toolbar --}}
     <div class="flex items-center gap-3 p-4 flex-wrap">
@@ -98,6 +121,9 @@
     <div class="px-6 py-3">
         {{ $designs->links() }}
     </div>
+    </div>
+
+</div>
 
     {{-- Delete Modal --}}
     <flux:modal name="builder-delete" class="md:w-96"
@@ -129,22 +155,5 @@
         </div>
     </flux:modal>
 
-    {{-- Create Modal --}}
-    <flux:modal name="builder-create" class="md:w-96">
-        <form wire:submit="create" class="space-y-4">
-            <flux:heading>{{ __('Create builder') }}</flux:heading>
-            <div>
-                <label class="block text-xs font-medium text-zinc-600 mb-1">{{ __('Name') }}</label>
-                <input type="text" wire:model="name" autofocus class="w-full px-3 py-2 text-sm border border-zinc-200 rounded-lg outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" />
-                @error('name') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
-            </div>
-            <div class="flex gap-2 pt-1">
-                <flux:button type="submit" variant="primary" size="sm">{{ __('Create') }}</flux:button>
-                <flux:modal.close>
-                    <flux:button type="button" size="sm" variant="ghost">{{ __('Cancel') }}</flux:button>
-                </flux:modal.close>
-            </div>
-        </form>
-    </flux:modal>
 
 </div>

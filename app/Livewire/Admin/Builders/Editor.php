@@ -27,6 +27,12 @@ class Editor extends Component
     {
         $this->designId = BuilderDesign::findOrFail($id)->id;
         $this->locale = Locale::primary();
+
+        // Opened straight from the create form with the language picked there.
+        $asked = (string) request()->query('locale', '');
+        if ($asked !== '' && in_array($asked, array_column($this->availableLocales(), 'code'), true)) {
+            $this->locale = $asked;
+        }
     }
 
     public function save(array $project, string $html, string $css): void
