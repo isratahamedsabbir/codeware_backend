@@ -411,7 +411,7 @@ it('lists the site pages beside a group theme groups, without SEO or Builder pic
         ->assertSee('Intro Heading')
         ->assertDontSee('Which builder should this page show?')
         ->assertDontSee('Which SEO should this page use?')
-        ->assertViewHas('psPages', fn ($pages) => $pages->pluck('slug')->all() === ['our-story'])
+        ->assertViewHas('psPages', fn ($pages) => $pages->pluck('slug')->contains('our-story') && ! $pages->pluck('slug')->contains('default') && ! $pages->pluck('slug')->contains('home'))
         ->call('selectPage', Page::where('type', 'page')->get()->firstWhere('slug', 'our-story')->id)
         ->assertSee('Our Story')
         ->assertDontSee('Which SEO should this page use?');

@@ -38,8 +38,11 @@ trait RendersHomePage
         $theme = Themes::active();
         $seoPage = Themes::manifest($theme)['groups'] !== null ? ThemeSettings::groupSeoPage($theme, 'home') : null;
 
-        // Page Settings → Home → Builder: a design picked there is the home page.
-        if (Themes::manifest($theme)['groups'] !== null && ($design = ThemeSettings::groupBuilder($theme, 'home'))) {
+        // Pages → Home → Builder: a design picked on the home page is the site root,
+        // whether or not the theme has a home template of its own. With none picked
+        // the theme's template is shown, and with neither this is a 404 (the
+        // `theme` guard and Themes::viewOrFail() both enforce that).
+        if ($homePage?->builder_id && ($design = \App\Models\BuilderDesign::find($homePage->builder_id))) {
             return view('builders.show', ['design' => $design]);
         }
 

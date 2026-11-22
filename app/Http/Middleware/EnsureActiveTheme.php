@@ -2,6 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\BuilderDesign;
+use App\Models\Page;
+use App\Support\Frontend;
 use App\Support\Themes;
 use Closure;
 use Illuminate\Http\Request;
@@ -40,11 +43,27 @@ class EnsureActiveTheme
         $name = $request->route()?->getName();
 
         abort_if(
-            $name !== null && ! Themes::activeThemeCanRender($name),
+            $name !== null && ! Themes::activeThemeCanRender($name) && ! $this->hasBuilderDesign($request, $name),
             404,
             'This page is not part of the active theme.'
         );
 
         return $next($request);
+    }
+
+    /**
+     * A home or standalone page that has a Builder design picked is that design,
+     * so it does not need a template from the active theme: the design is the
+     * page. Without one, the theme must ship the template or the page 404s.
+     */
+    private function hasBuilderDesign(Request $request, string $name): bool
+    {
+        $page = match ($name) {
+            'home' => Frontend::homePage(),
+            'page' => Page::where('slug', (string) $request->route('slug'))->where('type', 'page')->where('status', 'active')->first(),
+            default => null,
+        };
+
+        return (bool) ($page?->builder_id) && BuilderDesign::whereKey($page->builder_id)->exists();
     }
 }

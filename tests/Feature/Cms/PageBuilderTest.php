@@ -14,6 +14,7 @@ use App\Models\ProductCategory;
 use App\Models\Setting;
 use App\Models\User;
 use App\Support\Builder\DynamicBlocks;
+use App\Support\ContentCache;
 use App\Support\ThemeSettings;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Http\Request;
@@ -122,20 +123,31 @@ it('uploads builder images into the media library', function () {
         ->and(MediaLibrary::where('original_filename', 'hero.jpg')->exists())->toBeTrue();
 });
 
-it('shows the builder picked in Page Settings → Home as the home page', function () {
+it('shows the builder picked on the home page, else the theme page', function () {
     Setting::set('site_theme', 'default');
+    $home = Page::factory()->published()->create(['title' => ['en' => 'Home', 'bn' => ''], 'slug' => 'home', 'type' => 'page']);
     $design = BuilderDesign::create(['name' => 'Landing']);
     $design->saveLocale('en', ['pages' => []], '<h1>From builder</h1>', '');
 
-    ThemeSettings::merge('default', ['theme_default_home_builder' => (string) $design->id]);
-
-    expect(ThemeSettings::groupBuilder('default', 'home')?->id)->toBe($design->id);
-
+    // Builder picked: it is the home page.
+    $home->update(['builder_id' => $design->id]);
+    ContentCache::bust();
     $this->get('/')->assertOk()->assertSee('<h1>From builder</h1>', false);
 
-    // Back to None: the theme's own home page again.
-    ThemeSettings::merge('default', ['theme_default_home_builder' => '']);
+    // None picked: the theme's own home page.
+    $home->update(['builder_id' => null]);
+    ContentCache::bust();
     $this->get('/')->assertOk()->assertDontSee('<h1>From builder</h1>', false);
+
+    // No builder and the active theme ships no home template: 404.
+    $index = base_path('themes/default/views/index.blade.php');
+    $backup = file_get_contents($index);
+    try {
+        unlink($index);
+        $this->get('/')->assertNotFound();
+    } finally {
+        file_put_contents($index, $backup);
+    }
 });
 
 it('replaces a products placeholder with live products and keeps plain HTML untouched', function () {
