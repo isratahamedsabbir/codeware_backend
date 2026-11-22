@@ -3,7 +3,6 @@
 namespace App\Livewire\Admin\ThemeSettings\Concerns;
 
 use App\Models\CmsSection;
-use App\Models\BuilderDesign;
 use App\Models\Page;
 use App\Models\Setting;
 use App\Support\AdminActivity;
@@ -49,12 +48,6 @@ trait ManagesPageSettings
     /** Group mode: the key of the picked settings group ("home", "about"…). */
     public ?string $selectedGroup = null;
 
-    /** @var array<string, int|string> group key => id of the page whose SEO it uses */
-    public array $groupSeo = [];
-
-    /** @var array<string, int|string> group key => id of the builder design it shows ('' = the theme's own page) */
-    public array $groupBuilder = [];
-
     /** @var array<int, int|string> page id => id of the page whose SEO it uses ('' = its own) */
     public array $seoSources = [];
 
@@ -76,27 +69,11 @@ trait ManagesPageSettings
     protected function loadPageSettings(): void
     {
         if ($this->groups() !== null) {
-            $theme = $this->pageTheme();
-            $defaultId = $this->defaultSeoPage()?->id;
+            $this->load();
 
-            // A stored pick whose page has since been deleted falls back to Default
-            // rather than leaving the form holding an id that fails validation.
-            $options = $this->seoOptions();
-            $this->groupSeo = $this->groups()->mapWithKeys(function (array $group) use ($theme, $options, $defaultId) {
-                $stored = (int) ThemeSettings::text($theme, $this->groupSeoKey($group['key']));
-
-                return [$group['key'] => $options->has($stored) ? $stored : ($defaultId ?? '')];
-            })->all();
-
-            $designs = $this->builderOptions();
-            $this->groupBuilder = $this->groups()->mapWithKeys(function (array $group) use ($theme, $designs) {
-                $stored = (int) ThemeSettings::text($theme, $this->groupBuilderKey($group['key']));
-
-                return [$group['key'] => $designs->has($stored) ? $stored : ''];
-            })->all();
-
-            if (! $this->groups()->contains('key', $this->selectedGroup)) {
+            if (! $this->groups()->contains('key', $this->selectedGroup) && ! $this->pages()->contains('id', $this->selectedPageId)) {
                 $this->selectedGroup = $this->groups()->first()['key'];
+                $this->selectedPageId = null;
             }
 
             return;
@@ -124,28 +101,11 @@ trait ManagesPageSettings
         return $groups === null ? null : collect($groups);
     }
 
-    /** The theme.json key a group's chosen SEO source is stored under. */
-    private function groupSeoKey(string $key): string
-    {
-        return 'theme_'.$this->pageTheme().'_'.$key.'_seo';
-    }
-
-    /** The theme.json key a group's chosen builder design is stored under. */
-    private function groupBuilderKey(string $key): string
-    {
-        return 'theme_'.$this->pageTheme().'_'.$key.'_builder';
-    }
-
-    /** @return Collection<int, string> builder design id => name */
-    private function builderOptions(): Collection
-    {
-        return BuilderDesign::orderBy('name')->pluck('name', 'id');
-    }
-
     public function selectGroup(string $key): void
     {
         if ($this->groups()?->contains('key', $key)) {
             $this->selectedGroup = $key;
+            $this->selectedPageId = null;
         }
     }
 
@@ -153,6 +113,7 @@ trait ManagesPageSettings
     {
         if ($this->pages()->contains('id', $pageId)) {
             $this->selectedPageId = $pageId;
+            $this->selectedGroup = null;
         }
     }
 
@@ -174,8 +135,20 @@ trait ManagesPageSettings
     /** @return Collection<int, Page> */
     private function pages(): Collection
     {
-        if (! Features::enabled('pages') || $this->groups() !== null) {
+        if (! Features::enabled('pages')) {
             return collect();
+        }
+
+        // A settings-group theme names its own groups (Home, About…); the pages
+        // listed beside them are every other standalone page of the site, so a
+        // page created in Pages shows up here without touching the theme.
+        if ($this->groups() !== null) {
+            return Page::ofType('page')
+                ->with('slugRecord')
+                ->whereDoesntHave('slugRecord', fn ($q) => $q->whereIn('slug', [...$this->groups()->pluck('key')->all(), 'default']))
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->get();
         }
 
         $theme = $this->pageTheme();
@@ -276,7 +249,7 @@ trait ManagesPageSettings
             $section->id => collect($section->constant ?? [])->map(fn ($pair) => (string) ($pair['value'] ?? ''))->values()->all(),
         ])->all();
 
-        if ($this->hasBanners()) {
+        if ($this->groups() === null && $this->hasBanners()) {
             $this->heroSlides = HeroSlides::stored() ?: [HeroSlides::blank()];
             $theme = $this->pageTheme();
             $this->promo = [
@@ -333,13 +306,6 @@ trait ManagesPageSettings
     /** @return array{0: array<string, mixed>, 1: array<string, string>} */
     protected function pageSettingsRules(): array
     {
-        if ($this->groups() !== null) {
-            return [[
-                'groupSeo.*' => ['nullable', 'integer', Rule::exists('pages', 'id')->where('type', 'page')],
-                'groupBuilder.*' => ['nullable', 'integer', Rule::exists('builders', 'id')->where('type', 'design')],
-            ], []];
-        }
-
         $rules = [
             'seoSources.*' => ['nullable', 'integer', Rule::exists('pages', 'id')->where('type', 'page')],
             'cards.*.*.image' => ['nullable', 'string'],
@@ -354,27 +320,15 @@ trait ManagesPageSettings
             'promo.*.image' => ['nullable', 'string'],
         ];
 
+        if ($this->groups() !== null) {
+            unset($rules['seoSources.*'], $rules['promo.*.link'], $rules['promo.*.image']);
+        }
+
         return [$rules, ['cards.*.*.text_color.regex' => 'Use a hex colour like #1e7bc4.']];
     }
 
     protected function savePageSettings(): void
     {
-        if ($this->groups() !== null) {
-            $theme = $this->pageTheme();
-            $values = [];
-
-            foreach ($this->groups() as $group) {
-                $values[$this->groupSeoKey($group['key'])] = (string) ($this->groupSeo[$group['key']] ?? '');
-                $values[$this->groupBuilderKey($group['key'])] = (string) ($this->groupBuilder[$group['key']] ?? '');
-            }
-
-            if (ThemeSettings::exists($theme)) {
-                ThemeSettings::merge($theme, $values);
-            }
-
-            return;
-        }
-
         $pages = $this->pages();
         $sections = $this->sectionsFor($pages);
 
@@ -384,7 +338,7 @@ trait ManagesPageSettings
         // The SEO each page uses: another page's, or its own. Naming itself is stored
         // as itself (HasSeo reads that as "my own row"): turning it into null would
         // make the form show Default again after the save, as if nothing was saved.
-        foreach ($pages as $page) {
+        foreach ($this->groups() !== null ? [] : $pages as $page) {
             if (! array_key_exists($page->id, $this->seoSources)) {
                 continue;
             }
@@ -435,7 +389,7 @@ trait ManagesPageSettings
             }
         }
 
-        if ($this->hasBanners()) {
+        if ($this->groups() === null && $this->hasBanners()) {
             $this->saveBanners();
         }
 
@@ -477,11 +431,13 @@ trait ManagesPageSettings
     {
         $groups = $this->groups();
         $pages = $this->pages();
-        $selected = $pages->firstWhere('id', $this->selectedPageId) ?? $pages->first();
+        $selected = $groups !== null && $this->selectedGroup !== null
+            ? null
+            : ($pages->firstWhere('id', $this->selectedPageId) ?? ($groups !== null ? null : $pages->first()));
 
         return [
             'psGroups' => $groups,
-            'psGroup' => $groups?->firstWhere('key', $this->selectedGroup) ?? $groups?->first(),
+            'psGroup' => $groups?->firstWhere('key', $this->selectedGroup),
             'psGroupView' => $groups && is_file(Themes::path().'/'.$this->pageTheme().'/pages/'.($this->selectedGroup ?? '').'.blade.php')
                 ? Themes::viewNamespace($this->pageTheme()).'::pages.'.$this->selectedGroup
                 : null,
@@ -492,7 +448,6 @@ trait ManagesPageSettings
             'psPrimary' => Locale::primary(),
             'psHomeSlug' => Themes::manifest($this->pageTheme())['home_page'],
             'psSeoOptions' => $this->seoOptions(),
-            'psBuilderOptions' => $this->groups() !== null ? $this->builderOptions() : collect(),
             'psTheme' => $this->pageTheme(),
             'psFeatureOn' => Features::enabled('pages'),
             'psBanners' => $this->hasBanners() ? Themes::viewNamespace($this->pageTheme()).'::page-settings' : null,

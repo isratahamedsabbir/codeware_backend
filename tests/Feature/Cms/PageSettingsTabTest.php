@@ -403,38 +403,18 @@ it('lists the default theme\'s settings groups by name, without touching the pag
     });
 });
 
-it('selects the Default page as a group\'s SEO source and saves the one picked', function () {
-    $default = Page::factory()->create(['title' => ['en' => 'Default', 'bn' => ''], 'slug' => 'default', 'type' => 'page', 'status' => 'inactive']);
-    $other = Page::factory()->published()->create(['title' => ['en' => 'Shared SEO', 'bn' => ''], 'slug' => 'shared-seo', 'type' => 'page']);
+it('lists the site pages beside a group theme groups, without SEO or Builder pickers', function () {
+    Page::factory()->published()->create(['title' => ['en' => 'Our Story', 'bn' => ''], 'slug' => 'our-story', 'type' => 'page']);
+    Page::factory()->create(['title' => ['en' => 'Default', 'bn' => ''], 'slug' => 'default', 'type' => 'page', 'status' => 'inactive']);
 
-    withCleanDefaultThemeFile(function () use ($default, $other) {
-        Livewire::test(ThemeSettingsEdit::class, ['slug' => 'default'])
-            ->assertSet('groupSeo.home', $default->id)
-            ->set('groupSeo.home', $other->id)
-            ->call('save')
-            ->assertHasNoErrors();
-
-        expect(ThemeSettings::text('default', 'theme_default_home_seo'))->toBe((string) $other->id);
-    });
-});
-
-it('serves the SEO picked for the Home group on the default theme home page', function () {
-    $source = Page::factory()->published()->create([
-        'title' => ['en' => 'About us', 'bn' => ''], 'slug' => 'about-seo-source', 'type' => 'page',
-        'seo_title' => ['en' => 'Picked home SEO title'], 'seo_description' => ['en' => 'Picked home SEO description'],
-    ]);
-
-    Setting::set('site_theme', 'default');
-    Themes::forget();
-
-    withCleanDefaultThemeFile(function () use ($source) {
-        ThemeSettings::merge('default', ['theme_default_home_seo' => (string) $source->id]);
-
-        $this->get('/')
-            ->assertOk()
-            ->assertSee('Picked home SEO title')
-            ->assertSee('Picked home SEO description');
-    });
+    Livewire::test(ThemeSettingsEdit::class, ['slug' => 'default'])
+        ->assertSee('Intro Heading')
+        ->assertDontSee('Which builder should this page show?')
+        ->assertDontSee('Which SEO should this page use?')
+        ->assertViewHas('psPages', fn ($pages) => $pages->pluck('slug')->all() === ['our-story'])
+        ->call('selectPage', Page::where('type', 'page')->get()->firstWhere('slug', 'our-story')->id)
+        ->assertSee('Our Story')
+        ->assertDontSee('Which SEO should this page use?');
 });
 
 it('seeds the Default page: inactive, with an SEO row, out of the nav', function () {
@@ -446,27 +426,6 @@ it('seeds the Default page: inactive, with an SEO row, out of the nav', function
         ->and($page->status)->toBe('inactive')
         ->and(Seo::where('page_id', $page->id)->exists())->toBeTrue()
         ->and(Frontend::navPages()->pluck('slug')->all())->not->toContain('default');
-});
-
-it('falls back to the Default page when a group\'s saved SEO page no longer exists', function () {
-    $default = Page::factory()->create(['title' => ['en' => 'Default', 'bn' => ''], 'slug' => 'default', 'type' => 'page', 'status' => 'inactive']);
-    $file = base_path('themes/default/theme.json');
-    $original = file_get_contents($file);
-
-    try {
-        $data = json_decode($original, true);
-        $data['pages']['home']['seo'] = 987654;
-        file_put_contents($file, json_encode($data));
-        ThemeSettings::forget('default');
-
-        Livewire::test(ThemeSettingsEdit::class, ['slug' => 'default'])
-            ->assertSet('groupSeo.home', $default->id)
-            ->call('save')
-            ->assertHasNoErrors();
-    } finally {
-        file_put_contents($file, $original);
-        ThemeSettings::forget('default');
-    }
 });
 
 it('serves the picked page\'s own SEO even when that page borrows another page\'s', function () {

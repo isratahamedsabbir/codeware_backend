@@ -138,19 +138,6 @@ it('shows the builder picked in Page Settings → Home as the home page', functi
     $this->get('/')->assertOk()->assertDontSee('<h1>From builder</h1>', false);
 });
 
-it('lets Page Settings pick a builder for a group', function () {
-    Setting::set('site_theme', 'default');
-    $design = BuilderDesign::create(['name' => 'Landing']);
-
-    Livewire::test(Edit::class, ['slug' => 'default'])
-        ->assertSee('Which builder should this page show?')
-        ->set('groupBuilder.home', $design->id)
-        ->call('save')
-        ->assertHasNoErrors();
-
-    expect(ThemeSettings::groupBuilder('default', 'home')?->id)->toBe($design->id);
-});
-
 it('replaces a products placeholder with live products and keeps plain HTML untouched', function () {
     $product = Product::factory()->create(['name' => ['en' => 'Blue Mug'], 'price' => 120, 'status' => 'active']);
     $draft = Product::factory()->create(['name' => ['en' => 'Hidden Mug'], 'status' => 'inactive']);
