@@ -4,6 +4,7 @@ use App\Models\Page;
 use App\Models\Setting;
 use App\Models\User;
 use App\Support\ThemePages;
+use App\Support\ThemeSettings;
 use App\Support\Themes;
 use Illuminate\Support\Facades\File;
 
@@ -51,4 +52,20 @@ it('serves an extra page a real theme ships in data/pages at /slug', function ()
     } finally {
         File::deleteDirectory(Themes::path().'/classic_ecommerce/data');
     }
+});
+
+it('treats the keys of a slug-keyed pages map as pages and keeps their settings readable', function () {
+    $dir = Themes::path().'/bare';
+    File::ensureDirectoryExists($dir.'/views');
+    File::put($dir.'/views/index.blade.php', '<p>home</p>');
+    File::put($dir.'/theme.json', json_encode([
+        'name' => 'Bare',
+        'pages' => ['pricing' => ['label' => 'Our Plans', 'hero' => ['title' => 'Pick one']]],
+    ]));
+    Themes::forget();
+    User::factory()->create();
+
+    expect(ThemePages::sync('bare')['created'])->toBe(['pricing'])
+        ->and(Page::where('slug', 'pricing')->first()->getTranslation('title', 'en'))->toBe('Our Plans')
+        ->and(ThemeSettings::text('bare', 'hero_title'))->toBe('Pick one');
 });

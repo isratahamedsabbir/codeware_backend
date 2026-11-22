@@ -25,9 +25,10 @@ use Illuminate\Support\Str;
  *   3. a blank, active page titled after the slug.
  *
  * Existing pages are never touched — the owner edits them in the admin, and a
- * re-sync must not overwrite that. Themes whose `pages` is a map of groups
- * (default, portfolio) have no page rows by design; only their data/pages
- * files, if any, are created.
+ * re-sync must not overwrite that. `pages` may be a list of slugs or a map keyed
+ * by slug with the page's settings nested under it (`pages.{slug}.hero.title` is
+ * read back as the flat `theme_{theme}_hero_title`, see ThemeSettings) —
+ * either way each slug gets a row.
  */
 class ThemePages
 {
@@ -38,7 +39,12 @@ class ThemePages
      */
     public static function slugs(string $theme): array
     {
-        $slugs = Themes::manifest($theme)['pages'] ?? [];
+        $manifest = Themes::manifest($theme);
+
+        // A plain list of slugs, or the keys of the slug-keyed map
+        // ("pages": {"pricing": {"label": "Pricing", "hero": {...}}}) — in both
+        // the slug is the page, and in the map its settings sit right under it.
+        $slugs = $manifest['pages'] ?? array_column($manifest['groups'] ?? [], 'key');
 
         foreach (glob(Themes::path()."/{$theme}/data/pages/*.json") ?: [] as $file) {
             $slugs[] = basename($file, '.json');
@@ -89,7 +95,7 @@ class ThemePages
             $page = Page::create([
                 'user_id' => $owner,
                 'slug' => $slug,
-                'title' => ['en' => $json['title'] ?? Str::headline($slug), 'bn' => ''],
+                'title' => ['en' => $json['title'] ?? static::label($theme, $slug), 'bn' => ''],
                 'seo_description' => $json['description'] ?? '',
                 'puck_data' => [
                     'root' => $json['root'] ?? ['props' => []],
@@ -115,6 +121,18 @@ class ThemePages
         }
 
         return $result;
+    }
+
+    /** The map entry's "label" when theme.json gives one, else the slug as a heading. */
+    private static function label(string $theme, string $slug): string
+    {
+        foreach (Themes::manifest($theme)['groups'] ?? [] as $group) {
+            if ($group['key'] === $slug) {
+                return $group['name'];
+            }
+        }
+
+        return Str::headline($slug);
     }
 
     /** @return array<string, mixed> */
