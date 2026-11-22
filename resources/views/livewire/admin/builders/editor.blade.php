@@ -17,6 +17,11 @@
                     <span x-show="status" class="ml-2 text-slate-400" x-text="status"></span>
                 </div>
             </div>
+            <div class="pb-pill pb-seg" x-show="langs.length > 1" title="Language you are editing">
+                <template x-for="l in langs" :key="l.code">
+                    <button type="button" :class="{ 'pb-seg-on': lang === l.code }" @click="switchLanguage(l.code)" x-text="l.code.toUpperCase()"></button>
+                </template>
+            </div>
         </div>
 
         <div class="flex items-center gap-3">
@@ -152,7 +157,7 @@
         .pb-icon{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;color:#475569;border:1px solid transparent}
         .pb-icon:hover{background:#f1f5f9}.pb-icon-on{background:#eff6ff;color:#2563eb;border-color:#dbeafe}
         .pb-logo{width:30px;height:30px;border-radius:9px;background:#1e3a8a;color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 0 0 2px #e0e7ff}
-        .gjs-toolbar .pb-lang-btn{display:inline-flex;align-items:center;justify-content:center;width:auto!important;min-width:28px;height:auto;line-height:1;padding:0 6px;font-size:11px;font-weight:700;letter-spacing:.04em}
+        .gjs-toolbar .pb-lang-btn{display:inline-flex;align-items:center;justify-content:center;width:auto!important;min-width:28px;height:26px;box-sizing:border-box;vertical-align:top;align-self:center;line-height:1;padding:0 6px;margin:0;font-size:11px;font-weight:700;letter-spacing:.04em}
         .pb-top svg{width:15px;height:15px}
         .pb-pill{display:flex;align-items:center;gap:2px;padding:3px;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0}
         .pb-pill button{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:7px;font-size:12px;font-weight:600;color:#64748b}

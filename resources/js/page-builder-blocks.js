@@ -233,7 +233,7 @@ function registerDynamicBlocks(editor, { dynamicBlocks = [] }) {
                 // Preview only — never exported (GrapesJS saves the model, not what the view draws).
                 onRender({ el }) {
                     const at = this.model.getAttributes();
-                    const n = Math.min(parseInt(at['data-limit']) || 4, shape === 'logo' ? 6 : 8);
+                    const n = d.preview?.count ?? Math.min(parseInt(at['data-limit']) || 4, shape === 'logo' ? 6 : 8);
                     const cols = d.preview?.columns === false ? n : (at['data-columns'] || 3);
                     const media = shape === 'logo' ? 'height:28px' : (shape === 'square' ? 'aspect-ratio:1' : 'aspect-ratio:16/10');
                     const heading = at['data-heading'] ? `<div style="grid-column:1/-1;text-align:center;font:700 22px system-ui;color:#0f172a">${esc(at['data-heading'])}</div>` : '';

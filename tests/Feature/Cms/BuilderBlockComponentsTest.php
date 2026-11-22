@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Blade;
 it('discovers every dynamic block from the Blade component folder', function () {
     $registry = DynamicBlocks::registry();
 
-    expect(array_keys($registry))->toBe(['brands', 'posts', 'products', 'services']);
+    expect(array_keys($registry))->toBe(['brands', 'language-switcher', 'posts', 'products', 'services']);
 
     foreach ($registry as $class) {
         expect(is_subclass_of($class, Block::class))->toBeTrue();
@@ -51,4 +51,17 @@ it('works as a plain Blade component too', function () {
 
     expect(Blade::render('<x-builder.posts :options="[\'limit\' => \'2\', \'heading\' => \'News\']" />'))
         ->toContain('Hello Post')->toContain('News');
+});
+
+it('prints a language switcher that links to the other language', function () {
+    \App\Models\Language::create(['code' => 'en', 'name' => 'English', 'native_name' => 'English', 'is_active' => true, 'is_default' => true, 'sort_order' => 1]);
+    \App\Models\Language::create(['code' => 'bn', 'name' => 'Bengali', 'native_name' => 'বাংলা', 'is_active' => true, 'sort_order' => 2]);
+    \Illuminate\Support\Facades\Cache::forget('languages:active');
+    app()->setLocale('en');
+
+    $html = DynamicBlocks::block('language-switcher', ['email' => 'info@example.com', 'phone' => '+880 1700-000000', 'background' => 'red;x']);
+
+    expect($html)->toContain('href="?lang=bn"')->toContain('বাংলা')
+        ->toContain('mailto:info@example.com')->toContain('tel:+8801700000000')
+        ->toContain('background:#043c26')->not->toContain('red;x');
 });

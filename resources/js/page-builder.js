@@ -169,6 +169,8 @@ document.addEventListener('alpine:init', () => {
     window.Alpine.data('pageBuilder', ({ project, blocks = [], assets = [], dynamicBlocks = [], locale, languages = [], pageTitle, uploadUrl, csrf }) => ({
         editor: null,
         locale,
+        lang: locale,
+        langs: languages,
         pageTitle,
         device: 'desktop',
         left: 'blocks',
@@ -440,23 +442,16 @@ document.addEventListener('alpine:init', () => {
 
         // One design, every language. A text element holds the primary language; every other language
         // is kept on the element itself as data-t-{code} and swapped in on the public page (see
-        // App\Support\Builder\Translations). Selecting a text adds a language button to its toolbar:
-        // pick a language and the canvas shows — and you edit — that language's text right there.
+        // App\Support\Builder\Translations). The language tabs in the top bar switch the whole
+        // canvas: pick a language and every text shows — and you edit — that language right there.
         enableTranslations(editor, languages) {
             if (languages.length < 2) return;
 
             const primary = this.locale;
-            const labelOf = (code) => languages.find((l) => l.code === code)?.label || code;
             const attr = (code) => `data-t-${code}`;
             const textual = ['text', 'link', 'button', 'label'];
             const views = (this.langView = new Map()); // component => { code, primaryHtml } while not on the primary language
             const codeOf = (comp) => views.get(comp)?.code || primary;
-
-            const paintButton = (comp) => {
-                const btn = document.querySelector('.gjs-toolbar .pb-lang-btn');
-                if (btn) btn.innerHTML = `${codeOf(comp).toUpperCase()}`;
-                comp.set('toolbar', (comp.get('toolbar') || []).map((t) => (t.pbLang ? { ...t, label: codeOf(comp).toUpperCase() } : t)));
-            };
 
             this.setComponentLanguage = (comp, code) => {
                 const state = views.get(comp) || { code: primary, primaryHtml: null };
@@ -478,56 +473,21 @@ document.addEventListener('alpine:init', () => {
 
                 state.code = code;
                 if (code === primary) views.delete(comp); else views.set(comp, state);
-                paintButton(comp);
             };
 
             // Everything goes back to the primary language before the design is saved.
             this.restorePrimaryLanguage = () => [...views.keys()].forEach((comp) => this.setComponentLanguage(comp, primary));
 
-            editor.Commands.add('pb-language', {
-                run: (ed) => {
-                    const comp = ed.getSelected();
-                    const btn = document.querySelector('.gjs-toolbar .pb-lang-btn');
-                    if (!comp || !btn) return;
+            // The whole canvas switches at once: every text, link and button shows (and edits) the chosen language.
+            const walk = (comp, fn) => comp.components().forEach((child) => (textual.some((t) => child.is(t)) ? fn(child) : walk(child, fn)));
+            this.applyLanguage = (code) => walk(editor.getWrapper(), (comp) => this.setComponentLanguage(comp, code));
+        },
 
-                    this.closeBlockMenu();
-
-                    // Opened a tick later: this click is still bubbling to the document, whose
-                    // click-outside handler would close a menu that already exists.
-                    setTimeout(() => {
-                        const menu = document.createElement('div');
-                        menu.className = 'pb-menu';
-                        menu.innerHTML = languages.map((l) => `<button type="button" data-lang="${l.code}">${l.code === codeOf(comp) ? '✓ ' : ''}${l.label}</button>`).join('');
-                        this.$root.appendChild(menu);
-
-                        const r = btn.getBoundingClientRect();
-                        menu.style.top = `${r.bottom + 4}px`;
-                        menu.style.left = `${Math.max(8, r.right - menu.offsetWidth)}px`;
-
-                        menu.addEventListener('click', (e) => {
-                            const code = e.target.closest('[data-lang]')?.dataset.lang;
-                            this.closeBlockMenu();
-                            if (code) this.setComponentLanguage(comp, code);
-                        });
-                        this.blockMenu = menu;
-                    }, 0);
-                },
-            });
-
-            editor.on('component:selected', (comp) => {
-                if (!comp || !textual.some((type) => comp.is(type))) return;
-
-                const toolbar = (comp.get('toolbar') || []).filter((t) => !t.pbLang);
-                comp.set('toolbar', [
-                    {
-                        pbLang: true,
-                        label: codeOf(comp).toUpperCase(),
-                        attributes: { class: 'pb-lang-btn', title: 'Language of this text' },
-                        command: 'pb-language',
-                    },
-                    ...toolbar,
-                ]);
-            });
+        switchLanguage(code) {
+            if (code === this.lang || !this.applyLanguage) return;
+            this.lang = code;
+            this.editor.select(); // drop the selection: its toolbar and panels belong to the previous text
+            this.applyLanguage(code);
         },
 
         async deleteSelected() {
@@ -667,6 +627,7 @@ document.addEventListener('alpine:init', () => {
         async save() {
             if (this.saving) return false;
 
+            const keep = this.lang;
             this.saving = true;
             this.status = 'Saving…';
 
@@ -684,6 +645,7 @@ document.addEventListener('alpine:init', () => {
                 toast('error', 'Could not save the page');
                 return false;
             } finally {
+                if (keep !== this.locale) this.applyLanguage?.(keep); // stay on the language being edited
                 this.saving = false;
                 setTimeout(() => (this.status = ''), 2500);
             }
