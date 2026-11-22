@@ -195,84 +195,65 @@ export const blockLabel = (name, description = '') => `<b>${esc(name)}</b><small
 
 /*
  * Dynamic blocks: saved as an empty `<div data-cw="…" data-…>` placeholder and filled with
- * live data on the server each time the page is shown (App\Support\Builder\DynamicBlocks).
- * The editor only sets options (traits) and shows a sample so the section has a size.
+ * live data on the server each time the page is shown. Nothing is hard-coded here — every
+ * block is a Blade component (App\View\Components\Builder\*) that describes itself
+ * (name, icon, settings), and the editor builds its component type, its settings panel and
+ * its list entry from that description (App\Support\Builder\DynamicBlocks::definitions()).
+ * Add a component class on the server and it appears here by itself.
  */
-function registerDynamicBlocks(editor, { categories = [] }) {
-    const range = (n) => Array.from({ length: n }, (_, i) => String(i + 1)).map((v) => ({ id: v, name: v }));
-    const limit = { type: 'number', name: 'data-limit', label: 'How many', min: 1, max: 24 };
-    const columns = (max = 6) => ({ type: 'select', name: 'data-columns', label: 'Columns', options: range(max) });
-    const featured = { type: 'checkbox', name: 'data-featured', label: 'Featured only', valueTrue: 'true', valueFalse: 'false' };
+function registerDynamicBlocks(editor, { dynamicBlocks = [] }) {
+    const traitOf = (f) => {
+        const base = { name: `data-${f.name}`, label: f.label, changeProp: false };
 
-    // key → block definition. `sample` is the placeholder card drawn in the editor only.
-    const defs = {
-        products: {
-            name: 'Products', hint: 'Live products from your shop', icon: icon.grid, sample: 'Product', square: true,
-            attrs: { 'data-limit': '8', 'data-columns': '4', 'data-order': 'latest', 'data-category': '0', 'data-featured': 'false' },
-            traits: [
-                { type: 'select', name: 'data-category', label: 'Category', options: [{ id: '0', name: 'All products' }, ...categories.map((c) => ({ id: String(c.id), name: c.name }))] },
-                limit, columns(),
-                { type: 'select', name: 'data-order', label: 'Order', options: [
-                    { id: 'latest', name: 'Newest first' }, { id: 'oldest', name: 'Oldest first' },
-                    { id: 'price-asc', name: 'Price: low to high' }, { id: 'price-desc', name: 'Price: high to low' },
-                    { id: 'manual', name: 'Manual order' },
-                ] },
-                featured,
-            ],
-        },
-        posts: {
-            name: 'Latest posts', hint: 'Newest blog posts', icon: icon.list, sample: 'Blog post',
-            attrs: { 'data-limit': '3', 'data-columns': '3' },
-            traits: [limit, columns(4)],
-        },
-        services: {
-            name: 'Services', hint: 'Your active services', icon: icon.star, sample: 'Service',
-            attrs: { 'data-limit': '6', 'data-columns': '3' },
-            traits: [limit, columns(4)],
-        },
-        brands: {
-            name: 'Brands', hint: 'Row of brand logos', icon: icon.logos ?? icon.grid, sample: 'Brand', logos: true,
-            attrs: { 'data-limit': '12', 'data-featured': 'false' },
-            traits: [limit, featured],
-        },
+        if (f.type === 'select') return { ...base, type: 'select', options: Object.entries(f.options || {}).map(([id, name]) => ({ id, name })) };
+        if (f.type === 'checkbox') return { ...base, type: 'checkbox', valueTrue: 'true', valueFalse: 'false' };
+        if (f.type === 'number') return { ...base, type: 'number', min: f.min, max: f.max };
+
+        return { ...base, type: f.type === 'textarea' ? 'text' : 'text', placeholder: f.placeholder || '' };
     };
 
-    Object.entries(defs).forEach(([key, d]) => {
-        const type = `cw-${key}`;
+    const attrsOf = (d) => Object.fromEntries(Object.entries(d.defaults || {}).map(([k, v]) => [`data-${k}`, v]));
+
+    dynamicBlocks.forEach((d) => {
+        const type = `cw-${d.key}`;
+        const shape = d.preview?.shape || 'card';
 
         editor.Components.addType(type, {
-            isComponent: (el) => (el.getAttribute && el.getAttribute('data-cw') === key ? { type } : false),
+            isComponent: (el) => (el.getAttribute && el.getAttribute('data-cw') === d.key ? { type } : false),
             model: {
                 defaults: {
                     tagName: 'div',
                     name: d.name,
                     droppable: false,
-                    attributes: { 'data-cw': key, ...d.attrs },
-                    traits: d.traits,
+                    attributes: { 'data-cw': d.key, ...attrsOf(d) },
+                    traits: d.fields.map(traitOf),
                 },
             },
             view: {
                 // Preview only — never exported (GrapesJS saves the model, not what the view draws).
                 onRender({ el }) {
                     const at = this.model.getAttributes();
-                    const n = Math.min(parseInt(at['data-limit']) || 4, d.logos ? 6 : 8);
-                    const cols = d.logos ? n : (at['data-columns'] || 3);
+                    const n = Math.min(parseInt(at['data-limit']) || 4, shape === 'logo' ? 6 : 8);
+                    const cols = d.preview?.columns === false ? n : (at['data-columns'] || 3);
+                    const media = shape === 'logo' ? 'height:28px' : (shape === 'square' ? 'aspect-ratio:1' : 'aspect-ratio:16/10');
+                    const heading = at['data-heading'] ? `<div style="grid-column:1/-1;text-align:center;font:700 22px system-ui;color:#0f172a">${esc(at['data-heading'])}</div>` : '';
+
                     el.style.cssText = `display:grid;grid-template-columns:repeat(${cols},1fr);gap:16px;padding:24px;min-height:80px`;
-                    el.innerHTML = Array.from({ length: n }, () => `<div style="border:1px dashed #94a3b8;border-radius:12px;padding:12px;text-align:center;color:#64748b;font:13px system-ui"><div style="${d.logos ? 'height:28px' : (d.square ? 'aspect-ratio:1' : 'aspect-ratio:16/10')};background:#e2e8f0;border-radius:8px;margin-bottom:8px"></div>${d.sample}</div>`).join('');
+                    el.innerHTML = heading + Array.from({ length: n }, () => `<div style="border:1px dashed #94a3b8;border-radius:12px;padding:12px;text-align:center;color:#64748b;font:13px system-ui"><div style="${media};background:#e2e8f0;border-radius:8px;margin-bottom:8px"></div>${esc(d.preview?.sample || d.name)}</div>`).join('');
                 },
             },
         });
 
         editor.Blocks.add(type, {
             label: blockLabel(d.name, d.hint),
-            category: 'Dynamic',
-            media: d.icon,
+            category: d.category || 'Dynamic',
+            media: icon[d.icon] ?? icon.grid,
             content: { type },
             select: true,
         });
     });
 
-    const dynamicTypes = Object.keys(defs).map((k) => `cw-${k}`);
+    const dynamicTypes = dynamicBlocks.map((d) => `cw-${d.key}`);
     editor.on('component:update:attributes', (m) => { if (dynamicTypes.includes(m.get('type'))) m.view?.render(); });
 }
 

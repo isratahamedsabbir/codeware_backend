@@ -1,6 +1,6 @@
 <div>{{-- Livewire root. wire:ignore below: GrapesJS owns that whole subtree, a morph would wipe it. --}}
 <div class="pb-root flex h-screen flex-col bg-white text-slate-800" wire:ignore id="page-builder"
-     x-data="pageBuilder(@js(['project' => $project, 'blocks' => $blocks, 'assets' => $assets, 'categories' => $categories, 'locale' => $locale, 'languages' => $locales, 'pageTitle' => $design->name ?: 'Untitled', 'uploadUrl' => route('admin.builders.assets'), 'csrf' => csrf_token()]))">
+     x-data="pageBuilder(@js(['project' => $project, 'blocks' => $blocks, 'assets' => $assets, 'dynamicBlocks' => $dynamicBlocks, 'locale' => $locale, 'languages' => $locales, 'pageTitle' => $design->name ?: 'Untitled', 'uploadUrl' => route('admin.builders.assets'), 'csrf' => csrf_token()]))">
 
     {{-- Shown until GrapesJS has mounted, so the editor never flashes half-built. --}}
     <div class="pb-boot" x-show="!ready" x-transition.opacity.duration.300ms>

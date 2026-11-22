@@ -5,7 +5,7 @@ namespace App\Livewire\Admin\Builders;
 use App\Models\BuilderBlock;
 use App\Models\BuilderDesign;
 use App\Models\MediaLibrary;
-use App\Models\ProductCategory;
+use App\Support\Builder\DynamicBlocks;
 use App\Support\Locale;
 use Livewire\Component;
 
@@ -74,7 +74,7 @@ class Editor extends Component
             'assets' => MediaLibrary::where('file_type', 'image')->latest()->limit(80)->get()->map->url->filter()->values(),
             'blocks' => BuilderBlock::orderBy('name')->get(['id', 'name', 'content']),
             'project' => $design->projectFor($this->locale),
-            'categories' => ProductCategory::orderBy('id')->get()->map(fn ($c) => ['id' => $c->id, 'name' => (string) $c->name])->values(),
+            'dynamicBlocks' => DynamicBlocks::definitions($this->availableLocales()),
             'locales' => $this->availableLocales(),
         ])->layout('layouts.builder', ['title' => 'Builder']);
     }

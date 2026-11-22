@@ -166,7 +166,7 @@ const USER_ICON = '<svg viewBox="0 0 24 24" width="38" height="38" fill="none" s
  * provides ($refs).
  */
 document.addEventListener('alpine:init', () => {
-    window.Alpine.data('pageBuilder', ({ project, blocks = [], assets = [], categories = [], locale, languages = [], pageTitle, uploadUrl, csrf }) => ({
+    window.Alpine.data('pageBuilder', ({ project, blocks = [], assets = [], dynamicBlocks = [], locale, languages = [], pageTitle, uploadUrl, csrf }) => ({
         editor: null,
         locale,
         pageTitle,
@@ -230,7 +230,7 @@ document.addEventListener('alpine:init', () => {
             // proxying that whole object graph is slow and breaks identity checks inside GrapesJS.
             Object.defineProperty(editor, '__v_skip', { value: true, configurable: true });
 
-            registerBlocks(editor, { categories });
+            registerBlocks(editor, { dynamicBlocks });
             this.enableTranslations(editor, languages);
             const tabsBlock = editor.Blocks.get('tabs');
             if (tabsBlock) {

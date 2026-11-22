@@ -3,12 +3,11 @@
 namespace App\Support\Builder;
 
 use App\Livewire\Frontend\DynamicBlock;
-use App\Models\Post;
-use App\Models\Product;
-use App\Models\ProductBrand;
-use App\Models\Service;
-use App\Support\UrlStructure;
+use App\Support\Locale;
+use App\View\Components\Builder\Block;
+use Illuminate\Support\Facades\File;
 use Livewire\Livewire;
+use ReflectionClass;
 
 /**
  * Dynamic blocks of the page builder.
@@ -16,40 +15,104 @@ use Livewire\Livewire;
  * A design is stored as plain HTML, so a block that must show live data is saved
  * as an empty placeholder — `<div data-cw="products" data-limit="8" …></div>` —
  * and swapped for real markup here, each time the page is printed. No PHP or
- * Blade is ever stored in a design: the editor only chooses *options* (category,
- * count, columns), and the markup comes from this class.
+ * Blade is ever stored in a design: the editor only chooses *options*, and the
+ * markup comes from the block's own Blade component.
+ *
+ * Every block is a class in `app/View/Components/Builder/` extending
+ * {@see Block}; this registry finds them by folder, so adding a block is adding
+ * a file (see the Block class comment).
+ *
+ * Translated options travel as `data-{name}-{code}` next to the primary
+ * `data-{name}`; they are resolved to the visitor's language *here*, before the
+ * block is handed to its lazy Livewire component, because that component later
+ * re-renders in a request of its own where the visitor's language is not known.
  */
 class DynamicBlocks
 {
-    /** Hard ceiling, so a typo in a placeholder can't print the whole catalogue. */
-    private const MAX_ITEMS = 24;
+    /** @return array<string, class-string<Block>> key => component class */
+    public static function registry(): array
+    {
+        $found = [];
 
-    private const TYPES = ['products', 'posts', 'services', 'brands'];
+        foreach (File::glob(app_path('View/Components/Builder/*.php')) as $file) {
+            $class = 'App\\View\\Components\\Builder\\'.basename($file, '.php');
 
-    public static function render(string $html): string
+            if (class_exists($class) && is_subclass_of($class, Block::class) && ! (new ReflectionClass($class))->isAbstract()) {
+                $found[$class::key()] = $class;
+            }
+        }
+
+        ksort($found);
+
+        return $found;
+    }
+
+    /**
+     * What the editor needs to offer every block: its settings, with each translatable
+     * field expanded to one input per non-primary language.
+     *
+     * @param  array<int, array{code: string, label: string}>  $languages
+     * @return array<int, array<string, mixed>>
+     */
+    public static function definitions(array $languages = []): array
+    {
+        $primary = strtolower(Locale::primary());
+
+        return array_values(array_map(function (string $class) use ($languages, $primary) {
+            $definition = $class::definition();
+
+            $definition['fields'] = collect($definition['fields'])->flatMap(function (array $field) use ($languages, $primary) {
+                if (empty($field['translatable'])) {
+                    return [$field];
+                }
+
+                $others = collect($languages)->reject(fn ($l) => strtolower($l['code']) === $primary);
+                $base = $field['label'];
+
+                if ($others->isNotEmpty()) {
+                    $field['label'] = $base.' ('.strtoupper($primary).')';
+                }
+
+                return [$field, ...$others->map(fn ($l) => [
+                    'name' => $field['name'].'-'.strtolower($l['code']),
+                    'type' => $field['type'] === 'textarea' ? 'textarea' : 'text',
+                    'label' => $base.' ('.$l['label'].')',
+                    'default' => '',
+                ])->all()];
+            })->all();
+
+            // the per-language inputs start empty; every other default is the block's own
+            $definition['defaults'] += collect($definition['fields'])->mapWithKeys(fn ($f) => [$f['name'] => ''])->all();
+
+            return $definition;
+        }, static::registry()));
+    }
+
+    public static function render(string $html, ?string $locale = null): string
     {
         if (! str_contains($html, 'data-cw=')) {
             return $html;
         }
 
+        $locale = strtolower($locale ?? Locale::current());
+        $registry = static::registry();
         $styled = []; // each block type prints its <style> once per page, however many times it is dropped
 
         return preg_replace_callback(
             '/<div\b([^>]*\bdata-cw="([a-z-]+)"[^>]*)>\s*<\/div>/i',
-            function (array $m) use (&$styled) {
-                $options = self::options($m[1]);
-                $styleKey = in_array($m[2], ['posts', 'services'], true) ? 'cards' : $m[2]; // these two share one stylesheet
-                $first = ! isset($styled[$styleKey]);
-                $styled[$styleKey] = true;
-
-                if (! in_array($m[2], self::TYPES, true)) {
+            function (array $m) use (&$styled, $registry, $locale) {
+                if (! isset($registry[$m[2]])) {
                     return $m[0];
                 }
+
+                $styleKey = $registry[$m[2]]::styleKey();
+                $first = ! isset($styled[$styleKey]);
+                $styled[$styleKey] = true;
 
                 // Each block is a lazy Livewire component: the page paints at once, the data loads after.
                 return Livewire::mount(DynamicBlock::class, [
                     'type' => $m[2],
-                    'options' => $options,
+                    'options' => static::resolveLocale(static::options($m[1]), $locale),
                     'withStyle' => $first,
                     'lazy' => true,
                 ]);
@@ -61,13 +124,46 @@ class DynamicBlocks
     /** The markup of one block, built from live data. Called by the DynamicBlock Livewire component. */
     public static function block(string $type, array $options, bool $withStyle = true): string
     {
-        return match ($type) {
-            'products' => self::products($options, $withStyle),
-            'posts' => self::posts($options, $withStyle),
-            'services' => self::services($options, $withStyle),
-            'brands' => self::brands($options, $withStyle),
-            default => '',
-        };
+        $class = static::registry()[$type] ?? null;
+
+        return $class ? (new $class(static::resolveLocale($options), $withStyle))->render()->render() : '';
+    }
+
+    /**
+     * Folds `name-{code}` options into `name` for $locale (a blank translation falls back to
+     * the primary text), then drops every `name-{code}` key.
+     *
+     * @param  array<string, string>  $options
+     * @return array<string, string>
+     */
+    public static function resolveLocale(array $options, ?string $locale = null): array
+    {
+        $locale = strtolower($locale ?? Locale::current());
+        $known = array_map('strtolower', Locale::codes());
+        $out = $options;
+
+        foreach ($options as $key => $value) {
+            // `name-{code}`: a translation of `name`. A suffix that merely looks like a language code
+            // (`-bn`) is only treated as one when it is the visitor's, a known one, or sits next to its base option.
+            if (! preg_match('/^(.+)-([a-z]{2,3}(?:[_-][a-z0-9]+)?)$/i', $key, $m)) {
+                continue;
+            }
+
+            [, $base, $code] = $m;
+            $code = strtolower($code);
+
+            if ($code !== $locale && ! in_array($code, $known, true) && ! array_key_exists($base, $options)) {
+                continue;
+            }
+
+            if ($code === $locale && trim($value) !== '') {
+                $out[$base] = $value;
+            }
+
+            unset($out[$key]);
+        }
+
+        return $out;
     }
 
     /** @return array<string, string> the placeholder's data-* attributes, without the "data-" */
@@ -76,101 +172,5 @@ class DynamicBlocks
         preg_match_all('/\bdata-([a-z-]+)="([^"]*)"/i', $attributes, $found, PREG_SET_ORDER);
 
         return collect($found)->mapWithKeys(fn ($f) => [$f[1] => html_entity_decode($f[2])])->all();
-    }
-
-    private static function limit(array $o, int $default = 6): int
-    {
-        return max(1, min((int) ($o['limit'] ?? $default), self::MAX_ITEMS));
-    }
-
-    private static function columns(array $o, int $default = 3): int
-    {
-        return max(1, min((int) ($o['columns'] ?? $default), 6));
-    }
-
-    /** Latest blog posts. */
-    private static function posts(array $o, bool $withStyle): string
-    {
-        $posts = Post::query()->published()->with('page.slugRecord')
-            ->orderByDesc('published_at')->orderByDesc('id')
-            ->limit(self::limit($o))->get();
-
-        return self::cards($posts->map(fn (Post $p) => [
-            'title' => (string) $p->title,
-            'text' => (string) $p->short_description,
-            'image' => $p->featured_image,
-            'url' => $p->slug ? UrlStructure::url('post', $p->slug) : '#',
-            'meta' => $p->published_at?->format('M j, Y'),
-        ]), $o, $withStyle);
-    }
-
-    /** Active services. */
-    private static function services(array $o, bool $withStyle): string
-    {
-        $services = Service::query()->active()->with('slugRecord')
-            ->orderBy('sort_order')->orderByDesc('id')
-            ->limit(self::limit($o))->get();
-
-        return self::cards($services->map(fn (Service $s) => [
-            'title' => (string) $s->name,
-            'text' => (string) $s->description,
-            'image' => $s->featured_image,
-            'url' => $s->slug ? UrlStructure::url('service', $s->slug) : '#',
-            'meta' => null,
-        ]), $o, $withStyle);
-    }
-
-    /** @param \Illuminate\Support\Collection<int, array<string, mixed>> $items */
-    private static function cards($items, array $o, bool $withStyle): string
-    {
-        return view('builders.blocks.cards', [
-            'items' => $items,
-            'columns' => self::columns($o),
-            'withStyle' => $withStyle,
-        ])->render();
-    }
-
-    /** A row of brand logos (no links — a brand has no page of its own to open). */
-    private static function brands(array $o, bool $withStyle): string
-    {
-        $brands = ProductBrand::query()->active()
-            ->when(($o['featured'] ?? '') === 'true', fn ($q) => $q->where('featured', true))
-            ->orderBy('sort_order')->orderBy('id')
-            ->limit(self::limit($o, 12))->get();
-
-        return view('builders.blocks.brands', ['brands' => $brands, 'withStyle' => $withStyle])->render();
-    }
-
-    private static function products(array $o, bool $withStyle = true): string
-    {
-        $limit = max(1, min((int) ($o['limit'] ?? 8), self::MAX_ITEMS));
-        $columns = max(1, min((int) ($o['columns'] ?? 4), 6));
-
-        $query = Product::query()->active()->with('page.slugRecord');
-
-        if (($category = (int) ($o['category'] ?? 0)) > 0) {
-            $query->whereHas('categories', fn ($q) => $q->where('categories.id', $category));
-        }
-
-        if (($o['featured'] ?? '') === 'true') {
-            $query->featured();
-        }
-
-        match ($o['order'] ?? 'latest') {
-            'oldest' => $query->oldest('id'),
-            'price-asc' => $query->orderBy('price'),
-            'price-desc' => $query->orderByDesc('price'),
-            'manual' => $query->orderBy('sort_order')->orderByDesc('id'),
-            default => $query->latest('id'),
-        };
-
-        $products = $query->limit($limit)->get();
-
-        return view('builders.blocks.products', [
-            'products' => $products,
-            'columns' => $columns,
-            'withStyle' => $withStyle,
-            'url' => fn (Product $p) => $p->slug ? UrlStructure::url('product', $p->slug) : '#',
-        ])->render();
     }
 }

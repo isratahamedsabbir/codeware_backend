@@ -13,6 +13,7 @@
 @media(max-width:480px){.cw-pg{grid-template-columns:1fr}}
 </style>
 @endif
+@include('builders.blocks._heading')
 @if ($products->isEmpty())
     <div class="cw-pg-empty">No products found.</div>
 @else

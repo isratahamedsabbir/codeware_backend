@@ -7,6 +7,7 @@
 .cw-br span{font-weight:700;color:#64748b}
 </style>
 @endif
+@include('builders.blocks._heading')
 @if ($brands->isNotEmpty())
     <div class="cw-br">
         @foreach ($brands as $brand)

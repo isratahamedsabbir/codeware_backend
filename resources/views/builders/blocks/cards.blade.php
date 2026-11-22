@@ -13,6 +13,7 @@
 @media(max-width:480px){.cw-cd{grid-template-columns:1fr}}
 </style>
 @endif
+@include('builders.blocks._heading')
 @if ($items->isEmpty())
     <div class="cw-cd-empty">Nothing to show yet.</div>
 @else
