@@ -19,6 +19,11 @@ trait RendersStandalonePage
     {
         $page = Page::where('slug', $slug)->where('type', 'page')->where('status', 'active')->firstOrFail();
 
+        // Pages → Edit → Builder: a design picked there is the page.
+        if ($page->builder_id && ($design = \App\Models\BuilderDesign::find($page->builder_id))) {
+            return view('builders.show', ['design' => $design]);
+        }
+
         return $this->view('page', [
             'page' => $page,
             'sections' => CmsSection::cachedForPage($page->id),

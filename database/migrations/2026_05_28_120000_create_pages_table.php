@@ -30,6 +30,8 @@ return new class extends Migration
             // SEO copy (meta, Open Graph, Twitter, robots, canonical) lives in the `seos` table.
             // Id of a Settings → Custom Code snippet this page loads (App\Support\CustomCode).
             $table->string('custom_code_id', 40)->nullable();
+            // Builder design (builders.id, type 'design') shown instead of the theme template; no FK, builders is created separately.
+            $table->unsignedBigInteger('builder_id')->nullable()->index();
             $table->json('constant')->nullable();
             $table->timestamps();
         });

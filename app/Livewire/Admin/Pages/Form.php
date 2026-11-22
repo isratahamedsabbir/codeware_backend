@@ -54,6 +54,9 @@ class Form extends Component
     #[Validate('nullable|string|max:100')]
     public string $template = 'puck';
 
+    /** Id of the Builder design this page shows; '' = the theme's own page. */
+    public string $builderId = '';
+
     /** @var array<int, array{key: string, type: string, value: string}> */
     public array $constant = [];
 
@@ -80,6 +83,7 @@ class Form extends Component
             $this->hydrateTranslatable($page, ['title']);
             $this->slug = $page->slug;
             $this->template = $page->template ?? 'puck';
+            $this->builderId = (string) ($page->builder_id ?? '');
             $this->hydrateSeoFieldsFromPage($page);
 
             // Older rows were saved with the since-removed single-line "text" type
@@ -263,6 +267,8 @@ class Form extends Component
         $rules['constant.*.type'] = 'nullable|in:textarea,file';
         $rules['constant.*.value'] = 'nullable|string|max:1000';
 
+        $rules['builderId'] = ['nullable', 'integer', \Illuminate\Validation\Rule::exists('builders', 'id')->where('type', 'design')];
+
         $this->validate($rules);
 
         $data = [
@@ -270,6 +276,7 @@ class Form extends Component
             'title' => $this->translatablePayload('title'),
             'slug' => $this->slug,
             'template' => $this->template ?: 'puck',
+            'builder_id' => $this->builderId !== '' ? (int) $this->builderId : null,
             ...$this->seoPagePayload(),
             'constant' => collect($this->constant)->filter(fn ($pair) => filled($pair['key'] ?? null))->values()->all(),
         ];
@@ -327,6 +334,7 @@ class Form extends Component
             'revisions' => $this->pageId
                 ? Page::find($this->pageId)?->revisions()->with('user')->limit(20)->get() ?? collect()
                 : collect(),
+            'builderOptions' => \App\Models\BuilderDesign::orderBy('name')->pluck('name', 'id'),
             'revisionCount' => $this->pageId ? PageRevision::where('page_id', $this->pageId)->count() : 0,
         ])
             ->layout('layouts.admin', ['title' => $this->pageId ? 'Edit Page' : 'New Page']);

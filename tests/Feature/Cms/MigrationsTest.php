@@ -57,7 +57,7 @@ it('pages table has required columns', function () {
     // The slug lives in `slugs` and the SEO copy in `seos`; neither is a pages column.
     expect(Schema::hasColumns('pages', [
         'id', 'user_id', 'title', 'content',
-        'status', 'template', 'sort_order', 'custom_code_id',
+        'status', 'template', 'sort_order', 'custom_code_id', 'builder_id',
     ]))->toBeTrue()
         ->and(Schema::hasColumn('pages', 'seo_title'))->toBeFalse();
 });

@@ -105,6 +105,20 @@
 
         {{-- ── SIDEBAR ── --}}
         <div class="w-[320px] shrink-0 space-y-5">
+            <x-admin-section-card variant="postbox" persist-key="page-builder" title="Builder" :collapsed="false"
+                description="Show a page made in the Builder instead of the theme's own design.">
+                <flux:field>
+                    <flux:label>Which builder should this page show?</flux:label>
+                    <flux:select wire:model="builderId">
+                        <flux:select.option value="">{{ __('None - use the theme page') }}</flux:select.option>
+                        @foreach ($builderOptions as $optionId => $optionName)
+                            <flux:select.option value="{{ $optionId }}">{{ $optionName }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="builderId" />
+                </flux:field>
+            </x-admin-section-card>
+
             <livewire:admin.media-library.picker-modal key="pages-form-picker-modal" />
         </div>
     </div>
