@@ -190,6 +190,8 @@ Route::middleware(['auth', 'admin', 'activity-log', 'mfa'])->group(function () {
             Route::get('/developer-tools', App\Livewire\Admin\Env\Index::class)->name('env');
             // Old path — keeps bookmarks and /env#KEY deep links working.
             Route::redirect('/env', '/developer-tools', 301);
+            // Laravel log viewer (storage/logs) — rides on the same feature as Developer Tools.
+            Route::get('/logs', App\Livewire\Admin\Logs\Index::class)->name('logs');
         });
 
         // Plugins — Plugin Settings (install / activate / remove) and the per-plugin

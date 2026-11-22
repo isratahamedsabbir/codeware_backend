@@ -39,6 +39,7 @@ class MenuItem extends Model
         'admin.settings',
         'admin.theme-settings',
         'admin.env',
+        'admin.logs',
         'admin.seo',
         'admin.social',
         'admin.mobile-apps',
@@ -81,6 +82,7 @@ class MenuItem extends Model
      */
     private const FEATURE_ROUTE_PREFIXES = [
         'admin.env' => 'env',
+        'admin.logs' => 'env',
         'admin.roles' => 'access-control',
         'admin.permissions' => 'access-control',
         'admin.users' => 'access-control',
