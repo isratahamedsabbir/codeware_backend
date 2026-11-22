@@ -313,19 +313,21 @@
                 @if ($item->is_group)
                     @php
                         $groupIcon = [
-                            'Products' => 'cube',
+                            'Products' => 'shopping-cart',
                             'Accessories' => 'puzzle-piece',
                             'Service' => 'wrench-screwdriver',
                             'Vouchers' => 'gift',
                             'Sales' => 'shopping-bag',
                             'Blog' => 'pencil-square',
-                            'Library & System' => 'folder',
+                            'Library & System' => 'server-stack',
                             'Inquiries' => 'inbox',
-                            'Client Queries' => 'chat-bubble-left-right',
+                            'Client Queries' => 'inbox',
                             'Content' => 'document-text',
-                            'Localization' => 'language',
-                            'Access Control' => 'shield-check',
-                            'Location' => 'map',
+                            'Localization' => 'globe-europe-africa',
+                            'Careers' => 'briefcase',
+                            'CRUD' => 'circle-stack',
+                            'Access Control' => 'finger-print',
+                            'Location' => 'globe-asia-australia',
                             'Advance' => 'adjustments-horizontal',
                             // cube-transparent, not puzzle-piece: Accessories already
                             // took that one, and two sidebar groups wearing the same

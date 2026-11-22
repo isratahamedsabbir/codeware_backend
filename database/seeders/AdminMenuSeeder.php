@@ -39,9 +39,9 @@ class AdminMenuSeeder extends Seeder
         // the vocabulary is.
         $this->group('Accessories', 4, [
             ['Types', 'tag', 'admin.types'],
-            ['Categories', 'squares-2x2', 'admin.categories'],
+            ['Categories', 'queue-list', 'admin.categories'],
             ['Groups', 'rectangle-stack', 'admin.groups'],
-            ['Tags', 'tag', 'admin.tags'],
+            ['Tags', 'hashtag', 'admin.tags'],
             ['Brands', 'building-storefront', 'admin.product-brands'],
             ['Advertisements', 'megaphone', 'admin.advertisements'],
             ['Coupons', 'ticket', 'admin.coupons'],
@@ -62,7 +62,7 @@ class AdminMenuSeeder extends Seeder
         // the catalogue is defined before the things being sold, and the things
         // being sold before what came out of them.
         $this->group('Products', 8, [
-            ['Attributes', 'adjustments-horizontal', 'admin.product-attributes'],
+            ['Attributes', 'list-bullet', 'admin.product-attributes'],
             ['Products', 'cube', 'admin.products'],
             ['Orders', 'shopping-bag', 'admin.orders'],
         ]);
@@ -73,14 +73,14 @@ class AdminMenuSeeder extends Seeder
         // produces it. Both sit behind the same feature:services toggle (see
         // routes/admin.php), so a site with services off gets neither.
         $this->group('Service', 9, [
-            ['Services', 'wrench-screwdriver', 'admin.services'],
-            ['Bookings', 'inbox', 'admin.bookings'],
+            ['Services', 'sparkles', 'admin.services'],
+            ['Bookings', 'calendar-days', 'admin.bookings'],
         ]);
 
         // Vouchers get their own group — the voucher product list with the
         // record of vouchers actually sold.
         $this->group('Vouchers', 12, [
-            ['Gift Vouchers', 'gift', 'admin.vouchers'],
+            ['Gift Vouchers', 'gift-top', 'admin.vouchers'],
             ['Voucher Sales', 'banknotes', 'admin.voucher-purchases'],
         ]);
 
@@ -94,12 +94,12 @@ class AdminMenuSeeder extends Seeder
             ['Plugin Settings', 'squares-plus', 'admin.plugin-settings'],
             ['Developer Tools', 'command-line', 'admin.env'],
             ['Developer Guide', 'book-open', 'admin.developer-guide'],
-            ['Laravel Logs', 'document-text', 'admin.logs'],
+            ['Laravel Logs', 'bug-ant', 'admin.logs'],
             ['SEO', 'magnifying-glass', 'admin.seo'],
             ['Social Links', 'share', 'admin.social'],
             ['Mobile Apps', 'device-phone-mobile', 'admin.mobile-apps'],
             ['Payment Gateways', 'credit-card', 'admin.payment-gateways'],
-            ['Features', 'adjustments-horizontal', 'admin.features'],
+            ['Features', 'light-bulb', 'admin.features'],
             ['Media Library', 'photo', 'admin.media-library'],
             ['File Manager', 'folder', 'admin.file-manager'],
             ['Email Templates', 'envelope', 'admin.email-templates'],
@@ -117,19 +117,19 @@ class AdminMenuSeeder extends Seeder
         // just that link, and only once the last one is off does the whole group
         // drop (an empty group is never rendered).
         $this->group('Client Queries', 16, [
-            ['Contacts', 'inbox', 'admin.contacts'],
-            ['Comments', 'chat-bubble-left-right', 'admin.comments'],
+            ['Contacts', 'phone', 'admin.contacts'],
+            ['Comments', 'chat-bubble-bottom-center-text', 'admin.comments'],
             ['Reviews', 'star', 'admin.reviews'],
-            ['Subscribers', 'envelope-open', 'admin.subscribers'],
+            ['Subscribers', 'user-plus', 'admin.subscribers'],
         ]);
 
         // Job posts for the storefront Careers page and the applications they receive.
         $this->group('Careers', 17, [
-            ['Job Posts', 'briefcase', 'admin.careers'],
-            ['Applications', 'document-text', 'admin.career-applications'],
+            ['Job Posts', 'identification', 'admin.careers'],
+            ['Applications', 'clipboard-document-check', 'admin.career-applications'],
         ]);
 
-        $this->standalone('Builder', 'squares-2x2', 'admin.builders', 20);
+        $this->standalone('Builder', 'paint-brush', 'admin.builders', 20);
         $this->standalone('Pages', 'document', 'admin.pages', 21);
 
         // No Portfolio group: projects, experience, skills and testimonials are
@@ -139,14 +139,14 @@ class AdminMenuSeeder extends Seeder
 
         $this->group('Localization', 22, [
             ['Languages', 'language', 'admin.languages'],
-            ['Translations', 'chat-bubble-left-right', 'admin.translations'],
+            ['Translations', 'arrows-right-left', 'admin.translations'],
         ]);
 
         $this->group('Access Control', 23, [
             ['Roles', 'shield-check', 'admin.roles'],
             ['Permissions', 'lock-closed', 'admin.permissions'],
             ['Users', 'users', 'admin.users'],
-            ['Vendors', 'briefcase', 'admin.product-vendors'],
+            ['Vendors', 'building-office-2', 'admin.product-vendors'],
         ]);
 
         $this->group('Location', 24, [
@@ -158,7 +158,7 @@ class AdminMenuSeeder extends Seeder
         ]);
 
         $this->group('Advance', 25, [
-            ['Sitemap', 'map', 'admin.advance.sitemap'],
+            ['Sitemap', 'rectangle-group', 'admin.advance.sitemap'],
             ['Robots.txt', 'globe-alt', 'admin.advance.robots'],
             ['Backup', 'archive-box', 'admin.advance.backup'],
             ['Password Generator', 'key', 'admin.advance.password-generator'],
