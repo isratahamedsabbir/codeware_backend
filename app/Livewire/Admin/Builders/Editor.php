@@ -13,26 +13,23 @@ use Livewire\Component;
  * GrapesJS visual builder for one design (`builders`, type 'design').
  *
  * A design stands on its own: it has no page and no SEO. `project` is what
- * GrapesJS reloads, html + css is what its public address prints — each kept per
- * locale in a JSON map.
+ * GrapesJS reloads, html + css is what its public address prints.
+ *
+ * One design serves every language. It is built once in the primary language and
+ * saved under that locale; the other languages are typed on each text element
+ * itself (Settings → "Translations"), see App\Support\Builder\Translations.
  */
 class Editor extends Component
 {
     public int $designId;
 
-    /** The locale whose design is open in the editor. */
+    /** The locale the design is saved under — always the primary one. */
     public string $locale = '';
 
     public function mount(int $id): void
     {
         $this->designId = BuilderDesign::findOrFail($id)->id;
         $this->locale = Locale::primary();
-
-        // Opened straight from the create form with the language picked there.
-        $asked = (string) request()->query('locale', '');
-        if ($asked !== '' && in_array($asked, array_column($this->availableLocales(), 'code'), true)) {
-            $this->locale = $asked;
-        }
     }
 
     public function save(array $project, string $html, string $css): void
@@ -42,20 +39,6 @@ class Editor extends Component
         BuilderDesign::findOrFail($this->designId)->saveLocale($this->locale, $project, $html, $css);
 
         $this->dispatch('builder-saved');
-    }
-
-    /** Switches the editor locale, using the primary design as a starting point for a new translation. */
-    public function switchLocale(string $locale): array
-    {
-        $this->assertLocaleSupported($locale);
-
-        $this->locale = $locale;
-        $design = BuilderDesign::findOrFail($this->designId);
-
-        return [
-            'project' => $design->projectFor($locale),
-            'title' => $design->name ?: 'Untitled',
-        ];
     }
 
     /** Stores the selected component as a reusable block; returns its id so the editor can offer it at once. */

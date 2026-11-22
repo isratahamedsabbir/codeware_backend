@@ -10,16 +10,6 @@
             <flux:error name="name" />
         </flux:field>
 
-        <flux:field>
-            <flux:label>{{ __('Language') }}<x-field-hint :text="__('The language you start designing in. You can add the other languages from the editor later.')" /></flux:label>
-            <select wire:model="locale"
-                class="w-full px-3 py-2 text-sm border border-zinc-200 rounded-lg outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-white">
-                @foreach ($this->localeOptions() as $code => $label)
-                    <option value="{{ $code }}">{{ $label }}</option>
-                @endforeach
-            </select>
-            <flux:error name="locale" />
-        </flux:field>
 
         <div class="-mx-3 -mb-3 mt-4 flex items-center gap-3 flex-wrap rounded-b-[3px] border-t border-zinc-200 bg-zinc-50 px-3 py-3 dark:border-zinc-700 dark:bg-zinc-800/40">
             <x-admin-save-button :label="__('Create Builder')" method="create" />

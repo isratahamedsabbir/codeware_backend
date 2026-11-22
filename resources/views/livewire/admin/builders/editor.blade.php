@@ -1,6 +1,6 @@
 <div>{{-- Livewire root. wire:ignore below: GrapesJS owns that whole subtree, a morph would wipe it. --}}
 <div class="pb-root flex h-screen flex-col bg-white text-slate-800" wire:ignore id="page-builder"
-     x-data="pageBuilder(@js(['project' => $project, 'blocks' => $blocks, 'assets' => $assets, 'categories' => $categories, 'locale' => $locale, 'pageTitle' => $design->name ?: 'Untitled', 'uploadUrl' => route('admin.builders.assets'), 'csrf' => csrf_token()]))">
+     x-data="pageBuilder(@js(['project' => $project, 'blocks' => $blocks, 'assets' => $assets, 'categories' => $categories, 'locale' => $locale, 'languages' => $locales, 'pageTitle' => $design->name ?: 'Untitled', 'uploadUrl' => route('admin.builders.assets'), 'csrf' => csrf_token()]))">
 
     {{-- Shown until GrapesJS has mounted, so the editor never flashes half-built. --}}
     <div class="pb-boot" x-show="!ready" x-transition.opacity.duration.300ms>
@@ -16,10 +16,6 @@
                 <div class="flex items-center gap-1.5 text-xs text-slate-500">
                     <span x-show="status" class="ml-2 text-slate-400" x-text="status"></span>
                 </div>
-            </div>
-            <div class="pb-language" title="Language of this design">
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9s1.3-6.3 3.8-9Z"/></svg>
-                <span class="pb-language-name" x-data="{ labels: @js(collect($locales)->pluck('label', 'code')) }" x-text="labels[locale] || locale"></span>
             </div>
         </div>
 
@@ -156,8 +152,7 @@
         .pb-icon{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;color:#475569;border:1px solid transparent}
         .pb-icon:hover{background:#f1f5f9}.pb-icon-on{background:#eff6ff;color:#2563eb;border-color:#dbeafe}
         .pb-logo{width:30px;height:30px;border-radius:9px;background:#1e3a8a;color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 0 0 2px #e0e7ff}
-        .pb-language{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 0 0 10px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;color:#64748b;font-size:12px}
-        .pb-language-name{padding:0 10px 0 2px;color:#334155;font-size:12px;font-weight:600;white-space:nowrap}
+        .gjs-toolbar .pb-lang-btn{display:inline-flex;align-items:center;justify-content:center;width:auto!important;min-width:28px;height:auto;line-height:1;padding:0 6px;font-size:11px;font-weight:700;letter-spacing:.04em}
         .pb-top svg{width:15px;height:15px}
         .pb-pill{display:flex;align-items:center;gap:2px;padding:3px;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0}
         .pb-pill button{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:7px;font-size:12px;font-weight:600;color:#64748b}

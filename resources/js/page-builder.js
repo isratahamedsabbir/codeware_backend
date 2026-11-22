@@ -166,7 +166,7 @@ const USER_ICON = '<svg viewBox="0 0 24 24" width="38" height="38" fill="none" s
  * provides ($refs).
  */
 document.addEventListener('alpine:init', () => {
-    window.Alpine.data('pageBuilder', ({ project, blocks = [], assets = [], categories = [], locale, pageTitle, uploadUrl, csrf }) => ({
+    window.Alpine.data('pageBuilder', ({ project, blocks = [], assets = [], categories = [], locale, languages = [], pageTitle, uploadUrl, csrf }) => ({
         editor: null,
         locale,
         pageTitle,
@@ -231,6 +231,7 @@ document.addEventListener('alpine:init', () => {
             Object.defineProperty(editor, '__v_skip', { value: true, configurable: true });
 
             registerBlocks(editor, { categories });
+            this.enableTranslations(editor, languages);
             const tabsBlock = editor.Blocks.get('tabs');
             if (tabsBlock) {
                 const definition = tabsBlock.toJSON();
@@ -437,40 +438,96 @@ document.addEventListener('alpine:init', () => {
             toast('success', 'Block deleted');
         },
 
-        async switchLocale(nextLocale, select) {
-            if (nextLocale === this.locale) return;
+        // One design, every language. A text element holds the primary language; every other language
+        // is kept on the element itself as data-t-{code} and swapped in on the public page (see
+        // App\Support\Builder\Translations). Selecting a text adds a language button to its toolbar:
+        // pick a language and the canvas shows — and you edit — that language's text right there.
+        enableTranslations(editor, languages) {
+            if (languages.length < 2) return;
 
-            if (this.editor.getDirtyCount() > 0) {
-                if (!await confirmBox({ title: 'Save changes first?', text: 'Save the page before switching languages.', confirmText: 'Save & switch', icon: 'question', danger: false })) {
-                    select.value = this.locale;
+            const primary = this.locale;
+            const labelOf = (code) => languages.find((l) => l.code === code)?.label || code;
+            const attr = (code) => `data-t-${code}`;
+            const textual = ['text', 'link', 'button', 'label'];
+            const views = (this.langView = new Map()); // component => { code, primaryHtml } while not on the primary language
+            const codeOf = (comp) => views.get(comp)?.code || primary;
 
-                    return;
+            const paintButton = (comp) => {
+                const btn = document.querySelector('.gjs-toolbar .pb-lang-btn');
+                if (btn) btn.innerHTML = `${codeOf(comp).toUpperCase()}`;
+                comp.set('toolbar', (comp.get('toolbar') || []).map((t) => (t.pbLang ? { ...t, label: codeOf(comp).toUpperCase() } : t)));
+            };
+
+            this.setComponentLanguage = (comp, code) => {
+                const state = views.get(comp) || { code: primary, primaryHtml: null };
+                if (state.code === code) return;
+
+                comp.getView()?.disableEditing?.(); // flush a text still being typed into the RTE
+                const shown = comp.getInnerHTML();
+
+                if (state.code === primary) {
+                    state.primaryHtml = shown;
+                } else {
+                    const attrs = { ...comp.getAttributes() };
+                    if (shown.trim()) attrs[attr(state.code)] = shown; else delete attrs[attr(state.code)];
+                    comp.setAttributes(attrs);
                 }
 
-                if (!await this.save()) {
-                    select.value = this.locale;
+                const target = code === primary ? state.primaryHtml : (comp.getAttributes()[attr(code)] || state.primaryHtml);
+                comp.components(target ?? '');
 
-                    return;
-                }
-            }
+                state.code = code;
+                if (code === primary) views.delete(comp); else views.set(comp, state);
+                paintButton(comp);
+            };
 
-            this.status = 'Loading language…';
+            // Everything goes back to the primary language before the design is saved.
+            this.restorePrimaryLanguage = () => [...views.keys()].forEach((comp) => this.setComponentLanguage(comp, primary));
 
-            try {
-                const result = await this.$wire.switchLocale(nextLocale);
+            editor.Commands.add('pb-language', {
+                run: (ed) => {
+                    const comp = ed.getSelected();
+                    const btn = document.querySelector('.gjs-toolbar .pb-lang-btn');
+                    if (!comp || !btn) return;
 
-                this.editor.loadProjectData(result.project || { pages: [] });
-                this.locale = nextLocale;
-                this.pageTitle = result.title;
-                this.status = `Editing ${select.options[select.selectedIndex].text}`;
-            } catch (error) {
-                console.error('Could not switch builder language', error);
-                select.value = this.locale;
-                this.status = 'Could not switch language';
-                toast('error', 'Could not switch language');
-            } finally {
-                setTimeout(() => (this.status = ''), 2500);
-            }
+                    this.closeBlockMenu();
+
+                    // Opened a tick later: this click is still bubbling to the document, whose
+                    // click-outside handler would close a menu that already exists.
+                    setTimeout(() => {
+                        const menu = document.createElement('div');
+                        menu.className = 'pb-menu';
+                        menu.innerHTML = languages.map((l) => `<button type="button" data-lang="${l.code}">${l.code === codeOf(comp) ? '✓ ' : ''}${l.label}</button>`).join('');
+                        this.$root.appendChild(menu);
+
+                        const r = btn.getBoundingClientRect();
+                        menu.style.top = `${r.bottom + 4}px`;
+                        menu.style.left = `${Math.max(8, r.right - menu.offsetWidth)}px`;
+
+                        menu.addEventListener('click', (e) => {
+                            const code = e.target.closest('[data-lang]')?.dataset.lang;
+                            this.closeBlockMenu();
+                            if (code) this.setComponentLanguage(comp, code);
+                        });
+                        this.blockMenu = menu;
+                    }, 0);
+                },
+            });
+
+            editor.on('component:selected', (comp) => {
+                if (!comp || !textual.some((type) => comp.is(type))) return;
+
+                const toolbar = (comp.get('toolbar') || []).filter((t) => !t.pbLang);
+                comp.set('toolbar', [
+                    {
+                        pbLang: true,
+                        label: codeOf(comp).toUpperCase(),
+                        attributes: { class: 'pb-lang-btn', title: 'Language of this text' },
+                        command: 'pb-language',
+                    },
+                    ...toolbar,
+                ]);
+            });
         },
 
         async deleteSelected() {
@@ -614,6 +671,7 @@ document.addEventListener('alpine:init', () => {
             this.status = 'Saving…';
 
             try {
+                this.restorePrimaryLanguage?.();
                 const body = this.editor.getHtml().replace(/^\s*<body[^>]*>|<\/body>\s*$/g, '');
                 await this.$wire.save(this.editor.getProjectData(), body, this.editor.getCss());
 

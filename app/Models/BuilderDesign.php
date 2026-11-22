@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Concerns\HasSlug;
 use App\Support\Builder\DynamicBlocks;
+use App\Support\Builder\Translations;
 use App\Support\Locale;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -30,18 +31,30 @@ class BuilderDesign extends Model
         static::creating(fn (self $m) => $m->type = 'design');
     }
 
-    /** The locale to read: the asked one if it has its own design, else the primary one. */
+    /**
+     * Which saved copy to print. One design serves every language: the primary copy,
+     * with each text swapped for its inline translation (Translations). A copy saved
+     * for a language of its own by an older version is still used, but only when the
+     * primary copy has no inline text for that language.
+     */
     public function localeFor(?string $locale = null): string
     {
         $locale ??= app()->getLocale();
 
+        if (Translations::has((string) ($this->html[Locale::primary()] ?? ''), $locale)) {
+            return Locale::primary();
+        }
+
         return filled($this->html[$locale] ?? null) ? $locale : Locale::primary();
     }
 
-    /** Locales that have a saved design. */
+    /** Languages the design is available in: the primary one plus every language with inline text. */
     public function locales(): array
     {
-        return array_keys(array_filter($this->html ?? [], 'filled'));
+        $inline = Translations::locales((string) ($this->html[Locale::primary()] ?? ''));
+        $saved = array_keys(array_filter($this->html ?? [], 'filled'));
+
+        return array_values(array_unique([...$saved, ...$inline]));
     }
 
     public function projectFor(string $locale): ?array
@@ -62,8 +75,9 @@ class BuilderDesign extends Model
     /** What the public address prints: the CSS in a <style> followed by the HTML. */
     public function renderedHtml(?string $locale = null): string
     {
+        $requested = $locale ?? app()->getLocale();
         $locale = $this->localeFor($locale);
 
-        return '<style>'.($this->css[$locale] ?? '').'</style>'.DynamicBlocks::render($this->html[$locale] ?? '');
+        return '<style>'.($this->css[$locale] ?? '').'</style>'.DynamicBlocks::render(Translations::apply($this->html[$locale] ?? '', $requested));
     }
 }

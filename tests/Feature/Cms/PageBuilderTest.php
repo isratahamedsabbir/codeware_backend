@@ -3,19 +3,20 @@
 use App\Http\Controllers\Admin\BuilderAssetController;
 use App\Livewire\Admin\Builders\Editor;
 use App\Livewire\Admin\Builders\Index;
-use App\Livewire\Admin\ThemeSettings\Edit;
 use App\Models\BuilderBlock;
 use App\Models\BuilderDesign;
 use App\Models\Language;
 use App\Models\MediaLibrary;
 use App\Models\Page;
+use App\Models\Post;
 use App\Models\Product;
+use App\Models\ProductBrand;
 use App\Models\ProductCategory;
+use App\Models\Service;
 use App\Models\Setting;
 use App\Models\User;
 use App\Support\Builder\DynamicBlocks;
 use App\Support\ContentCache;
-use App\Support\ThemeSettings;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -63,23 +64,20 @@ it('creates a builder from the Builder menu and opens its editor', function () {
     Livewire::test(Editor::class, ['id' => $design->id])->assertSee('pageBuilder', false);
 });
 
-it('saves the design per language and keeps the others untouched', function () {
+it('keeps one design for every language and saves it under the primary one', function () {
     Language::create(['code' => 'en', 'name' => 'English', 'native_name' => 'English', 'is_active' => true, 'is_default' => true]);
     Language::create(['code' => 'bn', 'name' => 'Bengali', 'native_name' => 'বাংলা', 'is_active' => true]);
     $design = BuilderDesign::create(['name' => 'Home']);
 
-    $editor = Livewire::test(Editor::class, ['id' => $design->id])
-        ->call('save', ['pages' => [['frames' => []]]], '<h1>English</h1>', 'h1{color:red}');
-
-    $result = $editor->call('switchLocale', 'bn')->assertSet('locale', 'bn')->effects['returns'][0];
-    expect($result['project'])->toHaveKey('pages');
-
-    $editor->call('save', ['pages' => []], '<h1>বাংলা</h1>', '');
+    Livewire::test(Editor::class, ['id' => $design->id])
+        ->assertSet('locale', 'en')
+        ->call('save', ['pages' => [['frames' => []]]], '<h1 data-t-bn="বাংলা">English</h1>', 'h1{color:red}');
 
     $design->refresh();
-    expect($design->html)->toEqual(['en' => '<h1>English</h1>', 'bn' => '<h1>বাংলা</h1>'])
+    expect($design->html)->toHaveKey('en')->and($design->html)->not->toHaveKey('bn')
         ->and($design->renderedHtml('en'))->toBe('<style>h1{color:red}</style><h1>English</h1>')
-        ->and($design->localeFor('xx'))->toBe('en')
+        ->and($design->renderedHtml('bn'))->toBe('<style>h1{color:red}</style><h1>বাংলা</h1>')
+        ->and($design->locales())->toEqual(['en', 'bn'])
         ->and(BuilderDesign::count())->toBe(1);
 });
 
@@ -181,10 +179,10 @@ it('filters dynamic products by category, clamps the limit, escapes output and p
 });
 
 it('renders the posts, services and brands dynamic blocks', function () {
-    $post = \App\Models\Post::factory()->published()->create(['title' => ['en' => 'Hello Post']]);
-    $draft = \App\Models\Post::factory()->draft()->create(['title' => ['en' => 'Secret Draft']]);
-    $service = \App\Models\Service::factory()->create(['name' => ['en' => 'Web Design'], 'status' => 'active']);
-    $brand = \App\Models\ProductBrand::factory()->create(['name' => ['en' => 'Acme'], 'status' => 'active', 'logo' => 'https://x.test/acme.png']);
+    $post = Post::factory()->published()->create(['title' => ['en' => 'Hello Post']]);
+    $draft = Post::factory()->draft()->create(['title' => ['en' => 'Secret Draft']]);
+    $service = Service::factory()->create(['name' => ['en' => 'Web Design'], 'status' => 'active']);
+    $brand = ProductBrand::factory()->create(['name' => ['en' => 'Acme'], 'status' => 'active', 'logo' => 'https://x.test/acme.png']);
 
     $html = DynamicBlocks::block('posts', ['limit' => '3'], true)
         .DynamicBlocks::block('services', [], false)
