@@ -61,7 +61,6 @@ class PageController extends Controller
                 'twitter_image' => $page->twitter_image,
                 'no_index' => $page->no_index,
                 'no_follow' => $page->no_follow,
-                'custom_code_id' => $page->custom_code_id,
                 'constant' => $page->constant,
                 'revisions' => $page->revisions->map(fn ($r) => [
                     'id' => $r->id,
@@ -109,7 +108,6 @@ class PageController extends Controller
             'content' => 'sometimes|array',
             'content.en' => 'nullable|string',
             'content.bn' => 'nullable|string',
-            'custom_code_id' => ['sometimes', 'nullable', 'string', Rule::in(array_keys(CustomCode::options()))],
             'puck_data' => 'sometimes|nullable|array',
             'status' => 'sometimes|in:active,inactive',
             'template' => 'sometimes|nullable|string|max:100',

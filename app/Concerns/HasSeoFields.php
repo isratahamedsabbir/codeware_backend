@@ -4,7 +4,6 @@ namespace App\Concerns;
 
 use App\Models\Page;
 use App\Models\Setting;
-use App\Support\CustomCode;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Validate;
 
@@ -51,9 +50,6 @@ trait HasSeoFields
     public bool $no_index = false;
 
     public bool $no_follow = false;
-
-    /** Id of the Settings → Custom Code snippet this page loads; '' for none. */
-    public string $custom_code_id = '';
 
     #[Validate('nullable|string|max:255')]
     public string $canonical_base = '';
@@ -121,7 +117,6 @@ trait HasSeoFields
         $this->twitter_image = $page->ownSeoAttribute('twitter_image');
         $this->no_index = (bool) $page->ownSeoAttribute('no_index');
         $this->no_follow = (bool) $page->ownSeoAttribute('no_follow');
-        $this->custom_code_id = (string) $page->custom_code_id;
         $this->canonical_base = $page->ownSeoAttribute('canonical_base') ?? '';
         $this->canonical_slug = $page->ownSeoAttribute('canonical_slug') ?? $page->slug;
 
@@ -165,7 +160,6 @@ trait HasSeoFields
             'twitter_image' => $this->twitter_image ?: null,
             'no_index' => $this->no_index,
             'no_follow' => $this->no_follow,
-            'custom_code_id' => array_key_exists($this->custom_code_id, CustomCode::options()) ? $this->custom_code_id : null,
             'canonical_base' => $this->canonical_base ?: null,
             'canonical_slug' => $this->canonical_slug ?: null,
         ];

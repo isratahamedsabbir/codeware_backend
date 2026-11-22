@@ -136,39 +136,6 @@ it('saves named custom code snippets from the settings screen', function () {
         ->and($rules[0]['id'])->not->toBe('');
 });
 
-it('stores the picked snippet on the page from the page form', function () {
-    $this->seed(RolePermissionSeeder::class);
-    $this->actingAs(User::factory()->admin()->create());
-    Setting::set('custom_code_rules', json_encode([
-        ['id' => 'abc123', 'name' => 'About pixel', 'head' => 'x', 'body' => ''],
-    ]));
-    $page = Page::factory()->published()->create(['title' => ['en' => 'About', 'bn' => ''], 'slug' => 'about']);
-
-    Livewire\Livewire::test(Form::class, ['id' => $page->id])
-        ->set('custom_code_id', 'abc123')
-        ->call('save')
-        ->assertHasNoErrors();
-
-    expect($page->fresh()->custom_code_id)->toBe('abc123');
-});
-
-it('offers the snippets in a Custom Code card on the page, product, post and category forms', function (string $form) {
-    $this->seed(RolePermissionSeeder::class);
-    $this->actingAs(User::factory()->admin()->create());
-    Setting::set('custom_code_rules', json_encode([
-        ['id' => 'abc123', 'name' => 'Checkout pixel', 'head' => 'x', 'body' => ''],
-    ]));
-
-    Livewire\Livewire::test($form)
-        ->assertSee('Custom Code')
-        ->assertSee('Checkout pixel');
-})->with([
-    Form::class,
-    App\Livewire\Admin\Products\Form::class,
-    App\Livewire\Admin\Posts\Form::class,
-    App\Livewire\Admin\Categories\Form::class,
-]);
-
 describe('page-type coverage', function () {
     beforeEach(function () {
         Setting::set('site_theme', 'classic_ecommerce');
@@ -207,24 +174,6 @@ describe('page-type coverage', function () {
         $this->get('/about')->assertOk()->assertSee('g-head', false)->assertDontSee('snip-', false);
     });
 
-    it('saves and reloads the picked snippet from the product form', function () {
-        $this->seed(RolePermissionSeeder::class);
-        $this->actingAs(User::factory()->admin()->create());
-        $product = Product::factory()->create();
-        Page::create(['user_id' => $product->user_id ?? User::first()->id, 'type' => 'product', 'product_id' => $product->id, 'slug' => 'pf', 'title' => ['en' => 'T', 'bn' => ''], 'status' => 'active']);
-
-        Livewire\Livewire::test(App\Livewire\Admin\Products\Form::class, ['id' => $product->id])
-            ->set('custom_code_id', 'bbb')
-            ->call('save')
-            ->assertHasNoErrors();
-        expect(Page::where('product_id', $product->id)->value('custom_code_id'))->toBe('bbb');
-
-        Livewire\Livewire::test(App\Livewire\Admin\Products\Form::class, ['id' => $product->id])
-            ->assertSet('custom_code_id', 'bbb')
-            ->set('custom_code_id', '')
-            ->call('save');
-        expect(Page::where('product_id', $product->id)->value('custom_code_id'))->toBeNull();
-    });
 });
 
 it('exposes the picked snippet in the public page API meta_data', function () {
@@ -241,20 +190,4 @@ it('exposes the picked snippet in the public page API meta_data', function () {
 
     $this->getJson('/api/v1/pages/contact')->assertOk()
         ->assertJsonPath('data.meta_data.custom_code', null);
-});
-
-it('lets the admin API set and clear a page\'s snippet, rejecting unknown ids', function () {
-    $this->seed(RolePermissionSeeder::class);
-    Sanctum::actingAs(User::factory()->admin()->create());
-    Setting::set('custom_code_rules', json_encode([
-        ['id' => 'aaa', 'name' => 'A', 'head' => 'x', 'body' => ''],
-    ]));
-    $page = Page::factory()->published()->create(['title' => ['en' => 'About', 'bn' => ''], 'slug' => 'about']);
-
-    $this->putJson("/api/v1/admin/pages/{$page->id}", ['custom_code_id' => 'nope'])->assertUnprocessable();
-    $this->putJson("/api/v1/admin/pages/{$page->id}", ['custom_code_id' => 'aaa'])->assertOk();
-    expect($page->fresh()->custom_code_id)->toBe('aaa');
-
-    $this->putJson("/api/v1/admin/pages/{$page->id}", ['custom_code_id' => null])->assertOk();
-    expect($page->fresh()->custom_code_id)->toBeNull();
 });

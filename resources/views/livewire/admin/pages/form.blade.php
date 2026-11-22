@@ -105,16 +105,6 @@
 
         {{-- ── SIDEBAR ── --}}
         <div class="w-[320px] shrink-0 space-y-5">
-            <x-admin-section-card variant="postbox" persist-key="page-settings" title="Page Settings" :collapsed="false"
-                description="Template used to render this page.">
-                <flux:field>
-                    <flux:label>Template</flux:label>
-                    <flux:input wire:model="template" placeholder="puck" />
-                </flux:field>
-            </x-admin-section-card>
-
-            @include('partials._admin-custom-code-picker')
-
             <livewire:admin.media-library.picker-modal key="pages-form-picker-modal" />
         </div>
     </div>
