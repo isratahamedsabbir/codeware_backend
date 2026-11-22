@@ -384,6 +384,11 @@ class Index extends Component
 
         AdminActivity::log('updated', 'Theme settings updated');
 
+        // Activating a theme guarantees its pages exist (no-op for pages already there).
+        if (! empty($this->settings['site_theme'])) {
+            ThemePages::sync((string) $this->settings['site_theme']);
+        }
+
         // An error, not a success: the theme's own fields (photo, text, lists)
         // live in the saved-values file, so a skipped write means they were NOT saved.
         $failure = $skipped === [] ? null : 'Not saved: the '.implode(', ', $skipped).' theme\'s fields could not be written. Check that storage/themes is writable by the web server user.';
@@ -923,6 +928,11 @@ class Index extends Component
         // shipped its own theme.json. After a create() the number is already there
         // and this is a no-op.
         $this->assignSerialNumber($slug);
+
+        // The pages this theme lists / ships, as rows of the pages table, so its
+        // routes have something to serve. Existing pages are never touched.
+        ThemePages::sync($slug);
+
         CodeInstall::record('themes.install', "Theme \"{$slug}\" installed from zip");
 
         $sn = Themes::manifest($slug)['sn'];
