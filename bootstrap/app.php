@@ -196,6 +196,28 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 404);
             }
 
+            // Every other storefront error (403, 419, 429, 500, 503, ...) wears the
+            // active theme's design too, through its generic errors/error page. The
+            // theme page needs the database and assets, which may be exactly what
+            // is broken, so any failure while rendering it falls through to the
+            // self-contained shared page below.
+            if (Themes::isStorefrontRequest($request) && ! $request->expectsJson() && ! $request->wantsJson()) {
+                $status = $e instanceof HttpExceptionInterface
+                    ? $e->getStatusCode()
+                    : (($e instanceof ValidationException || $e instanceof AuthenticationException || config('app.debug')) ? null : 500);
+
+                if ($status !== null && $status >= 400) {
+                    try {
+                        return response()->view(Themes::errorView($status), [
+                            'errors' => new ViewErrorBag,
+                            'exception' => $e,
+                        ] + Themes::errorData($status), $status, $e instanceof HttpExceptionInterface ? $e->getHeaders() : []);
+                    } catch (Throwable) {
+                        // fall through to the shared page
+                    }
+                }
+            }
+
             // Everything with a status code of its own already resolves to
             // resources/views/errors/{code}.blade.php, and these two are turned
             // into redirects / JSON responses further down the stack.

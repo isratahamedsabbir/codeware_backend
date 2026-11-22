@@ -908,13 +908,47 @@ class Themes
     {
         $theme = static::active();
 
-        if (! is_file(static::templateFile($theme, "errors/{$code}"))) {
-            return "errors.{$code}";
+        // A theme's own errors/{code}, else its generic errors/error (one page
+        // that prints whatever code/title/message it is handed), else the shared
+        // page. The generic one is what gives 403/419/429/500/… the theme's
+        // design without a file per status.
+        foreach (["errors/{$code}" => "errors.{$code}", 'errors/error' => 'errors.error'] as $file => $name) {
+            if (is_file(static::templateFile($theme, $file))) {
+                static::registerViews($theme);
+
+                return static::viewNamespace($theme).'::'.$name;
+            }
         }
 
-        static::registerViews($theme);
+        return "errors.{$code}";
+    }
 
-        return static::viewNamespace($theme)."::errors.{$code}";
+    /**
+     * The data a theme's errors/error.blade.php prints: the status code and the
+     * visitor-facing title and message for it (the same copy the shared
+     * x-errors.page shell uses).
+     *
+     * @return array{code: int, title: string, message: string}
+     */
+    public static function errorData(int $code): array
+    {
+        $copy = [
+            400 => [__('Request could not be completed'), __('Something about this request was not valid. Check the address and try again.')],
+            401 => [__('Unauthorized'), __('You need to sign in before you can view this page.')],
+            403 => [__('Access denied'), __('You do not have permission to view this page. If you believe this is a mistake, ask an administrator to review your access.')],
+            404 => [__('Sorry, page not found'), __('The page you requested could not be found.')],
+            419 => [__('Your session has expired'), __('For your security the page expired because the tab was left open too long. Refresh the page and try again.')],
+            429 => [__('Too many requests'), __('You have made too many requests in a short time. Please wait a moment and try again.')],
+            500 => [__('Something went wrong'), __('An unexpected error occurred on our side. Our team has been notified — please try again in a moment.')],
+            503 => [__('We will be back shortly'), __('We are carrying out scheduled maintenance and will be back online shortly. Thanks for your patience.')],
+        ];
+
+        [$title, $message] = $copy[$code] ?? [
+            __('Error :code', ['code' => $code]),
+            __('We hit an unexpected problem while loading this page. Please try again in a moment.'),
+        ];
+
+        return ['code' => $code, 'title' => $title, 'message' => $message];
     }
 
     /**
