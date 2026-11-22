@@ -50,6 +50,18 @@ class Editor extends Component
         return BuilderBlock::create(['name' => $name, 'content' => $content, 'user_id' => auth()->id()])->id;
     }
 
+    /** Scaffolds a new dynamic block (class + view) from a name and returns its editor definition. */
+    public function createDynamicBlock(string $name): array
+    {
+        abort_unless(app()->isLocal(), 403, 'Blocks can only be created in the local environment.');
+
+        try {
+            return DynamicBlocks::scaffold($name, $this->availableLocales());
+        } catch (\InvalidArgumentException $e) {
+            return ['error' => $e->getMessage()];
+        }
+    }
+
     public function renameBlock(int $id, string $name): void
     {
         $name = trim($name);

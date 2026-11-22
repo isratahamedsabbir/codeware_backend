@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Blade;
 it('discovers every dynamic block from the Blade component folder', function () {
     $registry = DynamicBlocks::registry();
 
-    expect(array_keys($registry))->toBe(['brands', 'language-switcher', 'posts', 'products', 'services']);
+    expect(array_keys($registry))->toBe(['brands', 'faqs', 'language-switcher', 'posts', 'products', 'services']);
 
     foreach ($registry as $class) {
         expect(is_subclass_of($class, Block::class))->toBeTrue();
@@ -64,4 +64,33 @@ it('prints a language switcher that links to the other language', function () {
     expect($html)->toContain('href="?lang=bn"')->toContain('বাংলা')
         ->toContain('mailto:info@example.com')->toContain('tel:+8801700000000')
         ->toContain('background:#043c26')->not->toContain('red;x');
+});
+
+it('prints active FAQs as an accordion', function () {
+    $product = \App\Models\Product::factory()->create();
+    $product->faqs()->create(['question' => 'Is it fast?', 'answer' => 'Yes', 'is_active' => true]);
+    $product->faqs()->create(['question' => 'Hidden one', 'answer' => 'No', 'is_active' => false]);
+
+    expect(DynamicBlocks::block('faqs', ['heading' => 'Help']))
+        ->toContain('Is it fast?')->toContain('Help')->not->toContain('Hidden one');
+});
+
+it('scaffolds a new block from a name, ready to design by hand', function () {
+    $class = app_path('View/Components/Builder/PricingTable.php');
+    $view = resource_path('views/builders/blocks/pricing-table.blade.php');
+
+    try {
+        $def = DynamicBlocks::scaffold('Pricing table');
+
+        expect($def['key'])->toBe('pricing-table')->and($def['name'])->toBe('Pricing table')
+            ->and(file_exists($class))->toBeTrue()->and(file_exists($view))->toBeTrue()
+            ->and(DynamicBlocks::block('pricing-table', ['heading' => 'Plans']))->toContain('Plans');
+
+        expect(fn () => DynamicBlocks::scaffold('Pricing table'))->toThrow(InvalidArgumentException::class);
+        expect(fn () => DynamicBlocks::scaffold('Products'))->toThrow(InvalidArgumentException::class);
+        expect(fn () => DynamicBlocks::scaffold('123'))->toThrow(InvalidArgumentException::class);
+    } finally {
+        @unlink($class);
+        @unlink($view);
+    }
 });

@@ -10,7 +10,7 @@ import parserPostcss from 'grapesjs-parser-postcss';
 import 'grapesjs/dist/css/grapes.min.css';
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
-import { registerBlocks, blockLabel } from './page-builder-blocks';
+import { registerBlocks, registerDynamicBlocks, blockLabel } from './page-builder-blocks';
 // The media-library picker modal (a Livewire component) is built on this Alpine component.
 import './chunk-upload';
 
@@ -270,6 +270,16 @@ document.addEventListener('alpine:init', () => {
             // The three-dot button on a saved block's card opens its menu (Rename / Duplicate / Delete).
             // GrapesJS starts a drag on mousedown anywhere on a block and swallows the click that follows,
             // so the button is caught first, in the capture phase.
+            // The "+" in the Dynamic header (inside the category title, which toggles it) must not toggle it.
+            this.$refs.blocks.addEventListener('click', (e) => {
+                const add = e.target instanceof Element ? e.target.closest('[data-dynamic-add]') : null;
+                if (!add) return;
+
+                e.preventDefault();
+                e.stopPropagation();
+                this.createDynamicBlock();
+            }, true);
+
             const moreBtn = (target) => target instanceof Element ? target.closest('[data-block-menu]') : null;
             const stopBlockDrag = (e) => {
                 if (!moreBtn(e.target)) return;
@@ -353,7 +363,46 @@ document.addEventListener('alpine:init', () => {
                 };
 
                 [...root.children].sort((a, b) => rank(a) - rank(b)).forEach((el) => root.appendChild(el));
+                this.addDynamicButton();
             });
+        },
+
+        // A "+" in the Dynamic header: asks for a name and scaffolds a new block (class + Blade view) to design by hand.
+        addDynamicButton() {
+            this.$refs.blocks.querySelectorAll('.gjs-block-category .gjs-title').forEach((title) => {
+                if (title.textContent.trim() !== 'Dynamic' || title.querySelector('.pb-add')) return;
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'pb-add';
+                btn.dataset.dynamicAdd = '1';
+                btn.title = 'New dynamic block';
+                btn.setAttribute('aria-label', 'New dynamic block');
+                btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+                title.appendChild(btn);
+            });
+        },
+
+        async createDynamicBlock() {
+            const name = await askName('New dynamic block', '', 'Create');
+            if (!name) return;
+
+            let def;
+            try {
+                def = await this.$wire.createDynamicBlock(name);
+            } catch (e) {
+                toast('error', 'Could not create the block');
+                return;
+            }
+
+            if (!def || def.error) {
+                toast('error', def?.error || 'Could not create the block');
+                return;
+            }
+
+            registerDynamicBlocks(this.editor, { dynamicBlocks: [def] });
+            this.tidyCategories();
+            toast('success', `"${def.name}" created — design it in resources/views/builders/blocks/${def.key}.blade.php`);
         },
 
         // A saved block, offered in the list under "My blocks" (with a three-dot menu on its card).

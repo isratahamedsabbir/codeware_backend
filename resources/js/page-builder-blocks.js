@@ -201,7 +201,7 @@ export const blockLabel = (name, description = '') => `<b>${esc(name)}</b><small
  * its list entry from that description (App\Support\Builder\DynamicBlocks::definitions()).
  * Add a component class on the server and it appears here by itself.
  */
-function registerDynamicBlocks(editor, { dynamicBlocks = [] }) {
+export function registerDynamicBlocks(editor, { dynamicBlocks = [] }) {
     const traitOf = (f) => {
         const base = { name: `data-${f.name}`, label: f.label, changeProp: false };
 

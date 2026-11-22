@@ -6,6 +6,8 @@ use App\Livewire\Frontend\DynamicBlock;
 use App\Support\Locale;
 use App\View\Components\Builder\Block;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
+use InvalidArgumentException;
 use Livewire\Livewire;
 use ReflectionClass;
 
@@ -119,6 +121,94 @@ class DynamicBlocks
             },
             $html,
         ) ?? $html;
+    }
+
+    /**
+     * Scaffolds a new block from a name: the component class and its Blade view, ready to be
+     * designed by hand. Returns the block's editor definition so it can be offered at once.
+     *
+     * @param  array<int, array{code: string, label: string}>  $languages
+     * @return array<string, mixed>
+     */
+    public static function scaffold(string $name, array $languages = []): array
+    {
+        $name = trim($name);
+        $class = Str::studly(preg_replace('/[^A-Za-z0-9 _-]+/', ' ', $name));
+        $key = Str::kebab($class);
+
+        if (! preg_match('/^[A-Z][A-Za-z0-9]*$/', $class) || mb_strlen($name) > 60) {
+            throw new InvalidArgumentException('Use letters and numbers, starting with a letter.');
+        }
+
+        $classFile = app_path("View/Components/Builder/{$class}.php");
+        $viewFile = resource_path("views/builders/blocks/{$key}.blade.php");
+
+        if (file_exists($classFile) || file_exists($viewFile) || class_exists('App\\View\\Components\\Builder\\'.$class) || isset(static::registry()[$key])) {
+            throw new InvalidArgumentException("A block named \"{$name}\" already exists.");
+        }
+
+        $label = var_export($name, true);
+        $comment = str_replace('*/', '', $name);
+
+        File::ensureDirectoryExists(dirname($classFile));
+        File::ensureDirectoryExists(dirname($viewFile));
+
+        File::put($classFile, <<<PHP
+<?php
+
+namespace App\View\Components\Builder;
+
+/** {$comment}: scaffolded from the page builder. Design it in resources/views/builders/blocks/{$key}.blade.php. */
+class {$class} extends Block
+{
+    public static function key(): string
+    {
+        return '{$key}';
+    }
+
+    public static function name(): string
+    {
+        return {$label};
+    }
+
+    public static function hint(): string
+    {
+        return 'Custom block';
+    }
+
+    public static function fields(): array
+    {
+        return [...static::headingFields()];
+    }
+
+    protected function viewData(): array
+    {
+        return [];
+    }
+}
+
+PHP);
+
+        $bladeName = str_replace('--}}', '', $name);
+
+        File::put($viewFile, <<<BLADE
+{{-- Output of the builder's "{$bladeName}" block. Design it here. --}}
+@if (\$withStyle)
+<style>
+.cw-{$key}{max-width:1140px;margin:0 auto;padding:32px 20px}
+</style>
+@endif
+@include('builders.blocks._heading')
+<div class="cw-{$key}">
+    {{ '{$key}' }}
+</div>
+
+BLADE);
+
+        // class_exists() above made Composer remember "not found" for this class, so load the file directly.
+        require_once $classFile;
+
+        return collect(static::definitions($languages))->firstWhere('key', $key);
     }
 
     /** The markup of one block, built from live data. Called by the DynamicBlock Livewire component. */

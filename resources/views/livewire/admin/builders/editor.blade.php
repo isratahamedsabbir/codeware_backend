@@ -221,6 +221,9 @@
         .pb-root .gjs-block-label b{font-weight:600;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
         .pb-root .gjs-block-label small{font-size:12px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
         .pb-root .pb-more{position:absolute;z-index:1;right:6px;top:50%;transform:translateY(-50%);width:24px;height:28px;border-radius:6px;color:#94a3b8;display:flex;align-items:center;justify-content:center;pointer-events:auto}
+        .pb-root .pb-add{margin-left:auto;width:24px;height:24px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;color:#475569;display:flex;align-items:center;justify-content:center;cursor:pointer}
+        .pb-root .pb-add:hover{background:#2563eb;border-color:#2563eb;color:#fff}
+        .pb-root .gjs-block-category .gjs-title:has(.pb-add)::after{margin-left:0}
         .pb-root .pb-more:hover{background:#f1f5f9;color:#334155}
         .pb-root .gjs-block:has(.pb-more)::after{display:none}
         .pb-root .gjs-block:has(.pb-more){padding-right:36px}
