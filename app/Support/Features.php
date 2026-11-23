@@ -65,13 +65,36 @@ class Features
         'language_switcher_enabled' => 'localization',
     ];
 
+    /**
+     * child feature => the feature it hangs off. A child is only as available as
+     * its parent: turning the parent off takes every descendant with it (sidebar
+     * links, routes, storefront pages, API), whatever the child's own toggle says.
+     * The child's own row is never rewritten, so switching the parent back on
+     * restores the child exactly as it was left.
+     */
+    public const PARENTS = [
+        'categories' => 'types',
+        'tags' => 'types',
+        'groups' => 'types',
+        'brands' => 'types',
+        'discounts' => 'products',
+        'flash-deals' => 'products',
+        'cms' => 'pages',
+    ];
+
     public static function enabled(string $key): bool
     {
         if (! array_key_exists($key, self::ALL)) {
             return true;
         }
 
-        return (bool) Feature::enabledMapCached()->get($key, true);
+        if (! (bool) Feature::enabledMapCached()->get($key, true)) {
+            return false;
+        }
+
+        $parent = self::PARENTS[$key] ?? null;
+
+        return $parent === null || self::enabled($parent);
     }
 
     /**

@@ -5,8 +5,17 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         @foreach (\App\Support\Features::ALL as $key => $label)
-            <label class="flex items-center justify-between gap-4 px-5 py-4 rounded-lg bg-white shadow-sm border border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800/40 cursor-pointer">
-                <span class="text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ __($label) }}</span>
+            @php($parent = \App\Support\Features::PARENTS[$key] ?? null)
+            @php($parentOff = $parent !== null && ! ($features[$parent] ?? true))
+            <label class="flex items-center justify-between gap-4 px-5 py-4 rounded-lg bg-white shadow-sm border border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800/40 cursor-pointer {{ $parentOff ? 'opacity-50' : '' }}">
+                <span class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    {{ __($label) }}
+                    @if ($parent !== null)
+                        <span class="block text-xs font-normal text-zinc-500">
+                            {{ $parentOff ? __('Hidden because :parent is off', ['parent' => __(\App\Support\Features::ALL[$parent])]) : __('Part of :parent', ['parent' => __(\App\Support\Features::ALL[$parent])]) }}
+                        </span>
+                    @endif
+                </span>
                 <input type="checkbox" wire:model="features.{{ $key }}"
                     class="rounded border-zinc-300 text-primary" />
             </label>

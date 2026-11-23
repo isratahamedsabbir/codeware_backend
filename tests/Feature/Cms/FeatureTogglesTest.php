@@ -68,29 +68,45 @@ it('blocks tags when its own feature is off, leaving categories, blog, and produ
     $this->get(route('admin.products'))->assertOk();
 });
 
-it('blocks types when its own feature is off, leaving the taxonomy screens that read it reachable', function () {
+it('takes the child features with it when Types (their parent) is off, leaving blog and products reachable', function () {
     disableFeature('types');
 
     $this->get(route('admin.types'))->assertNotFound();
     $this->get(route('admin.types.create'))->assertNotFound();
 
-    $this->get(route('admin.categories'))->assertOk();
-    $this->get(route('admin.tags'))->assertOk();
-    $this->get(route('admin.product-brands'))->assertOk();
+    $this->get(route('admin.categories'))->assertNotFound();
+    $this->get(route('admin.tags'))->assertNotFound();
+    $this->get(route('admin.product-brands'))->assertNotFound();
+
+    $this->get(route('admin.posts'))->assertOk();
+    $this->get(route('admin.products'))->assertOk();
 });
 
-it('hides only the Types link from the live sidebar once its feature is off, leaving Categories reachable', function () {
+it('restores a child exactly as it was left once its parent is switched back on', function () {
+    disableFeature('tags');
+    disableFeature('types');
+
+    expect(Features::enabled('categories'))->toBeFalse();
+
+    Feature::updateOrCreate(['key' => 'types'], ['label' => Features::ALL['types'], 'is_enabled' => true]);
+
+    expect(Features::enabled('categories'))->toBeTrue()
+        ->and(Features::enabled('tags'))->toBeFalse();
+});
+
+it('hides the Types link and its children from the live sidebar once Types is off', function () {
     $this->seed(AdminMenuSeeder::class);
 
     $this->get(route('admin.dashboard'))->assertOk()
         ->assertSeeHtml(route('admin.types'))
-        ->assertSee('Categories');
+        ->assertSeeHtml(route('admin.categories'));
 
     disableFeature('types');
 
     $this->get(route('admin.dashboard'))->assertOk()
         ->assertDontSeeHtml(route('admin.types'))
-        ->assertSee('Categories');
+        ->assertDontSeeHtml(route('admin.categories'))
+        ->assertDontSeeHtml(route('admin.tags'));
 });
 
 it('hides only the Categories link from the live sidebar once its feature is off, leaving Tags reachable', function () {
@@ -227,7 +243,7 @@ it('excludes a disabled feature\'s items from MenuItem::menuForCurrentUser', fun
         ->and($labels)->toContain('Products', 'Posts');
 });
 
-it('excludes every products-feature menu item, not just the ones sharing its route prefix, leaving Brands (its own feature) reachable', function () {
+it('excludes every products-feature menu item and its child features, leaving Brands (a child of Types) reachable', function () {
     $this->seed(AdminMenuSeeder::class);
 
     disableFeature('products');
@@ -236,11 +252,11 @@ it('excludes every products-feature menu item, not just the ones sharing its rou
         ->flatMap(fn ($item) => $item->is_group ? $item->children->pluck('label') : collect([$item->label]))
         ->all();
 
-    expect($labels)->not->toContain('Attributes', 'Vendors', 'Products')
+    expect($labels)->not->toContain('Attributes', 'Vendors', 'Products', 'Discounts', 'Flash Deals')
         ->and($labels)->toContain('Brands');
 });
 
-it('hides a disabled feature\'s group from the menu management screen, leaving Brands (its own feature) reachable', function () {
+it('hides a disabled feature\'s group from the menu management screen, leaving Brands (a child of Types) reachable', function () {
     $this->seed(AdminMenuSeeder::class);
 
     Livewire::test(Index::class)
