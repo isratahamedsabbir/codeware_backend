@@ -8,7 +8,6 @@ use App\Support\AdminFont;
 use App\Support\CustomCode;
 use App\Support\EnvFile;
 use App\Support\Telegram;
-use App\Support\UrlStructure;
 use Illuminate\Support\Facades\Artisan;
 use Livewire\Component;
 
@@ -68,7 +67,6 @@ class Index extends Component
     public function mount(): void
     {
         $this->moveLegacyTelegramRows();
-        $this->ensureUrlRows();
 
         $this->telegramBotToken = (string) (EnvFile::get('TELEGRAM_BOT_TOKEN') ?? '');
         $this->telegramChatId = (string) (EnvFile::get('TELEGRAM_CHAT_ID') ?? '');
@@ -79,25 +77,6 @@ class Index extends Component
         $this->appEnv = EnvFile::get('APP_ENV', config('app.env')) ?? config('app.env');
     }
 
-    /**
-     * The URL-structure rows (group 'urls', see App\Support\UrlStructure), created
-     * here on first visit so a database that predates them needs no reseed.
-     */
-    private function ensureUrlRows(): void
-    {
-        foreach (array_keys(UrlStructure::TYPES) as $type) {
-            if (Setting::where('key', 'url_prefix_'.$type)->doesntExist()) {
-                Setting::create([
-                    'key' => 'url_prefix_'.$type,
-                    'value' => UrlStructure::defaultPrefix($type),
-                    'type' => 'string',
-                    'group' => 'urls',
-                    'is_public' => false,
-                ]);
-            }
-        }
-    }
-
     protected function loadSettings(): void
     {
         $rows = Setting::all();
@@ -106,6 +85,12 @@ class Index extends Component
             // Watermark is configured from the Media Library now, not here — it
             // must not be re-written by this page's save(), so leave it out.
             if (str_starts_with($setting->key, 'watermark_')) {
+                continue;
+            }
+
+            // URL prefixes are edited from the Products / Posts / Services list
+            // screens; left in $settings they would be written back by save().
+            if (str_starts_with($setting->key, 'url_prefix_')) {
                 continue;
             }
 
@@ -230,21 +215,6 @@ class Index extends Component
             'constants.*.key' => ['nullable', 'string', 'max:255', 'regex:/^[A-Za-z0-9_]*$/'],
             'constants.*.type' => 'nullable|in:textarea,file',
             'constants.*.value' => 'nullable|string|max:1000',
-            'settings.url_prefix_*' => ['nullable', 'string', 'max:50', 'regex:/^[A-Za-z0-9_-]*$/', function (string $attribute, mixed $value, \Closure $fail) {
-                $prefix = UrlStructure::normalize((string) $value);
-
-                if (in_array($prefix, ['admin', 'api', 'login', 'logout', 'register', 'cart', 'checkout', 'account', 'shop', 'favorites', 'storage', 'themes', 'livewire'], true)) {
-                    $fail('"'.$prefix.'" is already used by the site. Pick another prefix.');
-                }
-
-                $same = collect(array_keys(UrlStructure::TYPES))
-                    ->map(fn (string $type) => UrlStructure::normalize((string) ($this->settings['url_prefix_'.$type] ?? '')))
-                    ->filter(fn (string $other) => $other !== '' && $other === $prefix);
-
-                if ($prefix !== '' && $same->count() > 1) {
-                    $fail('Each kind of page needs its own prefix.');
-                }
-            }],
             'codeRules.*.name' => 'nullable|string|max:100',
             'codeRules.*.head' => 'nullable|string',
             'codeRules.*.body' => 'nullable|string',

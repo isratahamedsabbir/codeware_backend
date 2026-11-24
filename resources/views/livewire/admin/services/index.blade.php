@@ -34,6 +34,12 @@
                  look this button had when it lived in @push('page-header-actions')
                  (see resources/css/app.css). --}}
             <div class="page-header-actions flex items-center gap-2 shrink-0">
+                @can('access-admin-system')
+                    <flux:button variant="ghost" size="sm" icon="link"
+                        x-on:click="$dispatch('open-modal', { name: 'url-structure-settings' })">
+                        URL Structure
+                    </flux:button>
+                @endcan
                 <flux:button variant="ghost" size="sm" icon="plus" href="{{ route('admin.services.create') }}" wire:navigate>
                     New service
                 </flux:button>
@@ -339,5 +345,7 @@
     </flux:modal>
 
 </div>
+
+    @include('partials._admin-url-structure-modal', ['type' => 'service'])
 
 </div>

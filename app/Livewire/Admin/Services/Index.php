@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Services;
 use App\Concerns\HasBulkSelection;
 use App\Concerns\HasPerPage;
 use App\Concerns\ImportsCsv;
+use App\Concerns\ManagesUrlPrefix;
 use App\Concerns\WithSearch;
 use App\Models\Service;
 use App\Services\Import\CsvImporter;
@@ -16,7 +17,12 @@ use Livewire\WithPagination;
 
 class Index extends Component
 {
-    use HasBulkSelection, HasPerPage, ImportsCsv, WithPagination, WithSearch;
+    use HasBulkSelection, HasPerPage, ImportsCsv, ManagesUrlPrefix, WithPagination, WithSearch;
+
+    protected function urlPrefixType(): string
+    {
+        return 'service';
+    }
 
     public string $statusFilter = '';
 

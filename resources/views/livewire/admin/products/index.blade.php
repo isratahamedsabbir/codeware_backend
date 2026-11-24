@@ -50,6 +50,10 @@
                         x-on:click="$dispatch('open-modal', { name: 'frontend-url-settings' })">
                         Frontend URL
                     </flux:button>
+                    <flux:button variant="ghost" size="sm" icon="link"
+                        x-on:click="$dispatch('open-modal', { name: 'url-structure-settings' })">
+                        URL Structure
+                    </flux:button>
                 @endcan
                 <flux:button variant="ghost" size="sm" icon="plus" href="{{ route('admin.products.create') }}" wire:navigate>
                     New product
@@ -722,5 +726,7 @@
     </flux:modal>
 
 </div>
+
+    @include('partials._admin-url-structure-modal', ['type' => 'product'])
 
 </div>

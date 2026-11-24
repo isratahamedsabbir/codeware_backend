@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Products;
 use App\Concerns\HasBulkSelection;
 use App\Concerns\HasPerPage;
 use App\Concerns\ImportsCsv;
+use App\Concerns\ManagesUrlPrefix;
 use App\Concerns\WithSearch;
 use App\Models\Page;
 use App\Models\Product;
@@ -25,7 +26,12 @@ use RuntimeException;
 
 class Index extends Component
 {
-    use HasBulkSelection, HasPerPage, ImportsCsv, WithPagination, WithSearch;
+    use HasBulkSelection, HasPerPage, ImportsCsv, ManagesUrlPrefix, WithPagination, WithSearch;
+
+    protected function urlPrefixType(): string
+    {
+        return 'product';
+    }
 
     public string $statusFilter = '';
 

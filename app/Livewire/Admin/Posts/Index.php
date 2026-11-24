@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Posts;
 use App\Concerns\HasBulkSelection;
 use App\Concerns\HasPerPage;
 use App\Concerns\ImportsCsv;
+use App\Concerns\ManagesUrlPrefix;
 use App\Concerns\WithSearch;
 use App\Models\Page;
 use App\Models\Post;
@@ -23,7 +24,12 @@ use RuntimeException;
 
 class Index extends Component
 {
-    use HasBulkSelection, HasPerPage, ImportsCsv, WithPagination, WithSearch;
+    use HasBulkSelection, HasPerPage, ImportsCsv, ManagesUrlPrefix, WithPagination, WithSearch;
+
+    protected function urlPrefixType(): string
+    {
+        return 'post';
+    }
 
     public string $statusFilter = '';
 
