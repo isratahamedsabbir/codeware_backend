@@ -27,13 +27,13 @@
      x-data="{
          cardIds: [@foreach (array_keys($dashboardCards) as $cardId)'{{ $cardId }}'@if (! $loop->last), @endif @endforeach],
          isCardHidden(id) {
-             return $store.dashCards.isHidden(id);
+             return $store.screenEls.isHidden('dashboard', id);
          },
          allCardsHidden() {
              return this.cardIds.length > 0 && this.cardIds.every(id => this.isCardHidden(id));
          },
          showAllCards() {
-             $store.dashCards.showAll();
+             $store.screenEls.showAll('dashboard');
          },
      }">
 
@@ -451,30 +451,9 @@
         </flux:button>
     </div>
 
-    {{-- Hide/show toggles for the cards above, rendered in the layout's
-         "Screen elements" panel. State is the shared dashCards store. --}}
+    {{-- Hide/show toggles for the cards above, shown in the layout's Screen elements panel. --}}
     @push('screen-options')
-        <div class="flex flex-wrap items-center gap-2">
-            @foreach ($dashboardCards as $cardId => $card)
-                <button type="button" role="switch"
-                        x-bind:aria-checked="! $store.dashCards.isHidden('{{ $cardId }}')"
-                        x-on:click="$store.dashCards.toggle('{{ $cardId }}')"
-                        x-bind:class="$store.dashCards.isHidden('{{ $cardId }}')
-                            ? 'border-zinc-200 bg-white text-zinc-400 dark:border-zinc-700 dark:bg-zinc-800'
-                            : 'border-primary/30 bg-primary/10 text-zinc-700 dark:text-zinc-100'"
-                        class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40">
-                    <flux:icon :name="$card['icon']" class="size-3.5" />
-                    {{ $card['label'] }}
-                    <span x-text="$store.dashCards.isHidden('{{ $cardId }}') ? 'Hidden' : 'Shown'"
-                          class="text-[10px] font-medium opacity-60"></span>
-                </button>
-            @endforeach
-            <button type="button" x-on:click="$store.dashCards.showAll()"
-                    class="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-semibold text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-700 dark:hover:text-white">
-                <flux:icon.arrow-path class="size-3" />
-                Reset
-            </button>
-        </div>
+        <x-admin-screen-toggles scope="dashboard" :items="$dashboardCards" />
     @endpush
 
 </div>

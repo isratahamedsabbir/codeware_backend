@@ -1,7 +1,16 @@
 <div class="space-y-5">
 
+    {{-- Hide/show toggles live in the layout's Screen elements panel. --}}
+    @push('screen-options')
+        <x-admin-screen-toggles scope="reports" :items="[
+            'summary' => ['label' => 'Summary cards', 'icon' => 'chart-bar'],
+            'status' => ['label' => 'Orders by status', 'icon' => 'chart-pie'],
+            'orders' => ['label' => 'Orders table', 'icon' => 'table-cells'],
+        ]" />
+    @endpush
+
     {{-- Summary cards --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+    <div x-show="! $store.screenEls.isHidden('reports', 'summary')" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <div class="bg-white rounded-[5px] border border-zinc-100 shadow-sm p-5">
             <p class="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Total Orders</p>
             <p class="text-2xl font-bold text-zinc-900">{{ number_format($totalOrders) }}</p>
@@ -31,7 +40,7 @@
     </div>
 
     {{-- Orders by status --}}
-    <div class="bg-white rounded-[5px] border border-zinc-100 shadow-sm p-5">
+    <div x-show="! $store.screenEls.isHidden('reports', 'status')" class="bg-white rounded-[5px] border border-zinc-100 shadow-sm p-5">
         <p class="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Orders by Status</p>
         <div class="flex gap-3 flex-wrap">
             @forelse (\App\Models\Order::STATUSES as $status)
@@ -45,7 +54,7 @@
     </div>
 
     {{-- Filters + table --}}
-    <div class="bg-white rounded-[5px] shadow-sm overflow-hidden">
+    <div x-show="! $store.screenEls.isHidden('reports', 'orders')" class="bg-white rounded-[5px] shadow-sm overflow-hidden">
         <div class="flex items-center gap-3 p-4 flex-wrap">
             <x-per-page-select :options="$this->perPageOptions()" />
 

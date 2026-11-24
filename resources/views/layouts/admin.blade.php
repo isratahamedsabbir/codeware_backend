@@ -214,31 +214,36 @@
 <body class="admin-panel min-h-screen bg-slate-50 antialiased font-sans">
 
     <script>
-        // Which dashboard cards the admin has hidden. Lives in a store so the
-        // Screen elements panel (here, in the layout) and the dashboard itself
-        // share one list; saved in localStorage, per device.
+        // Which screen elements (dashboard cards, report sections, ...) the admin
+        // has hidden, per scope. One store shared by the Screen elements panel in
+        // this layout and the screens themselves; saved in localStorage, per device.
         (() => {
             const register = () => {
-                if (Alpine.store('dashCards')) return;
-                const key = 'admin.dashboard.hidden-cards';
-                const load = () => {
+                if (Alpine.store('screenEls')) return;
+                const keyFor = (scope) => scope === 'dashboard' ? 'admin.dashboard.hidden-cards' : 'admin.screen-elements.' + scope;
+                const load = (scope) => {
                     try {
-                        const saved = JSON.parse(localStorage.getItem(key) || '[]');
+                        const saved = JSON.parse(localStorage.getItem(keyFor(scope)) || '[]');
                         return Array.isArray(saved) ? saved : [];
                     } catch (e) {
                         return [];
                     }
                 };
-                Alpine.store('dashCards', {
-                    hidden: load(),
-                    isHidden(id) { return this.hidden.includes(id); },
-                    toggle(id) {
-                        this.hidden = this.isHidden(id) ? this.hidden.filter(c => c !== id) : [...this.hidden, id];
-                        try { localStorage.setItem(key, JSON.stringify(this.hidden)); } catch (e) {}
+                Alpine.store('screenEls', {
+                    hidden: {},
+                    list(scope) {
+                        if (!(scope in this.hidden)) this.hidden[scope] = load(scope);
+                        return this.hidden[scope];
                     },
-                    showAll() {
-                        this.hidden = [];
-                        try { localStorage.removeItem(key); } catch (e) {}
+                    isHidden(scope, id) { return this.list(scope).includes(id); },
+                    toggle(scope, id) {
+                        const cur = this.list(scope);
+                        this.hidden[scope] = cur.includes(id) ? cur.filter(c => c !== id) : [...cur, id];
+                        try { localStorage.setItem(keyFor(scope), JSON.stringify(this.hidden[scope])); } catch (e) {}
+                    },
+                    showAll(scope) {
+                        this.hidden[scope] = [];
+                        try { localStorage.removeItem(keyFor(scope)); } catch (e) {}
                     },
                 });
             };
