@@ -37,6 +37,5 @@ test('admin can access the admin dashboard overview page', function () {
         ->assertSet('draftPosts', 1)
         ->assertSee('Products')
         ->assertSee('Posts')
-        ->assertSee('Display options')
         ->assertSee('Low stock alerts');
 });

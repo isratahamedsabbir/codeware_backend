@@ -26,29 +26,14 @@
 <div class="max-w-[1600px]"
      x-data="{
          cardIds: [@foreach (array_keys($dashboardCards) as $cardId)'{{ $cardId }}'@if (! $loop->last), @endif @endforeach],
-         hiddenCards: (() => {
-             try {
-                 const saved = JSON.parse(localStorage.getItem('admin.dashboard.hidden-cards') || '[]');
-                 return Array.isArray(saved) ? saved : [];
-             } catch (error) {
-                 return [];
-             }
-         })(),
          isCardHidden(id) {
-             return this.hiddenCards.includes(id);
+             return $store.dashCards.isHidden(id);
          },
          allCardsHidden() {
              return this.cardIds.length > 0 && this.cardIds.every(id => this.isCardHidden(id));
          },
-         toggleCard(id) {
-             this.hiddenCards = this.isCardHidden(id)
-                 ? this.hiddenCards.filter(card => card !== id)
-                 : [...this.hiddenCards, id];
-             localStorage.setItem('admin.dashboard.hidden-cards', JSON.stringify(this.hiddenCards));
-         },
          showAllCards() {
-             this.hiddenCards = [];
-             localStorage.removeItem('admin.dashboard.hidden-cards');
+             $store.dashCards.showAll();
          },
      }">
 
@@ -89,83 +74,6 @@
                 </span>
             </div>
 
-            {{-- Display options: which dashboard cards are visible. Saved in
-                 localStorage so each admin keeps their own layout without a
-                 round-trip (and the charts are never torn down and rebuilt). --}}
-            <flux:dropdown position="bottom" align="end">
-                <flux:button size="sm" square icon="adjustments-horizontal"
-                             aria-label="Display options" title="Display options"
-                             class="!size-9 !rounded-full !border-white/70 !bg-white/75 !text-zinc-600 shadow-sm backdrop-blur-md transition-colors hover:!bg-white hover:!text-zinc-900 dark:!border-white/10 dark:!bg-zinc-800/70 dark:!text-zinc-300 dark:hover:!bg-zinc-800 dark:hover:!text-white">
-                </flux:button>
-
-                <flux:menu class="w-[21rem] !rounded-xl !border-zinc-200/80 !p-0 !shadow-xl dark:!border-zinc-600/70">
-                    {{-- Header --}}
-                    <div class="flex items-start gap-3 border-b border-zinc-100 px-4 py-3.5 dark:border-zinc-600/60">
-                        <span class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                            <flux:icon.adjustments-horizontal class="size-5" />
-                        </span>
-                        <div class="min-w-0">
-                            <p class="text-[13px] font-bold text-zinc-800 dark:text-white">Customize dashboard</p>
-                            <p class="mt-0.5 text-[11px] font-medium text-zinc-400">Pick the cards you want to see</p>
-                        </div>
-                    </div>
-
-                    {{-- Cards, grouped --}}
-                    <div class="max-h-[22rem] overflow-y-auto p-2">
-                        @foreach ($dashboardCardGroups as $groupKey => $groupLabel)
-                            @php $groupCards = array_filter($dashboardCards, fn ($card) => $card['group'] === $groupKey); @endphp
-                            @if ($groupCards !== [])
-                                <div class="px-2 pb-1 pt-2 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
-                                    {{ $groupLabel }}
-                                </div>
-                                @foreach ($groupCards as $cardId => $card)
-                                    {{-- A div, not a <button>: Flux turns every button inside a
-                                         menu into a closable menu item, and this panel has to stay
-                                         open while several cards are toggled. --}}
-                                    <div role="menuitemcheckbox" tabindex="0"
-                                         x-bind:aria-checked="! isCardHidden('{{ $cardId }}')"
-                                         x-on:click="toggleCard('{{ $cardId }}')"
-                                         x-on:keydown.enter.prevent="toggleCard('{{ $cardId }}')"
-                                         x-on:keydown.space.prevent="toggleCard('{{ $cardId }}')"
-                                         class="group flex w-full cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-start transition-colors hover:bg-zinc-50 focus-visible:bg-zinc-50 focus:outline-none dark:hover:bg-zinc-700/60 dark:focus-visible:bg-zinc-700/60">
-                                        <span class="flex size-8 shrink-0 items-center justify-center rounded-lg {{ $card['accent'] }}">
-                                            <flux:icon :name="$card['icon']" class="size-4" />
-                                        </span>
-                                        <span class="min-w-0 flex-1">
-                                            <span class="block truncate text-[13px] font-semibold text-zinc-700 dark:text-zinc-100">
-                                                {{ $card['label'] }}
-                                            </span>
-                                            <span class="mt-0.5 block text-[10.5px] font-medium text-zinc-400"
-                                                  x-text="isCardHidden('{{ $cardId }}') ? 'Hidden from dashboard' : 'Visible on dashboard'"></span>
-                                        </span>
-                                        <span class="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200"
-                                              x-bind:class="isCardHidden('{{ $cardId }}') ? 'bg-zinc-200 dark:bg-zinc-600' : 'bg-primary'">
-                                            <span class="absolute left-0.5 size-4 rounded-full bg-white shadow-sm transition-transform duration-200"
-                                                  x-bind:class="isCardHidden('{{ $cardId }}') ? 'translate-x-0' : 'translate-x-4'"></span>
-                                        </span>
-                                    </div>
-                                @endforeach
-                            @endif
-                        @endforeach
-                    </div>
-
-                    {{-- Footer --}}
-                    <div class="flex items-center justify-between gap-3 rounded-b-xl border-t border-zinc-100 bg-zinc-50/70 px-3 py-2 dark:border-zinc-600/60 dark:bg-zinc-800/40">
-                        <div role="button" tabindex="0"
-                             x-on:click="showAllCards()"
-                             x-on:keydown.enter.prevent="showAllCards()"
-                             x-on:keydown.space.prevent="showAllCards()"
-                             class="inline-flex cursor-pointer items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] font-semibold text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 focus:outline-none dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-white">
-                            <flux:icon.arrow-path class="size-3" />
-                            Reset
-                        </div>
-                        <span class="inline-flex items-center gap-1 text-[10px] font-medium text-zinc-400">
-                            <flux:icon.check-circle class="size-3" />
-                            Saved on this device
-                        </span>
-                    </div>
-                </flux:menu>
-            </flux:dropdown>
         </div>
     </div>
 
@@ -542,5 +450,31 @@
             Show all cards
         </flux:button>
     </div>
+
+    {{-- Hide/show toggles for the cards above, rendered in the layout's
+         "Screen elements" panel. State is the shared dashCards store. --}}
+    @push('screen-options')
+        <div class="flex flex-wrap items-center gap-2">
+            @foreach ($dashboardCards as $cardId => $card)
+                <button type="button" role="switch"
+                        x-bind:aria-checked="! $store.dashCards.isHidden('{{ $cardId }}')"
+                        x-on:click="$store.dashCards.toggle('{{ $cardId }}')"
+                        x-bind:class="$store.dashCards.isHidden('{{ $cardId }}')
+                            ? 'border-zinc-200 bg-white text-zinc-400 dark:border-zinc-700 dark:bg-zinc-800'
+                            : 'border-primary/30 bg-primary/10 text-zinc-700 dark:text-zinc-100'"
+                        class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40">
+                    <flux:icon :name="$card['icon']" class="size-3.5" />
+                    {{ $card['label'] }}
+                    <span x-text="$store.dashCards.isHidden('{{ $cardId }}') ? 'Hidden' : 'Shown'"
+                          class="text-[10px] font-medium opacity-60"></span>
+                </button>
+            @endforeach
+            <button type="button" x-on:click="$store.dashCards.showAll()"
+                    class="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-semibold text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-700 dark:hover:text-white">
+                <flux:icon.arrow-path class="size-3" />
+                Reset
+            </button>
+        </div>
+    @endpush
 
 </div>

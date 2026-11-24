@@ -214,6 +214,39 @@
 <body class="admin-panel min-h-screen bg-slate-50 antialiased font-sans">
 
     <script>
+        // Which dashboard cards the admin has hidden. Lives in a store so the
+        // Screen elements panel (here, in the layout) and the dashboard itself
+        // share one list; saved in localStorage, per device.
+        (() => {
+            const register = () => {
+                if (Alpine.store('dashCards')) return;
+                const key = 'admin.dashboard.hidden-cards';
+                const load = () => {
+                    try {
+                        const saved = JSON.parse(localStorage.getItem(key) || '[]');
+                        return Array.isArray(saved) ? saved : [];
+                    } catch (e) {
+                        return [];
+                    }
+                };
+                Alpine.store('dashCards', {
+                    hidden: load(),
+                    isHidden(id) { return this.hidden.includes(id); },
+                    toggle(id) {
+                        this.hidden = this.isHidden(id) ? this.hidden.filter(c => c !== id) : [...this.hidden, id];
+                        try { localStorage.setItem(key, JSON.stringify(this.hidden)); } catch (e) {}
+                    },
+                    showAll() {
+                        this.hidden = [];
+                        try { localStorage.removeItem(key); } catch (e) {}
+                    },
+                });
+            };
+            window.Alpine ? register() : document.addEventListener('alpine:init', register);
+        })();
+    </script>
+
+    <script>
         @if (session('success'))
             toastr.success("{{ session('success') }}");
         @endif
@@ -556,9 +589,10 @@
                         <flux:icon.adjustments-horizontal class="size-4 text-zinc-400 dark:text-zinc-500" />
                         {{ __('Screen elements') }}
                     </h2>
-                    <p class="mt-2 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-                        Choose which screen elements to show. More options will be added here later.
-                    </p>
+                    {{-- Screens add their own hide/show toggles here with @push('screen-options'). --}}
+                    <div class="mt-2 max-h-[48px] overflow-y-auto empty:hidden">
+                        @stack('screen-options')
+                    </div>
                 </div>
             </div>
         </div>
