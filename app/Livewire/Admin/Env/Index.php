@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Admin\Env;
 
+use App\Models\Setting;
 use App\Support\AdminActivity;
+use App\Support\CustomCode;
 use App\Support\EnvFile;
 use App\Support\PuckEditor;
 use Illuminate\Support\Facades\Artisan;
@@ -18,8 +20,29 @@ class Index extends Component
 
     public bool $debugMode = false;
 
+    /** Global head/body code (custom_head_code / custom_body_code) — moved here from Settings. */
+    public array $settings = [];
+
+    /** @var array<int, array{key: string, type: string, value: string}> */
+    public array $constants = [];
+
+    /** @var array<int, int> Expanded $constants rows, tracked server-side so re-renders don't collapse them. */
+    public array $openConstants = [];
+
+    /** @var array<int, array{id: string, name: string, head: string, body: string}> */
+    public array $codeRules = [];
+
+    /** @var array<int, string> */
+    public array $openCodeRules = [];
+
     public function mount(): void
     {
+        $this->settings = [
+            'custom_head_code' => (string) Setting::get('custom_head_code', ''),
+            'custom_body_code' => (string) Setting::get('custom_body_code', ''),
+        ];
+        $this->codeRules = CustomCode::rules();
+        $this->loadConstants();
         $this->loadEnv();
         $this->maintenanceMode = app()->isDownForMaintenance();
         $this->debugMode = (bool) config('app.debug');
@@ -412,6 +435,128 @@ class Index extends Component
         Artisan::call('config:clear');
 
         return true;
+    }
+
+    protected function loadConstants(): void
+    {
+        $this->constants = collect(json_decode(Setting::get('constants', '[]') ?: '[]', true) ?: [])
+            ->map(fn (array $pair) => [...$pair, 'type' => in_array($pair['type'] ?? null, ['textarea', 'file'], true) ? $pair['type'] : 'textarea'])
+            ->all();
+    }
+
+    public function addConstant(): void
+    {
+        $this->constants[] = ['key' => '', 'type' => 'textarea', 'value' => ''];
+        $this->openConstants[] = array_key_last($this->constants);
+    }
+
+    public function removeConstant(int $index): void
+    {
+        unset($this->constants[$index]);
+        $this->constants = array_values($this->constants);
+
+        $this->openConstants = collect($this->openConstants)
+            ->reject(fn ($i) => $i === $index)
+            ->map(fn ($i) => $i > $index ? $i - 1 : $i)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    public function setConstantType(int $index, string $type): void
+    {
+        if (! array_key_exists($index, $this->constants) || ! in_array($type, ['textarea', 'file'], true)) {
+            return;
+        }
+
+        $this->constants[$index]['type'] = $type;
+    }
+
+    public function toggleConstant(int $index): void
+    {
+        if (in_array($index, $this->openConstants, true)) {
+            $this->openConstants = array_values(array_diff($this->openConstants, [$index]));
+        } else {
+            $this->openConstants[] = $index;
+        }
+    }
+
+    public function addCodeRule(): void
+    {
+        $rule = ['id' => CustomCode::newId(), 'name' => '', 'head' => '', 'body' => ''];
+        $this->codeRules[] = $rule;
+        $this->openCodeRules[] = $rule['id'];
+    }
+
+    public function toggleCodeRule(string $id): void
+    {
+        $this->openCodeRules = in_array($id, $this->openCodeRules, true)
+            ? array_values(array_diff($this->openCodeRules, [$id]))
+            : [...$this->openCodeRules, $id];
+    }
+
+    public function removeCodeRule(int $index): void
+    {
+        $removed = $this->codeRules[$index]['id'] ?? null;
+        unset($this->codeRules[$index]);
+        $this->codeRules = array_values($this->codeRules);
+        $this->openCodeRules = array_values(array_diff($this->openCodeRules, [$removed]));
+    }
+
+    public function updated(string $name, mixed $value): void
+    {
+        if (preg_match('/^constants\.\d+\.key$/', $name)) {
+            $sanitized = preg_replace('/[^A-Za-z0-9_]/', '', preg_replace('/\s+/', '_', trim($value)));
+
+            if ($sanitized !== $value) {
+                data_set($this, $name, $sanitized);
+            }
+        }
+    }
+
+    /** Saves the Custom Code and Constant tabs (DB settings, not .env). */
+    public function saveSiteData(): void
+    {
+        $this->validate([
+            'settings.custom_head_code' => 'nullable|string',
+            'settings.custom_body_code' => 'nullable|string',
+            'constants' => ['array', function (string $attribute, mixed $value, \Closure $fail) {
+                $keys = collect($value)->pluck('key')->filter()->map(fn ($key) => strtolower(trim($key)));
+
+                if ($keys->count() !== $keys->unique()->count()) {
+                    $fail('Constant keys must be unique.');
+                }
+            }],
+            'constants.*.key' => ['nullable', 'string', 'max:255', 'regex:/^[A-Za-z0-9_]*$/'],
+            'constants.*.type' => 'nullable|in:textarea,file',
+            'constants.*.value' => 'nullable|string|max:1000',
+            'codeRules.*.name' => 'nullable|string|max:100',
+            'codeRules.*.head' => 'nullable|string',
+            'codeRules.*.body' => 'nullable|string',
+        ]);
+
+        Setting::set('custom_head_code', $this->settings['custom_head_code'] ?? '');
+        Setting::set('custom_body_code', $this->settings['custom_body_code'] ?? '');
+
+        $constants = collect($this->constants)->filter(fn (array $pair) => filled($pair['key'] ?? null))->values()->all();
+        Setting::set('constants', json_encode($constants));
+
+        // Rows with no code in either box are dropped rather than stored empty. The id is what pages
+        // point at, so it is kept as-is across saves.
+        $rules = collect($this->codeRules)
+            ->filter(fn (array $rule) => filled($rule['head'] ?? null) || filled($rule['body'] ?? null))
+            ->map(fn (array $rule) => [
+                'id' => $rule['id'],
+                'name' => trim((string) ($rule['name'] ?? '')),
+                'head' => (string) ($rule['head'] ?? ''),
+                'body' => (string) ($rule['body'] ?? ''),
+            ])
+            ->values()
+            ->all();
+        Setting::set(CustomCode::SETTING, json_encode($rules));
+
+        session()->flash('success', 'Saved.');
+        $this->js('window.location.reload()');
     }
 
     public function render()

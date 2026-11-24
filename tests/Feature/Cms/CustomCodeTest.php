@@ -1,7 +1,7 @@
 <?php
 
 use App\Livewire\Admin\Pages\Form;
-use App\Livewire\Admin\Settings\Index;
+use App\Livewire\Admin\Env\Index;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\Product;
@@ -118,7 +118,7 @@ it('outputs a snippet only on the pages that picked it', function () {
         ->assertSee('custom-head-probe', false);
 });
 
-it('saves named custom code snippets from the settings screen', function () {
+it('saves named custom code snippets from Developer Tools', function () {
     $this->seed(RolePermissionSeeder::class);
     $this->actingAs(User::factory()->admin()->create());
 
@@ -126,7 +126,7 @@ it('saves named custom code snippets from the settings screen', function () {
         ->call('addCodeRule')
         ->set('codeRules.0.name', 'Product pixel')
         ->set('codeRules.0.head', '<meta name="p" content="1">')
-        ->call('save')
+        ->call('saveSiteData')
         ->assertHasNoErrors();
 
     $rules = CustomCode::rules();

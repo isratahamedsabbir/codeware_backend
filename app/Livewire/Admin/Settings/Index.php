@@ -25,36 +25,6 @@ class Index extends Component
      */
     public string $appEnv = '';
 
-    /** @var array<int, array{key: string, type: string, value: string}> */
-    public array $constants = [];
-
-    /**
-     * Indices of $constants rows currently expanded in the UI — tracked
-     * server-side (rather than client-only Alpine state per row) so a Livewire
-     * re-render from an unrelated input (e.g. typing in another row's Key
-     * field) can't reset it: deriving "open" from whether the key is blank
-     * on every render meant collapsed state flip-flopped as soon as a key
-     * stopped being blank, and a re-render reset every row at once.
-     *
-     * @var array<int, int>
-     */
-    public array $openConstants = [];
-
-    /**
-     * Page-specific head/body snippets, on top of the global pair in $settings.
-     *
-     * @var array<int, array{id: string, name: string, head: string, body: string}>
-     */
-    public array $codeRules = [];
-
-    /**
-     * Ids of the $codeRules rows currently expanded — server-side for the same
-     * reason as $openConstants: a re-render from typing must not collapse them.
-     *
-     * @var array<int, string>
-     */
-    public array $openCodeRules = [];
-
     /**
      * Telegram bot token and chat id — TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID in
      * .env, like APP_ENV above, so they are saved through EnvFile::set() rather
@@ -71,9 +41,7 @@ class Index extends Component
         $this->telegramBotToken = (string) (EnvFile::get('TELEGRAM_BOT_TOKEN') ?? '');
         $this->telegramChatId = (string) (EnvFile::get('TELEGRAM_CHAT_ID') ?? '');
 
-        $this->codeRules = CustomCode::rules();
         $this->loadSettings();
-        $this->loadConstants();
         $this->appEnv = EnvFile::get('APP_ENV', config('app.env')) ?? config('app.env');
     }
 
@@ -97,7 +65,7 @@ class Index extends Component
             // The page-specific custom code rules are edited as $codeRules, and
             // saved from there — left in $settings, the stale JSON string would
             // be written back over them by persistGeneralSettings().
-            if ($setting->key === CustomCode::SETTING) {
+            if ($setting->key === CustomCode::SETTING || in_array($setting->key, ['custom_head_code', 'custom_body_code'], true)) {
                 continue;
             }
 
@@ -125,101 +93,8 @@ class Index extends Component
         $this->settings['admin_font'] = AdminFont::normalize($this->settings['admin_font'] ?? AdminFont::SYSTEM);
     }
 
-    protected function loadConstants(): void
-    {
-        $this->constants = collect(json_decode(Setting::get('constants', '[]') ?: '[]', true) ?: [])
-            ->map(fn (array $pair) => [...$pair, 'type' => in_array($pair['type'] ?? null, ['textarea', 'file'], true) ? $pair['type'] : 'textarea'])
-            ->all();
-    }
-
-    public function addConstant(): void
-    {
-        $this->constants[] = ['key' => '', 'type' => 'textarea', 'value' => ''];
-        $this->openConstants[] = array_key_last($this->constants);
-    }
-
-    public function removeConstant(int $index): void
-    {
-        unset($this->constants[$index]);
-        $this->constants = array_values($this->constants);
-
-        $this->openConstants = collect($this->openConstants)
-            ->reject(fn ($i) => $i === $index)
-            ->map(fn ($i) => $i > $index ? $i - 1 : $i)
-            ->unique()
-            ->values()
-            ->all();
-    }
-
-    public function setConstantType(int $index, string $type): void
-    {
-        if (! array_key_exists($index, $this->constants) || ! in_array($type, ['textarea', 'file'], true)) {
-            return;
-        }
-
-        $this->constants[$index]['type'] = $type;
-    }
-
-    public function toggleConstant(int $index): void
-    {
-        if (in_array($index, $this->openConstants, true)) {
-            $this->openConstants = array_values(array_diff($this->openConstants, [$index]));
-        } else {
-            $this->openConstants[] = $index;
-        }
-    }
-
-    public function addCodeRule(): void
-    {
-        $rule = ['id' => CustomCode::newId(), 'name' => '', 'head' => '', 'body' => ''];
-        $this->codeRules[] = $rule;
-        $this->openCodeRules[] = $rule['id'];
-    }
-
-    public function toggleCodeRule(string $id): void
-    {
-        $this->openCodeRules = in_array($id, $this->openCodeRules, true)
-            ? array_values(array_diff($this->openCodeRules, [$id]))
-            : [...$this->openCodeRules, $id];
-    }
-
-    public function removeCodeRule(int $index): void
-    {
-        $removed = $this->codeRules[$index]['id'] ?? null;
-        unset($this->codeRules[$index]);
-        $this->codeRules = array_values($this->codeRules);
-        $this->openCodeRules = array_values(array_diff($this->openCodeRules, [$removed]));
-    }
-
-    public function updated(string $name, mixed $value): void
-    {
-        if (preg_match('/^constants\.\d+\.key$/', $name)) {
-            $sanitized = preg_replace('/[^A-Za-z0-9_]/', '', preg_replace('/\s+/', '_', trim($value)));
-
-            if ($sanitized !== $value) {
-                data_set($this, $name, $sanitized);
-            }
-        }
-    }
-
     public function save(): void
     {
-        $this->validate([
-            'constants' => ['array', function (string $attribute, mixed $value, \Closure $fail) {
-                $keys = collect($value)->pluck('key')->filter()->map(fn ($key) => strtolower(trim($key)));
-
-                if ($keys->count() !== $keys->unique()->count()) {
-                    $fail('Constant keys must be unique.');
-                }
-            }],
-            'constants.*.key' => ['nullable', 'string', 'max:255', 'regex:/^[A-Za-z0-9_]*$/'],
-            'constants.*.type' => 'nullable|in:textarea,file',
-            'constants.*.value' => 'nullable|string|max:1000',
-            'codeRules.*.name' => 'nullable|string|max:100',
-            'codeRules.*.head' => 'nullable|string',
-            'codeRules.*.body' => 'nullable|string',
-        ]);
-
         $this->persistGeneralSettings();
 
         if (! $this->persistTelegram()) {
@@ -373,23 +248,6 @@ class Index extends Component
             // than a dangling reference that resolves to nothing.
             Setting::set($key, $key === 'admin_font' ? AdminFont::normalize($value) : $value);
         }
-
-        $constants = collect($this->constants)->filter(fn (array $pair) => filled($pair['key'] ?? null))->values()->all();
-        Setting::set('constants', json_encode($constants));
-
-        // Rows with no code in either box are dropped rather than stored empty. The id is what pages
-        // point at, so it is kept as-is across saves.
-        $rules = collect($this->codeRules)
-            ->filter(fn (array $rule) => filled($rule['head'] ?? null) || filled($rule['body'] ?? null))
-            ->map(fn (array $rule) => [
-                'id' => $rule['id'],
-                'name' => trim((string) ($rule['name'] ?? '')),
-                'head' => (string) ($rule['head'] ?? ''),
-                'body' => (string) ($rule['body'] ?? ''),
-            ])
-            ->values()
-            ->all();
-        Setting::set(CustomCode::SETTING, json_encode($rules));
     }
 
     public function render()

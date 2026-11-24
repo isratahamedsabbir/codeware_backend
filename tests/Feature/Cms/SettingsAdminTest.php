@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Admin\DeveloperGuide;
+use App\Livewire\Admin\Env\Index as EnvIndex;
 use App\Livewire\Admin\Settings\Index as SettingsIndex;
 use App\Models\Language;
 use App\Models\Setting;
@@ -207,17 +208,17 @@ it('does not show custom code settings in the general tab', function () {
 });
 
 it('renders the custom code tab', function () {
-    Livewire::test(SettingsIndex::class)
+    Livewire::test(EnvIndex::class)
         ->assertSee('Custom Code')
         ->assertSee('Head Code')
         ->assertSee('Body Code');
 });
 
 it('saves custom head and body code through the form', function () {
-    Livewire::test(SettingsIndex::class)
+    Livewire::test(EnvIndex::class)
         ->set('settings.custom_head_code', '<script>console.log("head")</script>')
         ->set('settings.custom_body_code', '<script>console.log("body")</script>')
-        ->call('save')
+        ->call('saveSiteData')
         ->assertHasNoErrors();
 
     expect(Setting::where('key', 'custom_head_code')->value('value'))->toBe('<script>console.log("head")</script>');
@@ -353,13 +354,13 @@ it('renders timezone as a select grouped by region, not a free-text input', func
 });
 
 it('defaults a new constant field to the textarea type', function () {
-    Livewire::test(SettingsIndex::class)
+    Livewire::test(EnvIndex::class)
         ->call('addConstant')
         ->assertSet('constants.0.type', 'textarea');
 });
 
 it('switches a constant value field to file picker when File is clicked', function () {
-    Livewire::test(SettingsIndex::class)
+    Livewire::test(EnvIndex::class)
         ->call('addConstant')
         ->assertDontSee('mp-constants-0-value', false)
         ->call('setConstantType', 0, 'file')
@@ -368,20 +369,20 @@ it('switches a constant value field to file picker when File is clicked', functi
 });
 
 it('auto-expands a newly added constant field', function () {
-    Livewire::test(SettingsIndex::class)
+    Livewire::test(EnvIndex::class)
         ->call('addConstant')
         ->assertSet('openConstants', [0]);
 });
 
 it('keeps a constant field expanded while typing its key, rather than collapsing it', function () {
-    Livewire::test(SettingsIndex::class)
+    Livewire::test(EnvIndex::class)
         ->call('addConstant')
         ->set('constants.0.key', 'support_email')
         ->assertSet('openConstants', [0]);
 });
 
 it('toggling one constant field does not affect the others', function () {
-    Livewire::test(SettingsIndex::class)
+    Livewire::test(EnvIndex::class)
         ->call('addConstant') // openConstants = [0]
         ->call('addConstant') // openConstants = [0, 1]
         ->call('toggleConstant', 0) // close 0 -> [1]
@@ -392,7 +393,7 @@ it('toggling one constant field does not affect the others', function () {
 });
 
 it('drops a removed constant field from the open list and reindexes the rest', function () {
-    Livewire::test(SettingsIndex::class)
+    Livewire::test(EnvIndex::class)
         ->call('addConstant') // openConstants = [0]
         ->call('addConstant') // openConstants = [0, 1]
         ->call('addConstant') // openConstants = [0, 1, 2]
@@ -402,24 +403,24 @@ it('drops a removed constant field from the open list and reindexes the rest', f
 });
 
 it('saves constants and makes them readable through the setting_constant() helper', function () {
-    Livewire::test(SettingsIndex::class)
+    Livewire::test(EnvIndex::class)
         ->call('addConstant')
         ->set('constants.0.key', 'support_email')
         ->set('constants.0.value', 'support@example.com')
-        ->call('save');
+        ->call('saveSiteData');
 
     expect(setting_constant('support_email'))->toBe('support@example.com');
 });
 
 it('drops blank constant rows when saving, but keeps filled ones', function () {
-    Livewire::test(SettingsIndex::class)
+    Livewire::test(EnvIndex::class)
         ->call('addConstant')
         ->call('addConstant')
         ->set('constants.0.key', 'kept')
         ->set('constants.0.value', '1')
         ->set('constants.1.key', '')
         ->set('constants.1.value', '')
-        ->call('save');
+        ->call('saveSiteData');
 
     $constants = json_decode(Setting::get('constants'), true);
 
@@ -428,14 +429,14 @@ it('drops blank constant rows when saving, but keeps filled ones', function () {
 });
 
 it('rejects duplicate constant keys', function () {
-    Livewire::test(SettingsIndex::class)
+    Livewire::test(EnvIndex::class)
         ->call('addConstant')
         ->call('addConstant')
         ->set('constants.0.key', 'dup')
         ->set('constants.0.value', 'a')
         ->set('constants.1.key', 'dup')
         ->set('constants.1.value', 'b')
-        ->call('save')
+        ->call('saveSiteData')
         ->assertHasErrors(['constants']);
 });
 
@@ -496,7 +497,7 @@ it('saves the environment from the settings form and clears the config cache', f
 });
 
 it('sends the constant card info icon into the guide constants block', function () {
-    $html = Livewire::test(SettingsIndex::class)->html();
+    $html = Livewire::test(EnvIndex::class)->html();
 
     expect($html)
         ->toContain(route('admin.developer-guide').'#constants')
