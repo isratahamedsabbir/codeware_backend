@@ -51,6 +51,23 @@ class Features
     ];
 
     /**
+     * Features that are on in a fresh install; every other feature starts off and
+     * is switched on from Settings → Features. Core screens that are not in ALL
+     * (Dashboard, Settings, Theme Settings, SEO, Social Links, Mobile Apps) are
+     * always on. Only FeatureSeeder reads this — it seeds the initial rows and
+     * never overwrites a row an admin already has.
+     */
+    public const DEFAULT_ENABLED = [
+        'blog',
+        'pages',
+        'media-library',
+        'contacts',
+        'access-control',
+        'plugins',
+        'localization',
+    ];
+
+    /**
      * Settings that only configure something the panel still has: a toggle for a
      * module that has been turned off is a dead control, so it drops off the
      * Settings screen along with the header widget it enables. Keyed by setting

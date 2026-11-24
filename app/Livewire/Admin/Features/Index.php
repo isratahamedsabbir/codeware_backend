@@ -23,9 +23,9 @@ class Index extends Component
     }
 
     /**
-     * Features default to enabled — a key with no row yet in the `features`
-     * table (a feature added to Features::ALL after the table was last seeded)
-     * still shows checked here.
+     * A key with no row yet in the `features` table (a feature added to
+     * Features::ALL after the table was last seeded) shows checked, matching
+     * Features::enabled()'s fail-open behaviour.
      */
     protected function loadFeatures(): void
     {
