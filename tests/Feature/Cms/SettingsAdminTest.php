@@ -39,7 +39,7 @@ it('keeps a fixed section order with General and Images first, regardless of row
 
     Livewire::test(SettingsIndex::class)
         ->assertViewHas('groupedSettings', function ($groups) {
-            return $groups->keys()->all() === ['general', 'images', 'localization']
+            return $groups->keys()->all() === ['general', 'images']
                 && $groups->get('general')->pluck('key')->all() === ['site_name']
                 && $groups->get('images')->pluck('key')->all() === ['site_icon'];
         });
@@ -132,7 +132,7 @@ it('does not list colors in the generic grouped settings (they render as the Bac
     Setting::factory()->create(['key' => 'primary_color', 'value' => '#2563eb', 'group' => 'colors', 'type' => 'color']);
     Setting::factory()->create(['key' => 'secondary_color', 'value' => '#059669', 'group' => 'colors', 'type' => 'color']);
 
-    Livewire::test(SettingsIndex::class)
+    Livewire::test(EnvIndex::class)
         ->assertViewHas('groupedSettings', function ($groups) {
             return ! $groups->has('colors');
         })
@@ -175,12 +175,12 @@ it('does not overwrite watermark settings when saving the settings page', functi
         ->and(Setting::get('watermark_enabled'))->toBe('1');
 });
 
-it('renders the widgets tab with color fields', function () {
+it('loads the Backend color fields on Developer Tools → Site Settings', function () {
     Setting::factory()->create(['key' => 'primary_color', 'value' => '#2563eb', 'group' => 'colors', 'type' => 'color']);
     Setting::factory()->create(['key' => 'secondary_color', 'value' => '#059669', 'group' => 'colors', 'type' => 'color']);
 
-    Livewire::test(SettingsIndex::class)
-        ->assertSee('Widgets')
+    Livewire::test(EnvIndex::class)
+        ->assertSee('Backend')
         ->assertViewHas('colorSettings', function ($settings) {
             return $settings->pluck('key')->contains('primary_color')
                 && $settings->pluck('key')->contains('secondary_color');
@@ -188,10 +188,10 @@ it('renders the widgets tab with color fields', function () {
 });
 
 it('saves colors settings through the form', function () {
-    Livewire::test(SettingsIndex::class)
+    Livewire::test(EnvIndex::class)
         ->set('settings.primary_color', '#7cc242')
         ->set('settings.secondary_color', '#2563eb')
-        ->call('save')
+        ->call('saveSiteData')
         ->assertHasNoErrors();
 
     expect(Setting::where('key', 'primary_color')->value('value'))->toBe('#7cc242');
@@ -260,7 +260,7 @@ it('does not show currency settings in the general tab', function () {
 });
 
 it('renders the currency section in the general tab with currency fields', function () {
-    Livewire::test(SettingsIndex::class)
+    Livewire::test(EnvIndex::class)
         ->assertSee('Currency')
         ->assertSee('Currency Code')
         ->assertSee('Symbol Position')
@@ -269,17 +269,17 @@ it('renders the currency section in the general tab with currency fields', funct
 });
 
 it('renders the VAT toggle and rate in the VAT section', function () {
-    Livewire::test(SettingsIndex::class)
+    Livewire::test(EnvIndex::class)
         ->assertSee('VAT')
         ->assertSee('Yes — add VAT to orders')
         ->assertSee('No — exclude VAT');
 });
 
 it('saves the VAT toggle and rate through the form', function () {
-    Livewire::test(SettingsIndex::class)
+    Livewire::test(EnvIndex::class)
         ->set('settings.vat_enabled', '1')
         ->set('settings.vat_rate', '15')
-        ->call('save')
+        ->call('saveSiteData')
         ->assertHasNoErrors();
 
     expect(Setting::get('vat_enabled'))->toBe('1')
@@ -287,12 +287,12 @@ it('saves the VAT toggle and rate through the form', function () {
 });
 
 it('saves currency settings through the form', function () {
-    Livewire::test(SettingsIndex::class)
+    Livewire::test(EnvIndex::class)
         ->set('settings.currency_code', 'USD')
         ->set('settings.currency_symbol', '$')
         ->set('settings.currency_position', 'right')
         ->set('settings.decimal_places', '2')
-        ->call('save')
+        ->call('saveSiteData')
         ->assertHasNoErrors();
 
     expect(Setting::where('key', 'currency_code')->value('value'))->toBe('USD');
@@ -306,7 +306,7 @@ it('renders app locale as a language select on the settings page, populated from
     Language::create(['code' => 'bn', 'name' => 'Bengali', 'native_name' => 'বাংলা', 'is_active' => true]);
     Setting::factory()->create(['key' => 'app_locale', 'value' => 'en', 'group' => 'localization', 'type' => 'string']);
 
-    Livewire::test(SettingsIndex::class)
+    Livewire::test(EnvIndex::class)
         ->assertSee('Language')
         ->assertSeeHtml('<option value="en">')
         ->assertSeeHtml('<option value="bn">');
@@ -317,9 +317,9 @@ it('saves the app locale through the settings form', function () {
     Language::create(['code' => 'bn', 'name' => 'Bengali', 'native_name' => 'বাংলা', 'is_active' => true]);
     Setting::factory()->create(['key' => 'app_locale', 'value' => 'en', 'group' => 'localization', 'type' => 'string']);
 
-    Livewire::test(SettingsIndex::class)
+    Livewire::test(EnvIndex::class)
         ->set('settings.app_locale', 'bn')
-        ->call('save');
+        ->call('saveSiteData');
 
     expect(Setting::where('key', 'app_locale')->value('value'))->toBe('bn');
 });
@@ -348,7 +348,7 @@ it('does not double-render the label for image settings', function () {
 it('renders timezone as a select grouped by region, not a free-text input', function () {
     Setting::factory()->create(['key' => 'timezone', 'value' => 'UTC', 'group' => 'localization', 'type' => 'select']);
 
-    Livewire::test(SettingsIndex::class)
+    Livewire::test(EnvIndex::class)
         ->assertSee('Timezone')
         ->assertSeeHtml('<option value="Asia/Dhaka">Asia/Dhaka</option>');
 });

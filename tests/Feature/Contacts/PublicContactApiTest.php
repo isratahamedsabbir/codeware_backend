@@ -1,7 +1,7 @@
 <?php
 
 use App\Livewire\Admin\Contacts\Index;
-use App\Livewire\Admin\Settings\Index as SettingsIndex;
+use App\Livewire\Admin\Env\Index as EnvIndex;
 use App\Livewire\Frontend\ContactForm;
 use App\Mail\TemplateDrivenMail;
 use App\Models\Contact;
@@ -214,10 +214,10 @@ it('saves the Telegram details to .env and never to the settings table', functio
     $this->seed(RolePermissionSeeder::class);
     $admin = User::factory()->admin()->create();
 
-    Livewire::actingAs($admin)->test(SettingsIndex::class)
+    Livewire::actingAs($admin)->test(EnvIndex::class)
         ->set('telegramBotToken', '123:secret')
         ->set('telegramChatId', '-100')
-        ->call('save');
+        ->call('saveSiteData');
 
     expect(EnvFile::get('TELEGRAM_BOT_TOKEN'))->toBe('123:secret')
         ->and(EnvFile::get('TELEGRAM_CHAT_ID'))->toBe('-100')
@@ -239,7 +239,7 @@ it('moves a token an earlier version stored as a setting into .env', function ()
     Setting::set('telegram_bot_token', '123:old');
     Setting::set('telegram_chat_id', '-7');
 
-    Livewire::actingAs($admin)->test(SettingsIndex::class)
+    Livewire::actingAs($admin)->test(EnvIndex::class)
         ->assertSet('telegramBotToken', '123:old')
         ->assertSet('telegramChatId', '-7');
 

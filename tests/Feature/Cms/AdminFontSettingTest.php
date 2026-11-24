@@ -1,6 +1,6 @@
 <?php
 
-use App\Livewire\Admin\Settings\Index as SettingsIndex;
+use App\Livewire\Admin\Env\Index as EnvIndex;
 use App\Models\Setting;
 use App\Models\User;
 use App\Support\AdminFont;
@@ -85,7 +85,7 @@ it('falls back to the system font, with no error, when the saved font folder was
         ->toContain('--font-sans: '.AdminFont::stacks()['system'], escape: false)
         ->not->toContain('@font-face', escape: false);
 
-    expect(Livewire::test(SettingsIndex::class)->get('settings.admin_font'))->toBe('system');
+    expect(Livewire::test(EnvIndex::class)->get('settings.admin_font'))->toBe('system');
 });
 
 it('defaults to letting the OS answer', function () {
@@ -107,11 +107,11 @@ it('falls back to the system font for a value that is not an option', function (
 });
 
 it('renders the choice on the settings page and saves it', function () {
-    Livewire::test(SettingsIndex::class)
+    Livewire::test(EnvIndex::class)
         ->assertSee('Backend Font')
         ->assertSee('Roboto')
         ->set('settings.admin_font', 'roboto')
-        ->call('save');
+        ->call('saveSiteData');
 
     expect(Setting::where('key', 'admin_font')->value('value'))->toBe('roboto');
 });
@@ -119,15 +119,15 @@ it('renders the choice on the settings page and saves it', function () {
 it('stores the system font when a value that is not an option is saved', function () {
     Setting::set('admin_font', 'roboto');
 
-    Livewire::test(SettingsIndex::class)
+    Livewire::test(EnvIndex::class)
         ->set('settings.admin_font', 'nonsense')
-        ->call('save');
+        ->call('saveSiteData');
 
     expect(Setting::get('admin_font'))->toBe('system');
 });
 
 it('defaults the field to the system font on a database that predates the setting', function () {
-    expect(Livewire::test(SettingsIndex::class)->get('settings.admin_font'))->toBe('system');
+    expect(Livewire::test(EnvIndex::class)->get('settings.admin_font'))->toBe('system');
 });
 
 it('downloads nothing for the system font', function () {

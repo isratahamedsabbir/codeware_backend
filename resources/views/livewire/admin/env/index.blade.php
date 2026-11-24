@@ -1,5 +1,5 @@
 <div x-data="{
-    activeTab: ['general', 'authentication', 'integrations', 'custom-code', 'constant'].includes(new URLSearchParams(location.search).get('tab')) ? new URLSearchParams(location.search).get('tab') : 'general',
+    activeTab: ['general', 'authentication', 'integrations', 'site', 'custom-code', 'constant'].includes(new URLSearchParams(location.search).get('tab')) ? new URLSearchParams(location.search).get('tab') : 'general',
     setTab(tab) { this.activeTab = tab; },
     init() {
         // A link into this page can point straight at one field, e.g.
@@ -26,6 +26,7 @@
                     'general' => ['General', 'cog-6-tooth', 'App, maintenance, debug mode'],
                     'authentication' => ['Authentication', 'lock-closed', 'Google & Facebook login, reCAPTCHA, Turnstile'],
                     'integrations' => ['Integrations', 'puzzle-piece', 'GTM, Maps, S3, Firebase'],
+                    'site' => ['Site Settings', 'adjustments-horizontal', 'Currency, VAT, locale, backend, Telegram'],
                     'custom-code' => ['Custom Code', 'code-bracket', 'Head & body scripts'],
                     'constant' => ['Constant', 'variable', 'Site-wide key / value pairs'],
                 ];
@@ -390,6 +391,9 @@
         </div>
 
         {{-- â”€â”€ Sticky save bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+        <div x-show="activeTab === 'site'" x-cloak>
+            @include('livewire.admin.env.partials._site-settings')
+        </div>
         <div x-show="activeTab === 'custom-code'" x-cloak>
             @include('livewire.admin.env.partials._custom-code')
         </div>
@@ -398,13 +402,13 @@
         </div>
 
         {{-- Save bar for the two DB-backed tabs (not .env) --}}
-        <div x-show="activeTab === 'custom-code' || activeTab === 'constant'" x-cloak
+        <div x-show="['site', 'custom-code', 'constant'].includes(activeTab)" x-cloak
             class="sticky bottom-0 z-10 flex items-center justify-between gap-3 rounded-[5px] border border-zinc-200 bg-white/95 px-5 py-3.5 shadow-[0_-4px_16px_-8px_rgba(0,0,0,0.15)] backdrop-blur dark:border-zinc-700 dark:bg-zinc-800/90">
             <p class="text-xs text-zinc-400">Saved to site settings, not the .env file.</p>
             <flux:button variant="primary" wire:click="saveSiteData" wire:loading.attr="disabled" size="sm">Save</flux:button>
         </div>
 
-        <div x-show="activeTab !== 'custom-code' && activeTab !== 'constant'"
+        <div x-show="! ['site', 'custom-code', 'constant'].includes(activeTab)"
             class="sticky bottom-0 z-10 flex flex-col gap-3 rounded-[5px] border border-zinc-200 bg-white/95 px-5 py-3.5 shadow-[0_-4px_16px_-8px_rgba(0,0,0,0.15)] backdrop-blur dark:border-zinc-700 dark:bg-zinc-800/90 sm:flex-row sm:items-center sm:justify-between">
             <p class="text-xs text-zinc-400">
                 Changes are written to the live <span class="font-mono text-xs">.env</span> file and the configuration cache is cleared once you save.
@@ -443,4 +447,6 @@
             </div>
         </div>
     </flux:modal>
+
+    @include('livewire.admin.env.partials._currency-preview')
 </div>
