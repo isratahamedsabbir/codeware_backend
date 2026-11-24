@@ -29,6 +29,7 @@ use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\WarrantyController;
 use App\Livewire\Admin\About;
 use App\Livewire\Admin\Advance\Backup;
+use App\Livewire\Admin\Advance\JsonFormatter;
 use App\Livewire\Admin\Advance\PasswordGenerator;
 use App\Livewire\Admin\Advance\Robots;
 use App\Livewire\Admin\Advance\Sitemap;
@@ -383,6 +384,7 @@ Route::middleware(['auth', 'admin', 'activity-log', 'mfa'])->group(function () {
             Route::get('/advance/robots', Robots::class)->name('advance.robots');
             Route::get('/advance/backup', Backup::class)->name('advance.backup');
             Route::get('/advance/password-generator', PasswordGenerator::class)->name('advance.password-generator');
+            Route::get('/advance/json-formatter', JsonFormatter::class)->name('advance.json-formatter');
         });
 
         // Orders, Reports & Coupons

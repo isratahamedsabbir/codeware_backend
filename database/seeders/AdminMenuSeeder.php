@@ -162,6 +162,7 @@ class AdminMenuSeeder extends Seeder
             ['Robots.txt', 'globe-alt', 'admin.advance.robots'],
             ['Backup', 'archive-box', 'admin.advance.backup'],
             ['Password Generator', 'key', 'admin.advance.password-generator'],
+            ['JSON Formatter', 'code-bracket', 'admin.advance.json-formatter'],
         ]);
 
         // About is the last thing in the sidebar. It answers "what am I looking
