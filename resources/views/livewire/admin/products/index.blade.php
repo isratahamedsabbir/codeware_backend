@@ -38,21 +38,9 @@
                  (see resources/css/app.css). --}}
             <div class="page-header-actions flex items-center gap-2 shrink-0">
                 @can('access-admin-system')
-                    <flux:button variant="ghost" size="sm" icon="megaphone"
-                        x-on:click="$dispatch('open-modal', { name: 'landing-page-settings' })">
-                        Landing Page
-                    </flux:button>
-                    <flux:button variant="ghost" size="sm" icon="exclamation-triangle"
-                        x-on:click="$dispatch('open-modal', { name: 'product-stock-settings' })">
-                        Stock Settings
-                    </flux:button>
                     <flux:button variant="ghost" size="sm" icon="cog-6-tooth"
-                        x-on:click="$dispatch('open-modal', { name: 'frontend-url-settings' })">
-                        Frontend URL
-                    </flux:button>
-                    <flux:button variant="ghost" size="sm" icon="link"
-                        x-on:click="$dispatch('open-modal', { name: 'url-structure-settings' })">
-                        URL Structure
+                        x-on:click="$dispatch('open-modal', { name: 'product-settings-menu' })">
+                        Settings
                     </flux:button>
                 @endcan
                 <flux:button variant="ghost" size="sm" icon="plus" href="{{ route('admin.products.create') }}" wire:navigate>
@@ -490,6 +478,38 @@
          trigger button above) so the markup never reaches a staff response
          at all, regardless of whether it's shown. --}}
     @can('access-admin-system')
+        {{-- One entry point for the four product settings screens: picking a row
+             closes this chooser and opens that screen's own modal. --}}
+        <flux:modal name="product-settings-menu" class="md:w-96"
+            x-on:open-modal.window="if ($event.detail.name === 'product-settings-menu') $flux.modal('product-settings-menu').show()"
+            x-on:close-modal.window="if ($event.detail.name === 'product-settings-menu') $flux.modal('product-settings-menu').close()">
+            <div class="space-y-4">
+                <flux:heading>{{ __('Product settings') }}</flux:heading>
+
+                <div class="divide-y divide-zinc-100 rounded-lg border border-zinc-100">
+                    @foreach ([
+                        ['landing-page-settings', 'megaphone', 'Landing Page', 'When to show the landing page (ad links)'],
+                        ['product-stock-settings', 'exclamation-triangle', 'Stock Settings', 'Minimum stock quantity warning'],
+                        ['frontend-url-settings', 'cog-6-tooth', 'Frontend URL', 'Address of your storefront'],
+                        ['url-structure-settings', 'link', 'URL Structure', 'How product links are built'],
+                    ] as [$target, $icon, $title, $hint])
+                        <button type="button"
+                            x-on:click="$dispatch('close-modal', { name: 'product-settings-menu' }); $nextTick(() => $dispatch('open-modal', { name: '{{ $target }}' }))"
+                            class="flex w-full items-center gap-3 px-3 py-3 text-left transition-colors hover:bg-indigo-50/50 cursor-pointer">
+                            <span class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                                <x-dynamic-component :component="'flux::icon.'.$icon" class="size-5" />
+                            </span>
+                            <span class="min-w-0 flex-1">
+                                <span class="block text-sm font-medium text-zinc-800">{{ __($title) }}</span>
+                                <span class="block text-xs text-zinc-400">{{ __($hint) }}</span>
+                            </span>
+                            <flux:icon.chevron-right class="size-4 text-zinc-300" />
+                        </button>
+                    @endforeach
+                </div>
+            </div>
+        </flux:modal>
+
         <flux:modal name="frontend-url-settings" class="md:w-96"
             x-on:open-modal.window="if ($event.detail.name === 'frontend-url-settings') $flux.modal('frontend-url-settings').show()"
             x-on:close-modal.window="if ($event.detail.name === 'frontend-url-settings') $flux.modal('frontend-url-settings').close()">

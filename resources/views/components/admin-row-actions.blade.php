@@ -55,6 +55,7 @@
          store is needed to keep only one row's menu open at a time. The
          <tr> in each index.blade.php right-clicks by dispatching a real
          click at [data-actions-trigger] below to open it. --}}
+    <div class="flex items-center justify-center">
     <flux:dropdown position="bottom" align="end">
         <button type="button" data-actions-trigger
             aria-label="Actions"
@@ -91,6 +92,7 @@
             @endforeach
         </flux:menu>
     </flux:dropdown>
+    </div>
 @else
     <div class="flex items-center justify-center gap-1.5">
         @foreach ($visible as $action)

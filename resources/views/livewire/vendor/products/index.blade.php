@@ -31,7 +31,7 @@
                         <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Price</th>
                         <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Stock</th>
                         <th class="px-4 py-2.5 text-left text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Status</th>
-                        <th class="px-4 py-2.5 text-right text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Actions</th>
+                        <th class="px-4 py-2.5 text-center text-[10.5px] font-semibold text-zinc-600 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -71,7 +71,7 @@
                                     <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-50 text-zinc-500 ring-1 ring-zinc-600/10">Inactive</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-2.5 text-right">
+                            <td class="px-4 py-2.5 text-center">
                                 @unless ($product->trashed())
                                     <flux:button variant="ghost" size="sm" icon="pencil" href="{{ route('vendor.products.edit', $product->id) }}" wire:navigate>
                                         Edit

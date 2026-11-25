@@ -7,6 +7,10 @@
         'posts' => ['label' => 'Posts', 'icon' => 'document-text', 'group' => 'stats', 'accent' => 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400'],
         'pages' => ['label' => 'Pages', 'icon' => 'document', 'group' => 'stats', 'accent' => 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-400'],
         'media' => ['label' => 'Media files', 'icon' => 'photo', 'group' => 'stats', 'accent' => 'bg-sky-50 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400'],
+        'services' => ['label' => 'Services', 'icon' => 'wrench-screwdriver', 'group' => 'stats', 'accent' => 'bg-violet-50 text-violet-600 dark:bg-violet-500/15 dark:text-violet-400'],
+        'users' => ['label' => 'Users', 'icon' => 'users', 'group' => 'stats', 'accent' => 'bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400'],
+        'orders' => ['label' => 'Orders', 'icon' => 'shopping-bag', 'group' => 'stats', 'accent' => 'bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400'],
+        'contacts' => ['label' => 'Contacts', 'icon' => 'envelope', 'group' => 'stats', 'accent' => 'bg-teal-50 text-teal-600 dark:bg-teal-500/15 dark:text-teal-400'],
         'overview' => ['label' => 'Workspace overview', 'icon' => 'chart-bar', 'group' => 'charts', 'accent' => 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary'],
         'post-status' => ['label' => 'Posts by status', 'icon' => 'chart-pie', 'group' => 'charts', 'accent' => 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400'],
         'low-stock' => ['label' => 'Low stock alerts', 'icon' => 'exclamation-triangle', 'group' => 'alerts', 'accent' => 'bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400'],
@@ -15,6 +19,22 @@
     if (! $productsEnabled) {
         unset($dashboardCards['low-stock']);
     }
+
+    // Cards whose feature is off (or that only an Admin may see) are not rendered,
+    // so they are not offered in the Display options either.
+    foreach (['services' => $servicesEnabled, 'users' => $usersEnabled, 'orders' => $ordersEnabled, 'contacts' => $contactsEnabled] as $cardId => $available) {
+        if (! $available) {
+            unset($dashboardCards[$cardId]);
+        }
+    }
+
+    // The four extra stat cards, rendered by one loop below.
+    $extraStatCards = array_filter([
+        'services' => ['route' => 'admin.services', 'total' => $totalServices, 'month' => $servicesThisMonth, 'icon' => 'wrench-screwdriver', 'tile' => 'bg-violet-100', 'iconColor' => 'text-violet-600', 'chip' => 'bg-violet-50 text-violet-600'],
+        'users' => ['route' => 'admin.users', 'total' => $totalUsers, 'month' => $usersThisMonth, 'icon' => 'users', 'tile' => 'bg-rose-100', 'iconColor' => 'text-rose-600', 'chip' => 'bg-rose-50 text-rose-600'],
+        'orders' => ['route' => 'admin.orders', 'total' => $totalOrders, 'month' => $ordersThisMonth, 'icon' => 'shopping-bag', 'tile' => 'bg-amber-100', 'iconColor' => 'text-amber-600', 'chip' => 'bg-amber-50 text-amber-600'],
+        'contacts' => ['route' => 'admin.contacts', 'total' => $totalContacts, 'month' => $contactsThisMonth, 'icon' => 'envelope', 'tile' => 'bg-teal-100', 'iconColor' => 'text-teal-600', 'chip' => 'bg-teal-50 text-teal-600'],
+    ], fn ($card, $id) => isset($dashboardCards[$id]), ARRAY_FILTER_USE_BOTH);
 
     $dashboardCardGroups = [
         'stats' => 'Stat cards',
@@ -79,7 +99,7 @@
 
     {{-- Stats --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"
-         x-show="! isCardHidden('products') || ! isCardHidden('posts') || ! isCardHidden('pages') || ! isCardHidden('media')">
+         x-show="{{ \Illuminate\Support\Js::from(array_values(array_filter(array_keys($dashboardCards), fn ($id) => $dashboardCards[$id]['group'] === 'stats'))) }}.some(id => ! isCardHidden(id))">
 
         <a href="{{ route('admin.products') }}" wire:navigate.hover
            x-show="! isCardHidden('products')"
@@ -167,6 +187,30 @@
                 </div>
             </div>
         </a>
+
+
+        @foreach ($extraStatCards as $cardId => $card)
+            <a href="{{ route($card['route']) }}" wire:navigate.hover
+               x-show="! isCardHidden('{{ $cardId }}')"
+               class="admin-card admin-stat-card admin-showcase-stat relative border-0! shadow-sm! block group no-underline">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold text-zinc-500">{{ $dashboardCards[$cardId]['label'] }}</p>
+                        <p class="admin-stat-value mt-1 font-extrabold text-zinc-900 leading-6 tabular-nums">{{ $card['total'] }}</p>
+                        <p class="mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium text-zinc-400">
+                            <span class="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 font-semibold {{ $card['chip'] }}">
+                                <flux:icon.arrow-trending-up class="size-3" />
+                                +{{ $card['month'] }}
+                            </span>
+                            this month
+                        </p>
+                    </div>
+                    <div class="admin-stat-icon {{ $card['tile'] }} group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300">
+                        <x-dynamic-component :component="'flux::icon.'.$card['icon']" class="size-6 {{ $card['iconColor'] }}" />
+                    </div>
+                </div>
+            </a>
+        @endforeach
 
     </div>
 
