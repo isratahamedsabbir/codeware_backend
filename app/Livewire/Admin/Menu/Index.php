@@ -47,6 +47,9 @@ class Index extends Component
     /** IDs of group menu items that are currently expanded. */
     public array $expandedGroups = [];
 
+    /** Filters the tree by label / route / URL; while set, matching groups open on their own and reordering is off. */
+    public string $search = '';
+
     #[Validate('required|string|max:60')]
     public string $newMenuLabel = '';
 
@@ -61,6 +64,7 @@ class Index extends Component
 
     public function selectMenu(string $group): void
     {
+        $this->search = '';
         $this->activeGroup = $group;
         $this->expandedGroups = [];
     }
@@ -367,7 +371,20 @@ class Index extends Component
 
     public function isGroupExpanded(int $id): bool
     {
-        return in_array($id, $this->expandedGroups, true);
+        return trim($this->search) !== '' || in_array($id, $this->expandedGroups, true);
+    }
+
+    public function expandAll(): void
+    {
+        $this->expandedGroups = MenuItem::where('group', $this->activeGroup)
+            ->where('is_group', true)
+            ->pluck('id')
+            ->all();
+    }
+
+    public function collapseAll(): void
+    {
+        $this->expandedGroups = [];
     }
 
     public function confirmDelete(int $id): void
@@ -423,6 +440,17 @@ class Index extends Component
             $items = $items->reject(fn (MenuItem $item) => ! $item->is_group && ! $item->isVisibleToCurrentUser());
         }
 
+        $needle = Str::lower(trim($this->search));
+
+        if ($needle !== '') {
+            $matches = fn (MenuItem $item) => Str::contains(Str::lower(__($item->label).' '.$item->route_name.' '.$item->url), $needle);
+            $matchedParents = $items->where('parent_id', '!=', null)->filter($matches)->pluck('parent_id')->unique();
+
+            // Keep an item that matches itself, and a group that holds a match.
+            $items = $items->filter(fn (MenuItem $item) => $matches($item) || $matchedParents->contains($item->id)
+                || ($item->parent_id && $items->firstWhere('id', $item->parent_id) && $matches($items->firstWhere('id', $item->parent_id))))->values();
+        }
+
         $topLevel = $items->where('parent_id', null)->values();
         $byParent = $items->where('parent_id', '!=', null)->groupBy('parent_id');
 
@@ -465,6 +493,7 @@ class Index extends Component
             'topLevel' => $topLevel,
             'menus' => $menus,
             'activeMenu' => $activeMenu,
+            'totalItems' => $items->count(),
             'activeItemCount' => $this->activeGroup === MenuItem::GROUP_ADMIN_SIDEBAR ? 0 : $items->count(),
             'groups' => $groups,
             'brands' => $brands,

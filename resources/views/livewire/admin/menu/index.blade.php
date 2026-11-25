@@ -39,9 +39,31 @@
 
     <div class="bg-white rounded-[5px] border border-zinc-100 shadow-sm overflow-hidden">
 
+    @php
+        $searching = trim($search) !== '';
+        $hasGroups = $groups->isNotEmpty();
+    @endphp
+
+    {{-- Toolbar: search + expand/collapse --}}
+    <div class="flex flex-wrap items-center gap-3 border-b border-zinc-100 px-4 py-3">
+        <div class="min-w-0 flex-1 basis-56">
+            <flux:input size="sm" icon="magnifying-glass" wire:model.live.debounce.250ms="search"
+                placeholder="{{ __('Search items by name or link…') }}" clearable />
+        </div>
+
+        <div class="flex items-center gap-1.5">
+            @if ($hasGroups && ! $searching)
+                <flux:button size="xs" variant="ghost" icon="chevron-double-down" wire:click="expandAll">{{ __('Expand all') }}</flux:button>
+                <flux:button size="xs" variant="ghost" icon="chevron-double-up" wire:click="collapseAll">{{ __('Collapse all') }}</flux:button>
+            @endif
+            <span class="text-xs text-zinc-400">
+                {{ trans_choice(':count item|:count items', $totalItems, ['count' => $totalItems]) }}
+            </span>
+        </div>
+    </div>
+
     {{-- Sortable tree --}}
-    <div class=""
-        x-data="{
+    <div x-data="{
             initTop() {
                 if (typeof Sortable === 'undefined') return;
                 new Sortable(this.$refs.topSortable, {
@@ -68,185 +90,24 @@
             },
         }"
         x-init="initTop()">
-        <div class="border border-zinc-100 rounded-lg divide-y divide-zinc-50" x-ref="topSortable">
+        <div class="divide-y divide-zinc-100" x-ref="topSortable">
             @forelse ($topLevel as $item)
                 <div data-item-id="{{ $item->id }}" wire:key="top-{{ $item->id }}">
 
-                    {{-- Row --}}
-                    <div class="flex items-center gap-3 px-4 py-3 hover:bg-indigo-50/30 transition-colors {{ $item->is_active ? '' : 'opacity-50' }}">
-                        <div class="drag-handle cursor-grab active:cursor-grabbing w-8 h-8 shrink-0 rounded-lg flex items-center justify-center {{ $item->is_group ? 'bg-indigo-50 text-indigo-600' : 'bg-zinc-100 text-zinc-500' }}">
-                            @php $iconName = \App\Models\MenuItem::iconExists($item->icon) ? $item->icon : 'link'; @endphp
-                            @if ($item->is_group)
-                                <flux:icon.folder class="size-4.5" />
-                            @else
-                                <x-dynamic-component :component="'flux::icon.'.$iconName" class="size-4.5" />
-                            @endif
-                        </div>
-
-                        <div class="flex-1 min-w-0">
-                            <span class="text-sm font-medium text-zinc-800">{{ __($item->label) }}</span>
-                            @if ($item->is_group)
-                                <span class="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-600 align-middle">
-                                    {{ __('Group') }}
-                                </span>
-                            @elseif ($item->route_name)
-                                <span class="ml-1.5 font-mono text-[11px] text-zinc-400">{{ $item->route_name }}</span>
-                            @elseif ($item->url)
-                                <span class="ml-1.5 font-mono text-[11px] text-zinc-400">{{ $item->url }}</span>
-                            @endif
-                        </div>
-
-                        <div class="flex items-center gap-1.5 shrink-0">
-
-                            @if ($item->is_group)
-                                @if ($item->children()->exists())
-                                    <button wire:click="toggleGroup({{ $item->id }})"
-                                        aria-label="{{ $this->isGroupExpanded($item->id) ? __('Collapse group') : __('Expand group') }}"
-                                        class="inline-flex items-center justify-center w-6 h-6 rounded border transition-all duration-150 border-zinc-300 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600">
-                                        @if ($this->isGroupExpanded($item->id))
-                                            <flux:icon.chevron-up class="size-3.5" />
-                                        @else
-                                            <flux:icon.chevron-down class="size-3.5" />
-                                        @endif
-                                    </button>
-                                @endif
-                                <button wire:click="openCreate({{ $item->id }})"
-                                    class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-zinc-200 text-zinc-600 bg-white hover:bg-zinc-50 transition-colors">
-                                    <flux:icon.plus class="size-3.5" />
-                                    {{ __('Add item') }}
-                                </button>
-                            @endif
-
-                            {{-- Toggle short menu (top bar quick-access dropdown) --}}
-                            @unless ($item->is_group)
-                                <div class="relative group">
-                                    <button wire:click="toggleShortMenu({{ $item->id }})"
-                                        aria-label="{{ $item->is_short_menu ? __('Remove from short menu') : __('Add to short menu') }}"
-                                        class="inline-flex items-center justify-center w-6 h-6 rounded border transition-all duration-150 {{ $item->is_short_menu ? 'border-amber-500 text-amber-500' : 'border-zinc-300 text-zinc-400' }} hover:bg-amber-500 hover:text-white hover:border-amber-500 hover:-translate-y-px"
-                                        style="box-shadow:none"
-                                        onmouseover="this.style.boxShadow='0 3px 8px rgba(245,158,11,.35)'"
-                                        onmouseout="this.style.boxShadow='none'">
-                                        <flux:icon.star class="w-3.5 h-3.5" variant="{{ $item->is_short_menu ? 'solid' : 'outline' }}" />
-                                    </button>
-                                    <span class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded text-[11px] font-medium bg-amber-500 text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                        {{ $item->is_short_menu ? __('Remove from short menu') : __('Add to short menu') }}
-                                    </span>
-                                </div>
-                            @endunless
-
-                            {{-- Toggle active --}}
-                            <div class="relative group">
-                                <button wire:click="toggleActive({{ $item->id }})"
-                                    aria-label="{{ $item->is_active ? __('Deactivate') : __('Activate') }}"
-                                    class="inline-flex items-center justify-center w-6 h-6 rounded border transition-all duration-150 border-zinc-400 text-zinc-500 hover:bg-zinc-600 hover:text-white hover:border-zinc-600 hover:-translate-y-px"
-                                    style="box-shadow:none"
-                                    onmouseover="this.style.boxShadow='0 3px 8px rgba(82,82,91,.35)'"
-                                    onmouseout="this.style.boxShadow='none'">
-                                    @if ($item->is_active)
-                                        <flux:icon.eye-slash class="w-3 h-3" />
-                                    @else
-                                        <flux:icon.eye class="w-3 h-3" />
-                                    @endif
-                                </button>
-                                <span class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded text-[11px] font-medium bg-zinc-600 text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                    {{ $item->is_active ? __('Deactivate') : __('Activate') }}
-                                </span>
-                            </div>
-
-                            {{-- Edit --}}
-                            <div class="relative group">
-                                <button wire:click="edit({{ $item->id }})" aria-label="{{ __('Edit') }}"
-                                    class="inline-flex items-center justify-center w-6 h-6 rounded border transition-all duration-150 border-primary text-primary hover:bg-primary hover:text-white hover:-translate-y-px"
-                                    style="box-shadow:none"
-                                    onmouseover="this.style.boxShadow='0 3px 8px rgba(99,102,241,.35)'"
-                                    onmouseout="this.style.boxShadow='none'">
-                                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                    </svg>
-                                </button>
-                                <span class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded text-[11px] font-medium bg-primary text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                    {{ __('Edit') }}
-                                </span>
-                            </div>
-
-                            {{-- Delete --}}
-                            <div class="relative group">
-                                <button wire:click="confirmDelete({{ $item->id }})" aria-label="{{ __('Delete') }}"
-                                    class="inline-flex items-center justify-center w-6 h-6 rounded border transition-all duration-150 border-rose-500 text-rose-500 hover:bg-rose-500 hover:text-white hover:-translate-y-px"
-                                    style="box-shadow:none"
-                                    onmouseover="this.style.boxShadow='0 3px 8px rgba(225,29,72,.35)'"
-                                    onmouseout="this.style.boxShadow='none'">
-                                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="3 6 5 6 21 6" />
-                                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                        <path d="M10 11v6" />
-                                        <path d="M14 11v6" />
-                                        <path d="M9 6V4h6v2" />
-                                    </svg>
-                                </button>
-                                <span class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded text-[11px] font-medium bg-rose-500 text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                    {{ __('Delete') }}
-                                </span>
-                            </div>
-
-                        </div>
-                    </div>
+                    @include('livewire.admin.menu.partials._row', ['item' => $item, 'child' => false, 'searching' => $searching])
 
                     {{-- Children --}}
                     @if ($item->is_group && $this->isGroupExpanded($item->id))
-                        <div class="pl-11 pr-4 pb-3 space-y-1" x-init="initGroup($el, {{ $item->id }})">
-                            @forelse ($item->children as $child)
-                                <div data-item-id="{{ $child->id }}" wire:key="child-{{ $child->id }}"
-                                    class="flex items-center gap-3 px-3 py-2 rounded-lg bg-zinc-50/60 hover:bg-indigo-50/40 transition-colors {{ $child->is_active ? '' : 'opacity-50' }}">
-                                    @php $childIcon = \App\Models\MenuItem::iconExists($child->icon) ? $child->icon : 'link'; @endphp
-                                    <div class="drag-handle cursor-grab active:cursor-grabbing w-7 h-7 shrink-0 rounded-lg bg-white border border-zinc-100 flex items-center justify-center text-zinc-400">
-                                        <x-dynamic-component :component="'flux::icon.'.$childIcon" class="size-3.5" />
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <span class="text-sm text-zinc-700">{{ __($child->label) }}</span>
-                                        @if ($child->route_name)
-                                            <span class="ml-1.5 font-mono text-[11px] text-zinc-400">{{ $child->route_name }}</span>
-                                        @elseif ($child->url)
-                                            <span class="ml-1.5 font-mono text-[11px] text-zinc-400">{{ $child->url }}</span>
-                                        @endif
-                                    </div>
-                                    <div class="flex items-center gap-1.5 shrink-0">
-                                        <button wire:click="toggleShortMenu({{ $child->id }})"
-                                            aria-label="{{ $child->is_short_menu ? __('Remove from short menu') : __('Add to short menu') }}"
-                                            class="inline-flex items-center justify-center w-6 h-6 shrink-0 rounded border transition-all duration-150 {{ $child->is_short_menu ? 'border-amber-500 text-amber-500' : 'border-zinc-300 text-zinc-400' }} hover:bg-amber-500 hover:text-white hover:border-amber-500">
-                                            <flux:icon.star class="w-3.5 h-3.5" variant="{{ $child->is_short_menu ? 'solid' : 'outline' }}" />
-                                        </button>
-                                        <button wire:click="toggleActive({{ $child->id }})"
-                                            aria-label="{{ $child->is_active ? __('Deactivate') : __('Activate') }}"
-                                            class="inline-flex items-center justify-center w-6 h-6 shrink-0 rounded border transition-all duration-150 border-zinc-400 text-zinc-500 hover:bg-zinc-600 hover:text-white hover:border-zinc-600">
-                                            @if ($child->is_active)
-                                                <flux:icon.eye-slash class="w-3 h-3" />
-                                            @else
-                                                <flux:icon.eye class="w-3 h-3" />
-                                            @endif
-                                        </button>
-                                        <button wire:click="edit({{ $child->id }})" aria-label="{{ __('Edit') }}"
-                                            class="inline-flex items-center justify-center w-6 h-6 shrink-0 rounded border transition-all duration-150 border-primary text-primary hover:bg-primary hover:text-white">
-                                            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                            </svg>
-                                        </button>
-                                        <button wire:click="confirmDelete({{ $child->id }})" aria-label="{{ __('Delete') }}"
-                                            class="inline-flex items-center justify-center w-6 h-6 shrink-0 rounded border transition-all duration-150 border-rose-500 text-rose-500 hover:bg-rose-500 hover:text-white">
-                                            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <polyline points="3 6 5 6 21 6" />
-                                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                                <path d="M10 11v6" />
-                                                <path d="M14 11v6" />
-                                                <path d="M9 6V4h6v2" />
-                                            </svg>
-                                        </button>
-                                    </div>
+                        <div class="ml-[2.9rem] mr-3 mb-3 space-y-0.5 border-l-2 border-indigo-100 pl-3" x-init="initGroup($el, {{ $item->id }})">
+                            @forelse ($item->children as $childItem)
+                                <div data-item-id="{{ $childItem->id }}" wire:key="child-{{ $childItem->id }}">
+                                    @include('livewire.admin.menu.partials._row', ['item' => $childItem, 'child' => true, 'searching' => $searching])
                                 </div>
                             @empty
-                                <p class="text-xs text-zinc-400 px-3 py-2">{{ __('No items in this group yet.') }}</p>
+                                <p class="px-2 py-2 text-xs text-zinc-400">
+                                    {{ __('No items in this group yet.') }}
+                                    <button type="button" wire:click="openCreate({{ $item->id }})" class="font-medium text-indigo-600 hover:underline">{{ __('Add the first one') }}</button>
+                                </p>
                             @endforelse
                         </div>
                     @endif
@@ -254,8 +115,14 @@
                 </div>
             @empty
                 <div class="px-6 py-16 text-center">
-                    <flux:icon.bars-3 class="w-10 h-10 text-zinc-200 mx-auto mb-3" />
-                    <p class="text-sm text-zinc-600">{{ __('No menu items found.') }}</p>
+                    <flux:icon.bars-3 class="mx-auto mb-3 size-10 text-zinc-200" />
+                    @if ($searching)
+                        <p class="text-sm text-zinc-600">{{ __('No items match ":term".', ['term' => $search]) }}</p>
+                        <flux:button size="sm" variant="ghost" class="mt-3" wire:click="$set('search', '')">{{ __('Clear search') }}</flux:button>
+                    @else
+                        <p class="text-sm text-zinc-600">{{ __('No menu items found.') }}</p>
+                        <flux:button size="sm" variant="primary" icon="plus" class="mt-3" wire:click="openCreate()">{{ __('New menu item') }}</flux:button>
+                    @endif
                 </div>
             @endforelse
         </div>
