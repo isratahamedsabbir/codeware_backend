@@ -18,9 +18,4 @@
                   class="text-[10px] font-medium opacity-60"></span>
         </button>
     @endforeach
-    <button type="button" x-on:click="$store.screenEls.showAll('{{ $scope }}')"
-            class="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-semibold text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-700 dark:hover:text-white">
-        <flux:icon.arrow-path class="size-3" />
-        Reset
-    </button>
 </div>

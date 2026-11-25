@@ -438,6 +438,7 @@
             screenOptionsOpen: false,
             screenOptionsDragging: false,
             screenOptionsHeight: 0,
+            screenOptionsFull: 105,
             screenOptionsStartY: 0,
             screenOptionsStartHeight: 0,
             screenOptionsMoved: false,
@@ -447,29 +448,37 @@
                 this.screenOptionsDragging = true;
                 this.screenOptionsMoved = false;
                 this.screenOptionsStartY = event.clientY;
-                this.screenOptionsStartHeight = this.screenOptionsOpen ? 105 : 0;
+                this.screenOptionsStartHeight = this.screenOptionsOpen ? this.screenOptionsFull : 0;
             },
             moveScreenOptionsDrag(event) {
                 if (!this.screenOptionsDragging) return;
                 const delta = event.clientY - this.screenOptionsStartY;
                 if (Math.abs(delta) > 6) this.screenOptionsMoved = true;
-                this.screenOptionsHeight = Math.max(0, Math.min(105, this.screenOptionsStartHeight + delta));
+                this.screenOptionsHeight = Math.max(0, Math.min(this.screenOptionsFull, this.screenOptionsStartHeight + delta));
             },
             endScreenOptionsDrag() {
                 if (!this.screenOptionsDragging) return;
                 this.screenOptionsDragging = false;
                 if (this.screenOptionsMoved) {
-                    this.screenOptionsOpen = this.screenOptionsHeight >= 53;
+                    this.screenOptionsOpen = this.screenOptionsHeight >= this.screenOptionsFull / 2;
                     this.screenOptionsSuppressClick = true;
                 }
-                this.screenOptionsHeight = this.screenOptionsOpen ? 105 : 0;
+                this.screenOptionsHeight = this.screenOptionsOpen ? this.screenOptionsFull : 0;
             },
             toggleScreenOptions() {
                 if (this.screenOptionsSuppressClick) { this.screenOptionsSuppressClick = false; return; }
                 this.screenOptionsOpen = !this.screenOptionsOpen;
-                this.screenOptionsHeight = this.screenOptionsOpen ? 105 : 0;
+                this.screenOptionsHeight = this.screenOptionsOpen ? this.screenOptionsFull : 0;
             }
         }"
+        x-init="$nextTick(() => {
+            const el = $refs.screenOptionsContent;
+            if (! el || ! ('ResizeObserver' in window)) return;
+            new ResizeObserver(() => {
+                screenOptionsFull = Math.ceil(el.offsetHeight);
+                if (! screenOptionsDragging && screenOptionsOpen) screenOptionsHeight = screenOptionsFull;
+            }).observe(el);
+        })"
         x-on:pointermove.window="moveScreenOptionsDrag($event)"
         x-on:pointerup.window="endScreenOptionsDrag()"
         x-on:pointercancel.window="endScreenOptionsDrag()">
@@ -560,7 +569,7 @@
                     x-bind:aria-expanded="screenOptionsOpen.toString()"
                     x-on:pointerdown="beginScreenOptionsDrag($event)"
                     x-on:click="toggleScreenOptions()"
-                    x-bind:style="'position: absolute; right: 0; bottom: -10px; z-index: 9999; transform: translateY(' + (screenOptionsDragging ? screenOptionsHeight : (screenOptionsOpen ? 105 : 0)) + 'px);'"
+                    x-bind:style="'position: absolute; right: 0; bottom: -10px; z-index: 9999; transform: translateY(' + (screenOptionsDragging ? screenOptionsHeight : (screenOptionsOpen ? screenOptionsFull : 0)) + 'px);'"
                     x-bind:class="screenOptionsDragging ? 'duration-0' : 'duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]'"
                     class="group inline-flex h-4 cursor-grab touch-none select-none items-center justify-center rounded-bl-md border border-t-0 border-zinc-200/80 bg-white/95 px-1 text-zinc-500 shadow-[0_4px_12px_-6px_rgba(15,23,42,0.22)] backdrop-blur transition-[transform,color,background-color,border-color,box-shadow] hover:bg-white hover:text-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 active:cursor-grabbing dark:border-zinc-700/80 dark:bg-zinc-900/95 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100">
                     <svg class="size-2.5 text-zinc-400 transition-transform duration-300 ease-out dark:text-zinc-500"
@@ -580,22 +589,18 @@
 
         {{-- The arrow stays attached to the panel's lower edge and moves with it. --}}
         <div
-            x-bind:style="'height: ' + (screenOptionsDragging ? screenOptionsHeight : (screenOptionsOpen ? 105 : 0)) + 'px'"
+            x-bind:style="'height: ' + (screenOptionsDragging ? screenOptionsHeight : (screenOptionsOpen ? screenOptionsFull : 0)) + 'px'"
             x-bind:class="screenOptionsDragging ? 'duration-0' : 'duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]'"
             style="position: absolute; top: 56px; left: 0; right: 0; z-index: 45; height: 0;"
             class="overflow-hidden transition-[height] will-change-[height]">
             <div id="admin-screen-options-panel"
-                x-bind:style="'height: ' + (screenOptionsDragging ? screenOptionsHeight : (screenOptionsOpen ? 105 : 0)) + 'px'"
+                x-bind:style="'height: ' + (screenOptionsDragging ? screenOptionsHeight : (screenOptionsOpen ? screenOptionsFull : 0)) + 'px'"
                 x-bind:class="screenOptionsDragging ? 'duration-0' : 'duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]'"
                 style="height: 0;"
                 class="overflow-hidden border-b border-zinc-200 bg-white shadow-[0_18px_36px_-18px_rgba(15,23,42,0.28)] transition-[height] will-change-[height] dark:border-zinc-700 dark:bg-zinc-900">
-                <div class="h-[105px] px-6 py-3">
-                    <h2 class="flex items-center gap-2 text-sm font-semibold text-zinc-700 dark:text-zinc-200">
-                        <flux:icon.adjustments-horizontal class="size-4 text-zinc-400 dark:text-zinc-500" />
-                        {{ __('Screen elements') }}
-                    </h2>
+                <div x-ref="screenOptionsContent" class="px-6 py-3">
                     {{-- Screens add their own hide/show toggles here with @push('screen-options'). --}}
-                    <div class="mt-2 max-h-[48px] overflow-y-auto empty:hidden">
+                    <div class="empty:hidden">
                         @stack('screen-options')
                     </div>
                 </div>
