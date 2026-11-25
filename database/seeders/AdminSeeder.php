@@ -39,6 +39,18 @@ class AdminSeeder extends Seeder
         Role::whereNull('created_by')->update(['created_by' => $admin->id]);
         Permission::whereNull('created_by')->update(['created_by' => $admin->id]);
 
+        $developer = User::updateOrCreate(
+            ['email' => 'developer@developer.com'],
+            [
+                'name' => 'Developer',
+                'email' => 'developer@developer.com',
+                'password' => '12345678',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        $developer->assignRole('admin');
+
         $staff = User::updateOrCreate(
             ['email' => 'staff@admin.com'],
             [

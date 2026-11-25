@@ -54,8 +54,10 @@ class UserController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')],
             'password' => $this->passwordRules(),
             'roles' => 'sometimes|array',
-            'roles.*' => 'string|exists:roles,name',
+            'roles.*' => ['string', Rule::exists('roles', 'name')->where('status', 'active')],
         ]);
+
+        $this->guardDeliveryConflict($validated['roles'] ?? []);
 
         $user = User::create([
             'name' => $validated['name'],
@@ -74,12 +76,24 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
 
+        // Same guard as the Livewire Users form: the primary admin is untouchable.
+        $this->guardPrimaryAdmin($user);
+
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
             'email' => ['sometimes', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'roles' => 'sometimes|array',
-            'roles.*' => 'string|exists:roles,name',
+            'roles.*' => ['string', Rule::exists('roles', 'name')->where('status', 'active')],
         ]);
+
+        // Nobody may change their own roles (self-demotion would lock the panel).
+        if (array_key_exists('roles', $validated) && $user->id === $request->user()->id) {
+            throw ValidationException::withMessages([
+                'roles' => ['You cannot change your own roles.'],
+            ]);
+        }
+
+        $this->guardDeliveryConflict($validated['roles'] ?? []);
 
         $user->update(collect($validated)->only(['name', 'email'])->all());
 
@@ -95,6 +109,10 @@ class UserController extends Controller
     public function updatePassword(Request $request, int $id): JsonResponse
     {
         $user = User::findOrFail($id);
+
+        if ($user->id !== $request->user()->id) {
+            $this->guardPrimaryAdmin($user);
+        }
 
         $validated = $request->validate([
             'password' => $this->passwordRules(),
@@ -117,10 +135,32 @@ class UserController extends Controller
             ]);
         }
 
+        $this->guardPrimaryAdmin($user);
+
         AdminActivity::log('deleted', "User: {$user->email}");
         $user->delete();
 
         return response()->noContent();
+    }
+
+    private function guardPrimaryAdmin(User $user): void
+    {
+        if ($user->id === 1) {
+            throw ValidationException::withMessages([
+                'id' => ['The primary admin account cannot be modified.'],
+            ]);
+        }
+    }
+
+    /** delivery_boy can never be combined with admin, staff or vendor (see User::isDeliveryBoy()). */
+    private function guardDeliveryConflict(array $roles): void
+    {
+        if (in_array(User::DELIVERY_ROLE, $roles, true)
+            && array_intersect($roles, User::DELIVERY_INELIGIBLE_ROLES)) {
+            throw ValidationException::withMessages([
+                'roles' => ['The delivery_boy role cannot be combined with admin, staff or vendor.'],
+            ]);
+        }
     }
 
     private function formatUser(User $user): array
