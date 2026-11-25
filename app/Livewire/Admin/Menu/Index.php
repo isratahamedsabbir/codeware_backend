@@ -97,9 +97,23 @@ class Index extends Component
         $this->dispatch('notify', message: __('Menu created successfully'));
     }
 
+    /**
+     * Menus the storefront reads by slug (App\Support\Frontend::menuItems(),
+     * quickLinks(), PortfolioProfile). Deleting one would blank a theme's
+     * header/footer, so like the admin sidebar they can be edited but never removed.
+     */
+    public const PROTECTED_MENUS = ['frontend', 'quick-links', 'portfolio'];
+
+    public static function isProtectedMenu(string $slug): bool
+    {
+        return $slug === MenuItem::GROUP_ADMIN_SIDEBAR || in_array($slug, self::PROTECTED_MENUS, true);
+    }
+
     public function confirmDeleteMenu(): void
     {
-        if ($this->activeGroup === MenuItem::GROUP_ADMIN_SIDEBAR) {
+        if (self::isProtectedMenu($this->activeGroup)) {
+            $this->dispatch('notify', message: __('This menu is used by your website and cannot be deleted.'));
+
             return;
         }
 
@@ -108,8 +122,8 @@ class Index extends Component
 
     public function deleteMenu(): void
     {
-        // The admin sidebar drives the admin panel's own navigation — it can never be removed.
-        if ($this->activeGroup === MenuItem::GROUP_ADMIN_SIDEBAR) {
+        // The admin sidebar and the menus the storefront reads can never be removed.
+        if (self::isProtectedMenu($this->activeGroup)) {
             $this->dispatch('close-modal', name: 'menu-delete');
 
             return;

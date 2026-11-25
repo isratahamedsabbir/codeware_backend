@@ -5,38 +5,32 @@
             @include('partials._admin-breadcrumbs', ['routeName' => 'admin.menu'])
         </div>
         <div class="flex items-center gap-3 shrink-0 flex-wrap">
-            <div class="inline-flex items-center gap-1 p-1 rounded-xl bg-zinc-100">
-                @foreach ($menus as $menu)
-                    @php
-                        $isActive = $activeGroup === $menu->slug;
-                        $isAdminMenu = $menu->slug === \App\Models\MenuItem::GROUP_ADMIN_SIDEBAR;
-                    @endphp
-                    <div wire:key="menu-tab-{{ $menu->slug }}"
-                        class="inline-flex items-center rounded-lg transition-all duration-150 {{ $isActive ? 'bg-white shadow-sm' : 'hover:bg-white/60' }}">
-                        <button type="button" wire:click="selectMenu('{{ $menu->slug }}')"
-                            class="inline-flex items-center gap-1.5 py-1.5 text-sm font-medium cursor-pointer transition-colors duration-150 {{ $isActive && ! $isAdminMenu ? 'pl-4 pr-1.5' : 'px-4' }} {{ $isActive ? 'text-zinc-900' : 'text-zinc-500 hover:text-zinc-800' }}">
-                            @if ($isAdminMenu)
-                                <flux:icon.lock-closed class="size-3.5 {{ $isActive ? 'text-zinc-400' : 'text-zinc-400/70' }}" />
-                            @endif
+            @php
+                $activeMenuModel = $menus->firstWhere('slug', $activeGroup);
+                $canDeleteActive = ! \App\Livewire\Admin\Menu\Index::isProtectedMenu($activeGroup);
+            @endphp
+            <flux:dropdown position="bottom" align="end">
+                <flux:button size="sm" variant="outline" icon:trailing="chevron-down">
+                    {{ $activeMenuModel?->name ?? __('Select menu') }}
+                </flux:button>
+
+                <flux:menu>
+                    <flux:menu.heading>{{ __('Menus') }}</flux:menu.heading>
+                    @foreach ($menus as $menu)
+                        <flux:menu.item wire:key="menu-tab-{{ $menu->slug }}"
+                            wire:click="selectMenu('{{ $menu->slug }}')"
+                            :icon="$menu->slug === \App\Models\MenuItem::GROUP_ADMIN_SIDEBAR ? 'lock-closed' : ($activeGroup === $menu->slug ? 'check' : null)">
                             {{ $menu->name }}
-                        </button>
-                        @if ($isActive && ! $isAdminMenu)
-                            <flux:tooltip :content="__('Delete menu')" position="bottom">
-                                <button type="button" wire:click="confirmDeleteMenu"
-                                    aria-label="{{ __('Delete menu') }}"
-                                    class="mr-1.5 inline-flex items-center justify-center size-5 rounded-md text-zinc-400 hover:text-red-600 hover:bg-red-50 transition-colors duration-150 cursor-pointer">
-                                    <flux:icon.x-mark class="size-3.5" />
-                                </button>
-                            </flux:tooltip>
-                        @endif
-                    </div>
-                @endforeach
-                <button type="button" wire:click="openNewMenu"
-                    class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-500 hover:text-zinc-800 hover:bg-white/70 transition-all duration-150 cursor-pointer">
-                    <flux:icon.plus class="size-3.5" />
-                    {{ __('New menu') }}
-                </button>
-            </div>
+                        </flux:menu.item>
+                    @endforeach
+
+                    <flux:menu.separator />
+                    <flux:menu.item icon="plus" wire:click="openNewMenu">{{ __('New menu') }}</flux:menu.item>
+                    @if ($canDeleteActive)
+                        <flux:menu.item icon="trash" variant="danger" wire:click="confirmDeleteMenu">{{ __('Delete this menu') }}</flux:menu.item>
+                    @endif
+                </flux:menu>
+            </flux:dropdown>
             <flux:button size="sm" variant="primary" class="admin-btn-success" icon="plus" wire:click="openCreate()">
                 {{ __('New menu item') }}
             </flux:button>
@@ -132,7 +126,7 @@
                                         style="box-shadow:none"
                                         onmouseover="this.style.boxShadow='0 3px 8px rgba(245,158,11,.35)'"
                                         onmouseout="this.style.boxShadow='none'">
-                                        <flux:icon.bolt class="w-3 h-3" variant="{{ $item->is_short_menu ? 'solid' : 'outline' }}" />
+                                        <flux:icon.star class="w-3.5 h-3.5" variant="{{ $item->is_short_menu ? 'solid' : 'outline' }}" />
                                     </button>
                                     <span class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded text-[11px] font-medium bg-amber-500 text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
                                         {{ $item->is_short_menu ? __('Remove from short menu') : __('Add to short menu') }}
@@ -221,7 +215,7 @@
                                         <button wire:click="toggleShortMenu({{ $child->id }})"
                                             aria-label="{{ $child->is_short_menu ? __('Remove from short menu') : __('Add to short menu') }}"
                                             class="inline-flex items-center justify-center w-6 h-6 shrink-0 rounded border transition-all duration-150 {{ $child->is_short_menu ? 'border-amber-500 text-amber-500' : 'border-zinc-300 text-zinc-400' }} hover:bg-amber-500 hover:text-white hover:border-amber-500">
-                                            <flux:icon.bolt class="w-3 h-3" variant="{{ $child->is_short_menu ? 'solid' : 'outline' }}" />
+                                            <flux:icon.star class="w-3.5 h-3.5" variant="{{ $child->is_short_menu ? 'solid' : 'outline' }}" />
                                         </button>
                                         <button wire:click="toggleActive({{ $child->id }})"
                                             aria-label="{{ $child->is_active ? __('Deactivate') : __('Activate') }}"
