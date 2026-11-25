@@ -482,9 +482,34 @@
         x-on:pointermove.window="moveScreenOptionsDrag($event)"
         x-on:pointerup.window="endScreenOptionsDrag()"
         x-on:pointercancel.window="endScreenOptionsDrag()">
+        {{-- Collapse / expand handle, centred on the sidebar's right edge at mid-screen height.
+             A zero-height sticky strip at the top of <main> (main starts exactly where the
+             sidebar ends) holds it, so it stays at the middle of the viewport while the page
+             scrolls, follows the sidebar when it opens/collapses, and needs no positioning
+             script. Same event as Flux's own toggle; desktop only. --}}
+        <div class="pointer-events-none sticky top-0 z-[60] h-0 max-lg:hidden">
+            <button type="button"
+                x-data="{
+                    collapsed: false,
+                    init() {
+                        const sidebar = document.querySelector('.admin-sidebar');
+                        if (! sidebar) return;
+                        const read = () => this.collapsed = sidebar.hasAttribute('data-flux-sidebar-collapsed-desktop');
+                        read();
+                        new MutationObserver(read).observe(sidebar, { attributes: true, attributeFilter: ['data-flux-sidebar-collapsed-desktop'] });
+                    },
+                }"
+                x-on:click="$dispatch('flux-sidebar-toggle')"
+                x-bind:title="collapsed ? '{{ __('Expand sidebar') }}' : '{{ __('Collapse sidebar') }}'"
+                aria-label="{{ __('Toggle sidebar') }}" data-flux-sidebar-toggle
+                class="pointer-events-auto absolute left-0 top-[50vh] flex h-10 w-[18px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-500 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.22)] transition-colors duration-150 hover:border-primary hover:bg-primary hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                <flux:icon.chevron-left x-show="! collapsed" class="size-3.5 stroke-[2.5]" />
+                <flux:icon.chevron-right x-cloak x-show="collapsed" class="size-3.5 stroke-[2.5]" />
+            </button>
+        </div>
+
         <flux:header sticky class="admin-header shrink-0 gap-1 px-2! lg:px-3!">
             <flux:sidebar.toggle class="lg:hidden mr-1" icon="bars-3" inset="left" />
-            <flux:sidebar.toggle class="max-lg:hidden" icon="bars-3" />
             <flux:button size="sm" variant="subtle" square x-data x-on:click="location.reload()" icon="arrow-path"
                 aria-label="Refresh" class="max-lg:hidden" />
             <flux:button size="sm" variant="subtle" square :href="config('app.frontend_url')" icon="globe-alt"
