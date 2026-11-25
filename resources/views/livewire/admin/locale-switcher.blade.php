@@ -3,7 +3,7 @@
         <flux:dropdown position="bottom" align="end">
             <flux:button size="sm" variant="subtle"
                 :title="__('Change language')" :aria-label="__('Change language')"
-                class="text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors">
+                class="h-8 px-1.5! text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors">
                 <span class="flex items-center gap-1.5">
                     <flux:icon.language class="size-5" />
                     <span class="text-xs font-semibold uppercase max-sm:hidden">
