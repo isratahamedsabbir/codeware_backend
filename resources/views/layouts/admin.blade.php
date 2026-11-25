@@ -565,20 +565,14 @@
                     <livewire:admin.notifications.bell />
                 @endif
 
-                <button type="button" aria-label="{{ __('Screen elements') }}" aria-controls="admin-screen-options-panel"
+                <button type="button" aria-label="{{ __('Screen elements') }}" title="{{ __('Screen elements') }}" aria-controls="admin-screen-options-panel"
                     x-bind:aria-expanded="screenOptionsOpen.toString()"
                     x-on:pointerdown="beginScreenOptionsDrag($event)"
                     x-on:click="toggleScreenOptions()"
                     x-bind:style="'position: absolute; right: 0; bottom: -10px; z-index: 9999; transform: translateY(' + (screenOptionsDragging ? screenOptionsHeight : (screenOptionsOpen ? screenOptionsFull : 0)) + 'px);'"
-                    x-bind:class="screenOptionsDragging ? 'duration-0' : 'duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]'"
-                    class="group inline-flex h-4 cursor-grab touch-none select-none items-center justify-center rounded-bl-md border border-t-0 border-zinc-200/80 bg-white/95 px-1 text-zinc-500 shadow-[0_4px_12px_-6px_rgba(15,23,42,0.22)] backdrop-blur transition-[transform,color,background-color,border-color,box-shadow] hover:bg-white hover:text-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 active:cursor-grabbing dark:border-zinc-700/80 dark:bg-zinc-900/95 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100">
-                    <svg class="size-2.5 text-zinc-400 transition-transform duration-300 ease-out dark:text-zinc-500"
-                        x-bind:class="screenOptionsOpen ? 'rotate-180' : ''" viewBox="0 0 20 20" fill="currentColor"
-                        aria-hidden="true">
-                        <path fill-rule="evenodd"
-                            d="M5.22 7.22a.75.75 0 0 1 1.06 0L10 10.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.28a.75.75 0 0 1 0-1.06Z"
-                            clip-rule="evenodd" />
-                    </svg>
+                    x-bind:class="[screenOptionsDragging ? 'duration-0' : 'duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]', screenOptionsOpen ? 'text-primary' : 'text-zinc-500']"
+                    class="group inline-flex h-4 w-5 cursor-grab touch-none select-none items-center justify-center rounded-bl-lg border border-r-0 border-t-0 border-zinc-200 bg-white shadow-[0_4px_10px_-4px_rgba(15,23,42,0.25)] transition-[transform,color,background-color,border-color,box-shadow] hover:border-zinc-300 hover:bg-zinc-50 hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 active:cursor-grabbing dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800">
+                    <flux:icon.adjustments-horizontal class="size-3" />
                 </button>
             </div> 
 
