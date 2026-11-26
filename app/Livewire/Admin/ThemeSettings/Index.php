@@ -8,6 +8,7 @@ use App\Support\AdminActivity;
 use App\Support\CodeInstall;
 use App\Support\HeroSlides;
 use App\Support\SafeUpload;
+use App\Support\ThemePages;
 use App\Support\Themes;
 use App\Support\ThemeSettings;
 use Illuminate\Support\Facades\File;
@@ -154,6 +155,18 @@ class Index extends Component
 
     /** Site-wide on/off switches on this screen. */
     private const BOOLEAN_KEYS = ['chat_widget_enabled', 'popup_enabled'];
+
+    /** Live Chat and Popup fields, written as soon as they change (see updatedSettings()). */
+    private const AUTO_SAVE_KEYS = [
+        'chat_widget_enabled',
+        'chat_widget_color',
+        'popup_enabled',
+        'popup_image',
+        'popup_title',
+        'popup_description',
+        'popup_button_label',
+        'popup_button_url',
+    ];
 
     public function mount(): void
     {
@@ -347,6 +360,61 @@ class Index extends Component
         unset($this->uploads[$key]);
         $this->settings[$key] = '';
         $this->resetErrorBag('uploads.'.$key);
+    }
+
+    /**
+     * Live Chat and Popup save themselves: each field is written the moment it
+     * changes, so those two cards need no Save button. Theme fields and the
+     * theme pick are not covered — those still go through save()/saveTheme().
+     */
+    public function updatedSettings(mixed $value, string $key): void
+    {
+        if (! in_array($key, self::AUTO_SAVE_KEYS, true)) {
+            return;
+        }
+
+        if ($key === 'chat_widget_color') {
+            $this->settings[$key] = strtolower(trim((string) $value));
+
+            $this->validate(
+                ['settings.chat_widget_color' => ['nullable', 'regex:/^#[0-9a-f]{6}$/']],
+                ['settings.chat_widget_color.regex' => __('Enter a hex color like #1e7bc4.')],
+            );
+        }
+
+        Setting::set($key, in_array($key, self::BOOLEAN_KEYS, true)
+            ? ($this->settings[$key] ? '1' : '0')
+            : (string) ($this->settings[$key] ?? ''));
+
+        AdminActivity::log('updated', "Setting \"{$key}\" updated");
+
+        $this->dispatch('notify', message: 'Saved.', type: 'success');
+    }
+
+    /**
+     * Make the picked theme live. The Site Design cards' own Save button: only
+     * `site_theme` is written, nothing else on the screen.
+     */
+    public function saveTheme(?string $slug = null): void
+    {
+        $slug = (string) ($slug ?? $this->settings['site_theme'] ?? '');
+
+        if (! Themes::isInstalled($slug)) {
+            $this->dispatch('notify', message: 'That theme is not installed.', type: 'error');
+
+            return;
+        }
+
+        Setting::set('site_theme', $slug);
+        ThemePages::sync($slug);
+
+        AdminActivity::log('updated', "Site theme changed to \"{$slug}\"");
+
+        // A real reload, so everything rendered from Setting::get() (the live
+        // badge, the storefront entry) re-reads fresh.
+        session()->flash('success', 'Theme activated.');
+
+        $this->js('window.location.reload()');
     }
 
     public function save(): void

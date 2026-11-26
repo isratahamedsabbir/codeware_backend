@@ -449,6 +449,19 @@ public/                   everything the web serves, at /themes/{slug}/...
             <span class="font-mono text-xs">theme.json</span> from the slug.
         </p>
 
+        <p id="install-a-theme" class="scroll-mt-24">
+            <strong>Install Theme</strong> takes a <span class="font-mono text-xs">.zip</span> of a single
+            folder &mdash; e.g. <span class="font-mono text-xs">my-theme/</span> containing its
+            <span class="font-mono text-xs">index.blade.php</span>,
+            <span class="font-mono text-xs">page.blade.php</span> etc. The folder name becomes the theme's
+            name, and it shows up on the Site Design picker right after installing. A theme that ships no
+            <span class="font-mono text-xs">theme.json</span> gets one created on the spot, seeded with every
+            field it declares, so it can be filled in straight away. Its routes <em>cannot</em> come from
+            anywhere but its own folder: a theme's routes are code the app registers, so put
+            <span class="font-mono text-xs">routes/web.php</span> in the theme folder before zipping it
+            &mdash; beside its templates, where <strong>New Theme</strong> puts it.
+        </p>
+
         <x-admin-doc-code label="A theme's own settings screen" file="themes/portfolio/settings.blade.php">
 {{-- scalar fields bind to the settings bag, with the theme prefix in the key --}}
 &lt;flux:field&gt;
@@ -544,8 +557,10 @@ public/                   everything the web serves, at /themes/{slug}/...
                 <span class="font-mono text-xs">settings.blade.php</span>, a commented
                 <span class="font-mono text-xs">routes/web.php</span> and a
                 <span class="font-mono text-xs">theme.json</span> seeded with the name, version and author
-                you typed and the next free serial number. Nothing is activated: it appears on the picker as
-                a card, and your current design stays live until you choose it and save.
+                you typed and the next free serial number. Everything lands inside
+                <span class="font-mono text-xs">themes/&lt;slug&gt;/</span>, so the one folder can be zipped
+                and handed to someone else whole. Nothing is activated: it appears on the Site Design picker as
+                a card, and your current design stays live until you press <strong>Save</strong> on its card.
             </p>
 
             <x-admin-doc-code label="Building a new theme - the checklist" file="" lang="text">

@@ -1,7 +1,6 @@
 @php
     // Per-theme preview mockups: each installed theme gets its own miniature
     // browser thumbnail (kept in sync with the actual templates).
-    $frontendUrl = (string) (config('app.frontend_url') ?: url('/'));
 
     $previews = [
         'classic_ecommerce' => [
@@ -59,10 +58,6 @@
         onclick="window.dispatchEvent(new CustomEvent('open-theme-create'))">
         New Theme
     </flux:button>
-
-    <flux:button variant="outline" size="sm" icon="arrow-top-right-on-square" href="{{ $frontendUrl }}" target="_blank">
-        View Public Site
-    </flux:button>
 @endpush
 
 <div class="space-y-5" x-on:open-theme-install.window="$wire.openInstallModal()" x-on:open-theme-create.window="$wire.openCreateModal()">
@@ -73,7 +68,7 @@
          Collapsed on open so the selected theme's own settings sit higher on the
          page; the header still shows what it is and expands in one click. --}}
     <x-admin-section-card plain header-border="border-zinc-100" icon="swatch" title="Site Design"
-        description="Preview each installed theme, read what it ships with, and pick the one to use — changes apply once you save."
+        description="Preview each installed theme, pick one and press Save on its card to make it live."
         collapsible :collapsed="true">
 
         {{-- This card is where a theme is chosen and installed, so the question it
@@ -346,15 +341,16 @@
                                 @endif
                             </p>
                         </div>
-                        {{-- Opens this theme's own settings screen, scrolled to its Page
-                             Settings card. The card is a <label> around the radio, so the
-                             click must not bubble or it would also select the theme. --}}
-                        <a href="{{ route('admin.theme-settings.edit', $slug) }}#theme-page-settings" wire:navigate
-                            x-on:click.stop
-                            class="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 transition hover:border-primary hover:text-primary dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-200">
-                            <flux:icon.cog-6-tooth class="size-3.5" />
-                            Settings
-                        </a>
+                        {{-- On every card: Save makes that card's theme live (disabled on
+                             the one already live). Settings is in the three-dot menu. The
+                             card is a <label> around the radio, so the click must not bubble. --}}
+                        <flux:button variant="primary" size="xs" icon="check"
+                            x-on:click.prevent.stop="$wire.saveTheme('{{ $slug }}')"
+                            :disabled="$slug === $activeTheme"
+                            wire:loading.attr="disabled" wire:target="saveTheme"
+                            class="shrink-0">
+                            Save
+                        </flux:button>
                         @if (! $themeCards[$slug]['hasRoutes'])
                             {{-- On the card as well as in the panel below, because
                                  the radio right next to it is what picks the
@@ -520,7 +516,7 @@
         collapsible :collapsed="true">
 
         <x-slot:actions>
-            <flux:switch wire:model="settings.chat_widget_enabled" aria-label="Enable Live Chat" title="Enable Live Chat" />
+            <flux:switch wire:model.live="settings.chat_widget_enabled" aria-label="Enable Live Chat" title="Enable Live Chat" />
         </x-slot:actions>
 
         <div x-data="{
@@ -529,7 +525,7 @@
                 get color() { return $wire.settings.chat_widget_color || '' },
                 get valid() { return /^#[0-9a-fA-F]{6}$/.test(this.color) },
                 get preview() { return this.valid ? this.color : this.fallback },
-                pick(hex) { $wire.settings.chat_widget_color = hex },
+                pick(hex) { $wire.set('settings.chat_widget_color', hex) },
             }"
             class="grid grid-cols-1 gap-6 transition-opacity lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]"
             :class="! $wire.settings.chat_widget_enabled && 'opacity-60'">
@@ -555,11 +551,12 @@
                             :style="'background-color: ' + preview" title="Open color picker">
                             <input type="color" class="absolute inset-0 size-full cursor-pointer opacity-0"
                                 :value="preview"
-                                x-on:input="pick($event.target.value)"
+                                x-on:input="$wire.settings.chat_widget_color = $event.target.value"
+                                x-on:change="pick($event.target.value)"
                                 aria-label="Pick widget color" />
                             <flux:icon.eye-dropper class="pointer-events-none absolute right-0.5 bottom-0.5 size-3 text-white/80 drop-shadow" />
                         </label>
-                        <flux:input wire:model.live.debounce.300ms="settings.chat_widget_color" placeholder="Site primary color" class="flex-1 font-mono uppercase" />
+                        <flux:input wire:model.live.blur="settings.chat_widget_color" placeholder="Site primary color" class="flex-1 font-mono uppercase" />
                         <flux:button size="sm" variant="ghost" icon="arrow-uturn-left" x-show="color" x-cloak
                             x-on:click="pick('')" title="Reset to site primary color" />
                     </div>
@@ -647,7 +644,7 @@
         collapsible :collapsed="true">
 
         <x-slot:actions>
-            <flux:switch wire:model="settings.popup_enabled" aria-label="Show Announcement Popup" title="Show Announcement Popup" />
+            <flux:switch wire:model.live="settings.popup_enabled" aria-label="Show Announcement Popup" title="Show Announcement Popup" />
         </x-slot:actions>
 
         <div class="space-y-7">
@@ -660,20 +657,20 @@
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div class="sm:col-span-2">
                             <flux:label>Title</flux:label>
-                            <flux:input wire:model="settings.popup_title" placeholder="e.g. Welcome to our store" />
+                            <flux:input wire:model.live.blur="settings.popup_title" placeholder="e.g. Welcome to our store" />
                         </div>
                         <div class="sm:col-span-2">
                             <flux:label>Description</flux:label>
-                            <flux:textarea wire:model="settings.popup_description" class="h-24 resize-none"
+                            <flux:textarea wire:model.live.blur="settings.popup_description" class="h-24 resize-none"
                                 placeholder="e.g. Get 10% off your first order with code WELCOME10" />
                         </div>
                         <div>
                             <flux:label>Button Label</flux:label>
-                            <flux:input wire:model="settings.popup_button_label" placeholder="e.g. Shop Now" />
+                            <flux:input wire:model.live.blur="settings.popup_button_label" placeholder="e.g. Shop Now" />
                         </div>
                         <div>
                             <flux:label>Button Link</flux:label>
-                            <flux:input wire:model="settings.popup_button_url" placeholder="e.g. /shop or https://..." />
+                            <flux:input wire:model.live.blur="settings.popup_button_url" placeholder="e.g. /shop or https://..." />
                         </div>
                     </div>
                 </div>
@@ -699,32 +696,6 @@
                 </div>
 
                 <div class="grid gap-5 p-6">
-                    <p class="text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
-                        Upload your theme as a
-                        <code class="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[10px] font-medium text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300">.zip</code>
-                        of a single folder — e.g.
-                        <code class="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[10px] font-medium text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300">my-theme/</code>
-                        containing your
-                        <code class="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[10px] font-medium text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300">index.blade.php</code>,
-                        <code class="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[10px] font-medium text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300">page.blade.php</code>
-                        etc. The folder name becomes the theme's name, and it shows up in the picker above immediately after installing.
-                    </p>
-
-                    <p class="-mt-2 flex items-start gap-2 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-                        <flux:icon.information-circle class="mt-px size-4 shrink-0 text-zinc-400" />
-                        <span>
-                            A theme that ships no
-                            <code class="rounded bg-zinc-100 px-1 py-0.5 font-mono text-[10px] text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300">{{ \App\Support\ThemeSettings::FILE }}</code>
-                            gets one created for it on the spot, seeded with every field it declares — so
-                            you can install a theme and go straight to filling it in. One
-                            <em>cannot</em> come from inside the zip: a theme's routes are code the app
-                            registers, not files it may read out of a folder, so add
-                            <code class="rounded bg-zinc-100 px-1 py-0.5 font-mono text-[10px] text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300">routes.php</code>
-                            to the theme folder before installing — beside its templates, where
-                            <strong>New Theme</strong> puts it.
-                        </span>
-                    </p>
-
                     <a href="{{ asset('docs/theme-builder-guide.pdf') }}" target="_blank"
                         class="flex items-center gap-3 rounded-lg border border-emerald-200 bg-emerald-50/70 p-4 transition-colors hover:border-emerald-300 hover:bg-emerald-50 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:hover:border-emerald-500/50">
                         <span class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
@@ -792,25 +763,6 @@
                 </div>
 
                 <div class="grid gap-5 p-6">
-                    <p class="text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
-                        Creates a theme folder you can open and edit: every page template it could
-                        ever need, the header and footer they share, its own 404, its stylesheet,
-                        its settings screen and a
-                        <code class="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[10px] font-medium text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300">routes.php</code>
-                        to write your controllers into — all inside
-                        <code class="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[10px] font-medium text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300">themes/&lt;slug&gt;/</code>,
-                        so the one folder can be zipped and handed to someone else whole.
-                    </p>
-
-                    <p class="-mt-2 flex items-start gap-2 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-                        <flux:icon.information-circle class="mt-px size-4 shrink-0 text-zinc-400" />
-                        <span>
-                            Nothing goes live. The theme shows up on the picker above as a card to
-                            choose from, and your current design stays on the public site until you
-                            pick it and save.
-                        </span>
-                    </p>
-
                     <flux:field>
                         <flux:label>Name<x-field-hint text="What the theme is called in the admin." /></flux:label>
                         <flux:input wire:model="newName" placeholder="e.g. Aurora" />
@@ -867,26 +819,6 @@
         </div>
     @endif
 
-
-    {{-- ── Save bar ──
-         No upward shadow: it drew a dark line across the bottom of the form,
-         reading as the card's footer edge rather than as the bar floating over
-         the page. The border is what separates it from the panel behind it. --}}
-    <div
-        class="sticky bottom-0 z-10 flex flex-col gap-3 rounded-[5px] border border-zinc-200 bg-white/95 px-5 py-3.5 backdrop-blur dark:border-zinc-700 dark:bg-zinc-800/90 sm:flex-row sm:items-center sm:justify-between">
-        <p class="text-xs text-zinc-400">
-            Your changes apply to the public site once saved.
-        </p>
-        <div class="flex items-center gap-2.5">
-            <flux:button variant="outline" wire:click="resetSettings" size="sm">
-                Discard
-            </flux:button>
-            <flux:button variant="primary" wire:click="save" wire:loading.attr="disabled" size="sm">
-                <span wire:loading.remove>Save Changes</span>
-                <span wire:loading>Saving…</span>
-            </flux:button>
-        </div>
-    </div>
 
     <livewire:admin.media-library.picker-modal key="theme-settings-picker-modal" />
 </div>

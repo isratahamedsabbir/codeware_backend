@@ -1,3 +1,15 @@
+@push('page-header-actions')
+    {{-- Environment — sits in the layout's header row, beside the breadcrumb,
+         like Theme Settings' header buttons. Rendered through @push/@stack, so
+         it has no wire:id ancestor: a plain window event opens the modal. Not
+         saved on change like the widgets — a wrong APP_ENV can take the site
+         down, so it keeps an explicit Save plus a confirmation. --}}
+    <flux:button size="sm" variant="primary" icon="rocket-launch"
+        onclick="window.dispatchEvent(new CustomEvent('open-modal', { detail: { name: 'settings-env' } }))">
+        {{ __('Environment') }}: {{ config('app.env') }}
+    </flux:button>
+@endpush
+
 <div>
     {{-- Alpine tab switcher: General | Currency | ... --}}
     <div x-data="{
@@ -23,17 +35,6 @@
             });
         }
     }">
-
-        {{-- Environment — a button at the top right that opens its own modal.
-             Not saved on change like the widgets: a wrong APP_ENV can take the
-             site down, so it keeps an explicit Save plus a confirmation. --}}
-        <div class="mb-3 flex justify-end">
-            <flux:button size="sm" variant="outline" icon="rocket-launch"
-                x-on:click="$flux.modal('settings-env').show()">
-                {{ __('Environment') }}:
-                <span class="ml-1 font-semibold text-primary">{{ config('app.env') }}</span>
-            </flux:button>
-        </div>
 
         {{-- Tab nav — a card of icon tabs, each with a one-line summary. --}}
         @php
@@ -282,6 +283,7 @@ $imageMeta = match ($setting->key) {
 
     {{-- Environment editor (opened from the button above the tabs) --}}
     <flux:modal name="settings-env" class="md:w-[28rem]"
+        x-on:open-modal.window="if ($event.detail.name === 'settings-env') $flux.modal('settings-env').show()"
         x-on:close-modal.window="if ($event.detail.name === 'settings-env') $flux.modal('settings-env').close()">
         <div class="space-y-4">
             <div class="flex items-center gap-3">
