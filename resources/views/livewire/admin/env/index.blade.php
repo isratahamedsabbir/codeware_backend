@@ -58,8 +58,13 @@
         {{-- â”€â”€ General tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
         <div x-show="activeTab === 'general'" x-cloak class="space-y-5">
 
+            {{-- While a switch below is being applied, its tile shows the loader GIF
+                 (Settings → General → Loader) and a transparent layer blocks the rest
+                 of the screen. --}}
+            <div wire:loading wire:target="maintenanceMode,debugMode" class="fixed inset-0 z-40 cursor-wait"></div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
                 {{-- Maintenance mode --}}
+                <div class="relative">
                 <x-admin-section-card id="env-section-maintenance" header-border="border-zinc-100" icon="wrench" title="Maintenance Mode"
                     icon-color="{{ $maintenanceMode ? 'bg-red-500/10 text-red-600' : 'bg-primary/10 text-primary' }}"
                     description="Takes the public site offline for every visitor. The admin panel and login stay reachable either way."
@@ -78,8 +83,14 @@
                         <flux:switch wire:model.live="maintenanceMode" aria-label="Maintenance mode" title="Take the public site offline" />
                     </x-slot:actions>
                 </x-admin-section-card>
+                    <div wire:loading.flex wire:target="maintenanceMode"
+                        class="absolute inset-0 z-50 hidden items-center justify-center rounded-[5px] bg-white/70 backdrop-blur-[1px] dark:bg-zinc-900/70">
+                        <img src="{{ \App\Models\Setting::get('loader') ?: asset('default/loader.gif') }}" alt="Loading" class="max-h-[70%] max-w-[120px] object-contain">
+                    </div>
+                </div>
 
                 {{-- Debug mode --}}
+                <div class="relative">
                 <x-admin-section-card id="env-section-debug" header-border="border-zinc-100" icon="bug-ant" title="Debug Mode"
                     icon-color="{{ $debugMode ? 'bg-amber-500/10 text-amber-600' : 'bg-primary/10 text-primary' }}"
                     description="Shows full error details and stack traces to visitors. Leave this off in production."
@@ -98,6 +109,11 @@
                         <flux:switch wire:model.live="debugMode" :disabled="! $debugMode && $this->debugLocked()" aria-label="Debug mode" title="{{ ! $debugMode && $this->debugLocked() ? 'Disabled in production' : 'Show full error details to visitors' }}" />
                     </x-slot:actions>
                 </x-admin-section-card>
+                    <div wire:loading.flex wire:target="debugMode"
+                        class="absolute inset-0 z-50 hidden items-center justify-center rounded-[5px] bg-white/70 backdrop-blur-[1px] dark:bg-zinc-900/70">
+                        <img src="{{ \App\Models\Setting::get('loader') ?: asset('default/loader.gif') }}" alt="Loading" class="max-h-[70%] max-w-[120px] object-contain">
+                    </div>
+                </div>
             </div>
 
             {{-- App --}}

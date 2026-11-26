@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Admin\Settings;
 
+use App\Models\Feature;
 use App\Models\Setting;
 use App\Support\AdminActivity;
 use App\Support\CustomCode;
 use App\Support\EnvFile;
+use App\Support\Features;
 use Illuminate\Support\Facades\Artisan;
 use Livewire\Component;
 
@@ -23,9 +25,17 @@ class Index extends Component
      */
     public string $appEnv = '';
 
+    /**
+     * The CMS feature (Features::ALL['cms']), switched from the Widgets tab
+     * rather than the Features screen. Its own row only — whether it actually
+     * shows also depends on its parent, Pages.
+     */
+    public bool $cmsEnabled = false;
+
     public function mount(): void
     {
         $this->loadSettings();
+        $this->cmsEnabled = (bool) Feature::enabledMapCached()->get('cms', true);
         $this->appEnv = EnvFile::get('APP_ENV', config('app.env')) ?? config('app.env');
     }
 
@@ -139,6 +149,19 @@ class Index extends Component
         }
 
         // Shown as a toast by layouts.admin once the reload lands.
+        session()->flash('success', $message);
+        $this->js('window.location.reload()');
+    }
+
+    /** Saved the moment the Widgets-tab switch flips; the sidebar changes, so reload. */
+    public function updatedCmsEnabled(bool $value): void
+    {
+        Feature::updateOrCreate(['key' => 'cms'], ['label' => Features::ALL['cms'], 'is_enabled' => $value]);
+
+        $message = __(':widget :state.', ['widget' => __('CMS'), 'state' => $value ? __('enabled') : __('disabled')]);
+
+        AdminActivity::log('updated', $message);
+
         session()->flash('success', $message);
         $this->js('window.location.reload()');
     }

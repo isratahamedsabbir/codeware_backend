@@ -126,8 +126,34 @@ $imageMeta = match ($setting->key) {
             $languageSwitcherAvailable = \App\Support\Features::settingAvailable('language_switcher_enabled');
         @endphp
         <div x-show="tab === 'widgets'">
-            <div class="max-w-[1600px]">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+            {{-- Every widget change but Table Actions saves and then reloads the page.
+                 Until it does, the changed tile shows a spinner and a transparent layer
+                 covers the screen, so nothing else can be clicked mid-save. One overlay,
+                 moved onto whichever grid tile the change came from. The timeout only
+                 frees the screen if the reload never comes (a failed request). --}}
+            <div class="max-w-[1600px]"
+                x-data="{
+                    busy: false,
+                    box: '',
+                    lock(e) {
+                        if (e.target.closest('[data-no-reload]')) return;
+                        const tile = [...this.$refs.grid.children].find(el => el.contains(e.target));
+                        if (! tile) return;
+                        this.box = `top:${tile.offsetTop}px;left:${tile.offsetLeft}px;width:${tile.offsetWidth}px;height:${tile.offsetHeight}px`;
+                        this.busy = true;
+                        setTimeout(() => this.busy = false, 15000);
+                    },
+                }"
+                x-on:change="lock($event)">
+                <div x-show="busy" x-cloak class="fixed inset-0 z-40 cursor-wait"></div>
+                <div x-ref="grid" class="relative grid grid-cols-1 lg:grid-cols-2 gap-5 items-stretch">
+                <div x-show="busy" x-cloak :style="box"
+                    class="absolute z-50 flex items-center justify-center rounded-[5px] bg-white/70 backdrop-blur-[1px] dark:bg-zinc-900/70">
+                    {{-- Settings → General → Loader, same GIF as partials/_admin-loader-overlay. --}}
+                    <img src="{{ \App\Models\Setting::get('loader') ?: asset('default/loader.gif') }}" alt="Loading"
+                        class="max-h-[70%] max-w-[120px] object-contain">
+
+                </div>
                 {{-- Floating action button --}}
                 <x-admin-section-card header-border="border-zinc-100" x-data icon="cursor-arrow-rays" title="Floating Button"
                     description="Shows a floating button in the corner of every admin page.">
@@ -153,12 +179,31 @@ $imageMeta = match ($setting->key) {
                     </flux:field>
                 </x-admin-section-card>
 
+                {{-- CMS module (moved here from Settings → Features). It rides on Pages:
+                     with Pages off the switch still saves, but CMS stays hidden. --}}
+                <x-admin-section-card header-border="border-zinc-100" icon="document-duplicate" title="CMS"
+                    description="Turns the CMS module on or off in the admin panel.">
+                    <x-slot:actions>
+                        <label class="flex items-center gap-2 text-sm text-zinc-600 cursor-pointer">
+                            <input type="checkbox" wire:model.live="cmsEnabled" class="rounded border-zinc-300 text-primary" />
+                            Enable
+                        </label>
+                    </x-slot:actions>
+                    <p class="text-xs text-zinc-400">
+                        @if (\App\Support\Features::enabled('pages'))
+                            Part of Pages: turning Pages off on the Features screen hides CMS too.
+                        @else
+                            Pages is turned off on the Features screen, so CMS stays hidden until Pages is back on.
+                        @endif
+                    </p>
+                </x-admin-section-card>
+
                 {{-- Table actions display --}}
                 <x-admin-section-card header-border="border-zinc-100" icon="ellipsis-horizontal" title="Table Actions"
                     description="How action buttons (Edit, Delete, ...) appear on admin list tables.">
                     <flux:field>
                         <flux:label>Display style</flux:label>
-                        <select wire:model.live="settings.admin_actions_display"
+                        <select wire:model.live="settings.admin_actions_display" data-no-reload
                             class="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-700">
                             <option value="inline">Inline icon buttons</option>
                             <option value="dropdown">Three-dot dropdown menu</option>

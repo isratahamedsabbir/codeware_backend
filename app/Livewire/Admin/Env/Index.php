@@ -12,6 +12,7 @@ use App\Support\Telegram;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Livewire\Component;
 
 class Index extends Component
@@ -31,7 +32,7 @@ class Index extends Component
     /** @var array<int, array{key: string, type: string, value: string}> */
     public array $constants = [];
 
-    /** @var array<int, int> Expanded $constants rows, tracked server-side so re-renders don't collapse them. */
+    /** @var array<int, int> Expanded rows, tracked server-side so re-renders don't collapse them. */
     public array $openConstants = [];
 
     /** @var array<int, array{id: string, name: string, head: string, body: string}> */
@@ -163,9 +164,11 @@ class Index extends Component
         $rules = [
             'env.APP_NAME' => 'required|string',
             'env.APP_URL' => 'required|url',
-            'env.FRONTEND_URL' => 'nullable|url',
-            'env.VENDOR_URL' => 'nullable|url',
-            'env.DELIVERY_URL' => 'nullable|url',
+            // These may reference another key, e.g. ${APP_URL} or ${APP_URL}/shop —
+            // phpdotenv resolves it at runtime (EnvFile writes it unquoted).
+            'env.FRONTEND_URL' => ['nullable', $this->urlOrReference()],
+            'env.VENDOR_URL' => ['nullable', $this->urlOrReference()],
+            'env.DELIVERY_URL' => ['nullable', $this->urlOrReference()],
             'env.CACHE_STORE' => 'required|in:database,file,redis',
             'env.GOOGLE_CLIENT_ID' => 'nullable|string',
             'env.GOOGLE_CLIENT_SECRET' => 'nullable|string',
@@ -198,9 +201,50 @@ class Index extends Component
             $rules["env.{$key}"] = [...(is_array($existing) ? $existing : explode('|', $existing)), 'regex:/^[^\r\n\0]*$/D'];
         }
 
-        $this->validate($rules);
+        // Name each field by its on-screen label, not "env. f r o n t e n d u r l".
+        $attributes = [];
+        foreach ($this->envFields() as $fields) {
+            foreach ($fields as $key => $field) {
+                $attributes["env.{$key}"] = $field['label'] ?? $key;
+            }
+        }
+
+        $this->validate($rules, [], $attributes);
 
         $this->dispatch('open-modal', name: 'env-save-confirm');
+    }
+
+    /**
+     * A URL, where any ${KEY} must name a key that exists in the .env (or on
+     * this form) and the result, once those are filled in, is a valid URL.
+     */
+    private function urlOrReference(): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail): void {
+            $value = (string) $value;
+            $known = [...EnvFile::all(), ...array_map('strval', $this->env)];
+            $missing = null;
+
+            $resolved = preg_replace_callback('/\$\{([A-Z_][A-Z0-9_]*)\}/', function (array $m) use ($known, &$missing) {
+                if (! array_key_exists($m[1], $known) || str_contains((string) $known[$m[1]], '${')) {
+                    $missing ??= $m[1];
+
+                    return '';
+                }
+
+                return (string) $known[$m[1]];
+            }, $value);
+
+            if ($missing !== null) {
+                $fail("The :attribute field refers to \${{$missing}}, which is not set to a plain value.");
+
+                return;
+            }
+
+            if (! Str::isUrl($resolved, ['http', 'https'])) {
+                $fail('The :attribute field must be a valid URL, or reference one such as ${APP_URL}.');
+            }
+        };
     }
 
     /**

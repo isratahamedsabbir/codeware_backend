@@ -1,11 +1,12 @@
 @php
-    $all = \App\Support\Features::ALL;
+    // CMS is switched on Settings → Widgets, not here (see Settings\Index::updatedCmsEnabled()).
+    $all = \Illuminate\Support\Arr::except(\App\Support\Features::ALL, ['cms']);
     $parents = \App\Support\Features::PARENTS;
 
     // Presentation only: which section each feature is listed under. A key that is
     // not mapped here still shows up, under "Other", so a new feature is never lost.
     $groups = [
-        'Content & Pages' => ['pages', 'cms', 'blog', 'media-library', 'file-manager', 'menu', 'about', 'advance'],
+        'Content & Pages' => ['pages', 'blog', 'media-library', 'file-manager', 'menu', 'about', 'advance'],
         'Catalog & Commerce' => ['products', 'brands', 'services', 'orders', 'discounts', 'flash-deals', 'vouchers', 'advertisements'],
         'Taxonomy' => ['types', 'categories', 'tags', 'groups'],
         'Engagement & Communication' => ['contacts', 'comments', 'reviews', 'newsletter', 'chat', 'careers', 'email-templates'],
