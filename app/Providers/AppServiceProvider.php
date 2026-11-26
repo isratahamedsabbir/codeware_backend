@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Policies\MediaLibraryPolicy;
 use App\Support\DatabaseTranslationLoader;
 use App\Support\Favorites;
+use App\Support\WindowsSafeFilesystem;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Login;
@@ -23,6 +24,8 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\View\Compilers\BladeCompiler;
+use Illuminate\View\DynamicComponent;
 use Spatie\Permission\Exceptions\PermissionDoesNotExist;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -35,6 +38,32 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->registerDatabaseTranslations();
+        $this->registerWindowsSafeBladeCompiler();
+    }
+
+    /**
+     * On Windows, compile Blade views through WindowsSafeFilesystem so two
+     * requests compiling the same view at once no longer 500 with "Access is
+     * denied" on the rename. Same arguments as Laravel's ViewServiceProvider.
+     */
+    protected function registerWindowsSafeBladeCompiler(): void
+    {
+        if (PHP_OS_FAMILY !== 'Windows') {
+            return;
+        }
+
+        $this->app->singleton('blade.compiler', function ($app) {
+            return tap(new BladeCompiler(
+                new WindowsSafeFilesystem,
+                $app['config']['view.compiled'],
+                $app['config']->get('view.relative_hash', false) ? $app->basePath() : '',
+                $app['config']->get('view.cache', true),
+                $app['config']->get('view.compiled_extension', 'php'),
+                $app['config']->get('view.check_cache_timestamps', true),
+            ), function ($blade) {
+                $blade->component('dynamic-component', DynamicComponent::class);
+            });
+        });
     }
 
     /**

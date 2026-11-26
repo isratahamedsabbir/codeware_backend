@@ -46,7 +46,7 @@
         @forelse ($cards as $i => $card)
             @php $cardOpen = in_array($i, $openCards, true); @endphp
             <div wire:key="cms-card-row-{{ $i }}" class="group relative rounded-[5px] border border-zinc-200 bg-zinc-50/60 overflow-hidden transition-colors hover:border-zinc-300">
-                <div wire:click="toggleCard({{ $i }})" role="button" tabindex="0"
+                <div wire:click="toggleCard({{ $i }})" role="button" tabindex="0" aria-expanded="{{ $cardOpen ? 'true' : 'false' }}"
                     class="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-zinc-200 bg-white cursor-pointer select-none">
                     <div class="flex items-center gap-2 min-w-0">
                         <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-zinc-300 text-[11px] font-semibold text-zinc-500">
@@ -63,11 +63,6 @@
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M6 18L18 6M6 6l12 12" />
                             </svg>
-                        </button>
-                        <button type="button" wire:click.stop="toggleCard({{ $i }})"
-                            class="flex size-7 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 cursor-pointer"
-                            aria-expanded="{{ $cardOpen ? 'true' : 'false' }}" aria-label="Toggle card">
-                            <flux:icon.chevron-down class="size-4 transition-transform {{ $cardOpen ? 'rotate-180' : '' }}" />
                         </button>
                     </div>
                 </div>

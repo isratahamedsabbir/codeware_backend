@@ -36,7 +36,7 @@
         ? 'admin-postbox rounded-[3px] bg-white dark:bg-zinc-800/40'
         : 'admin-postbox rounded-[3px] bg-white shadow-[0_1px_1px_rgba(0,0,0,0.04)] dark:bg-zinc-800/40 border border-zinc-300 dark:border-zinc-700') }}
         x-data="{ open: {{ $openExpr }} }">
-        <div @if ($collapsible) role="button" tabindex="0" @click="open = !open" @keydown.enter="open = !open" @keydown.space.prevent="open = !open" @endif
+        <div @if ($collapsible) role="button" tabindex="0" :aria-expanded="open.toString()" @click="open = !open" @keydown.enter="open = !open" @keydown.space.prevent="open = !open" @endif
             class="flex min-h-11 items-center justify-between gap-3 px-3 py-2 {{ $collapsible ? 'cursor-pointer select-none' : '' }}"
             :class="open ? '{{ $plain ? '' : 'border-b border-zinc-300 dark:border-zinc-700' }}' : ''">
             <div class="min-w-0">
@@ -54,12 +54,6 @@
                 @isset($actions)
                     <div @click.stop>{{ $actions }}</div>
                 @endisset
-                @if ($collapsible)
-                    <button type="button" class="flex size-8 cursor-pointer items-center justify-center rounded text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-700"
-                        :aria-expanded="open.toString()" aria-label="Toggle panel: {{ $title }}">
-                        <flux:icon.chevron-up variant="mini" class="size-5 transition-transform" x-bind:class="open ? '' : 'rotate-180'" />
-                    </button>
-                @endif
             </div>
         </div>
 
@@ -74,7 +68,9 @@
     ? 'rounded-[5px] bg-white dark:bg-zinc-800/40 overflow-hidden'
     : 'rounded-[5px] bg-white shadow-sm dark:bg-zinc-800/40 overflow-hidden border border-zinc-200 dark:border-zinc-700') }}
     @if ($collapsible) x-data="{ open: {{ $collapsed ? 'false' : 'true' }} }" @endif>
-    <div @if ($collapsible) role="button" tabindex="0" @click="open = !open" @keydown.enter="open = !open" @keydown.space.prevent="open = !open" @endif
+    {{-- The whole header toggles a collapsible section, so it carries no separate
+         chevron button: aria-expanded sits on the header itself. --}}
+    <div @if ($collapsible) role="button" tabindex="0" :aria-expanded="open.toString()" @click="open = !open" @keydown.enter="open = !open" @keydown.space.prevent="open = !open" @endif
         class="flex items-center justify-between gap-3 px-6 py-4 {{ $plain ? '' : 'border-b '.$headerBorder.' dark:border-zinc-700 ' }} {{ $collapsible ? 'cursor-pointer select-none' : '' }}">
         <div class="flex items-center gap-3 min-w-0">
             <div class="flex size-9 items-center justify-center rounded-lg {{ $iconColor }} shrink-0">
@@ -96,12 +92,6 @@
             @isset($actions)
                 <div @if ($collapsible) @click.stop @endif>{{ $actions }}</div>
             @endisset
-            @if ($collapsible)
-                <button type="button" class="flex size-7 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 cursor-pointer"
-                    :aria-expanded="open.toString()" aria-label="Toggle section">
-                    <flux:icon.chevron-down class="size-4 transition-transform" x-bind:class="open ? 'rotate-180' : ''" />
-                </button>
-            @endif
         </div>
     </div>
 

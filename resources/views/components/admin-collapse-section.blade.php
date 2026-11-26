@@ -53,10 +53,6 @@
                 @endforeach
             </div>
         @endif
-
-        <button type="button" x-on:click="open = ! open" :aria-expanded="open" aria-label="Toggle section" class="shrink-0 p-1">
-            <flux:icon.chevron-down class="size-4 text-zinc-400 transition" ::class="open && 'rotate-180'" />
-        </button>
     </div>
 
     <div x-show="open" x-cloak class="space-y-5 border-t border-zinc-200 p-4 dark:border-zinc-700">

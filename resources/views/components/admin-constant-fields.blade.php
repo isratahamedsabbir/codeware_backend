@@ -16,7 +16,7 @@
         @endphp
         <div wire:key="constant-row-{{ $i }}"
             class="group overflow-hidden rounded-lg border bg-white transition-all dark:bg-zinc-800/40 {{ $constantOpen ? 'border-zinc-300 shadow-sm dark:border-zinc-600' : 'border-zinc-200 hover:border-zinc-300 dark:border-zinc-700' }}">
-            <div wire:click="toggleConstant({{ $i }})" role="button" tabindex="0"
+            <div wire:click="toggleConstant({{ $i }})" role="button" tabindex="0" aria-expanded="{{ $constantOpen ? 'true' : 'false' }}"
                 class="flex cursor-pointer select-none items-center justify-between gap-4 px-4 py-3">
                 <div class="flex min-w-0 items-center gap-3">
                     <div class="flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors {{ $constantOpen ? 'bg-primary/10 text-primary' : 'bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500' }}">
@@ -51,11 +51,6 @@
                     <button type="button" wire:click.stop="removeConstant({{ $i }})"
                         class="flex size-7 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-rose-50 hover:text-rose-500 cursor-pointer" aria-label="Remove field">
                         <flux:icon.x-mark class="size-4" />
-                    </button>
-                    <button type="button" wire:click.stop="toggleConstant({{ $i }})"
-                        class="flex size-7 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 cursor-pointer"
-                        aria-expanded="{{ $constantOpen ? 'true' : 'false' }}" aria-label="Toggle field">
-                        <flux:icon.chevron-down class="size-4 transition-transform {{ $constantOpen ? 'rotate-180' : '' }}" />
                     </button>
                 </div>
             </div>
