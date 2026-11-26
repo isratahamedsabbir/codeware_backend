@@ -66,7 +66,7 @@
                 @endif
             </x-slot:titleActions>
             <x-slot:actions>
-                <flux:button size="sm" variant="outline" icon="plus" wire:click="addConstant" x-on:click="open = true">Add field</flux:button>
+                <flux:button size="sm" variant="outline" icon="plus" wire:click="addConstant" x-on:click="open = true" square tooltip="Add field" aria-label="Add field" />
             </x-slot:actions>
 
                 <flux:error name="constant" />

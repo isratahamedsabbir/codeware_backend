@@ -33,7 +33,7 @@
                     <p class="text-xs text-zinc-400 px-1 py-1">No values yet.</p>
                 @endforelse
 
-                <flux:button size="sm" variant="outline" icon="plus" wire:click="addValue">Add value</flux:button>
+                <flux:button size="sm" variant="outline" icon="plus" wire:click="addValue" square tooltip="Add value" aria-label="Add value" />
             </div>
         </flux:field>
 

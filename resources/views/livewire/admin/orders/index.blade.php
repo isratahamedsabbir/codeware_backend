@@ -405,7 +405,7 @@
                 </div>
             @endforeach
             <flux:error name="newItems" />
-            <flux:button size="sm" variant="ghost" icon="plus" wire:click="addNewItem">Add product</flux:button>
+            <flux:button size="sm" variant="ghost" icon="plus" wire:click="addNewItem" square tooltip="Add product" aria-label="Add product" />
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">

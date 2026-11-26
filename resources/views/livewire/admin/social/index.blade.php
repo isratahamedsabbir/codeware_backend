@@ -60,9 +60,7 @@
         </div>
 
         <div class="mt-5">
-            <flux:button size="sm" variant="subtle" icon="plus" wire:click="addLink">
-                {{ __('Add social link') }}
-            </flux:button>
+            <flux:button size="sm" variant="subtle" icon="plus" wire:click="addLink" square :tooltip="__('Add social link')" :aria-label="__('Add social link')" />
         </div>
     </x-admin-section-card>
 

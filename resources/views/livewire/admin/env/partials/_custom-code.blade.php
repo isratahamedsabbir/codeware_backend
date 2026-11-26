@@ -19,7 +19,7 @@
                 <x-admin-section-card header-border="border-zinc-100" icon="document-duplicate" title="Custom Code Snippets"
                     description="Named head/body snippets. Pick one from the “Custom code” dropdown in a page, product, post or category's SEO section to load it on that page only.">
                     <x-slot:actions>
-                        <flux:button size="sm" variant="outline" icon="plus" wire:click="addCodeRule">Add code</flux:button>
+                        <flux:button size="sm" variant="outline" icon="plus" wire:click="addCodeRule" square tooltip="Add code" aria-label="Add code" />
                     </x-slot:actions>
 
                     {{-- Same collapsible-row look as the Constant fields. Open state is

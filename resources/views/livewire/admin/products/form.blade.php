@@ -391,9 +391,7 @@
                 @endforelse
             </div>
 
-            <flux:button variant="ghost" size="sm" icon="plus" wire:click="addFaq" class="mt-3">
-                Add Question
-            </flux:button>
+            <flux:button variant="ghost" size="sm" icon="plus" wire:click="addFaq" class="mt-3" square tooltip="Add Question" aria-label="Add Question" />
         </x-admin-section-card>
 
         @include('partials._admin-seo-fields', ['seoCardVariant' => 'postbox', 'seoPersistKey' => 'product-seo'])

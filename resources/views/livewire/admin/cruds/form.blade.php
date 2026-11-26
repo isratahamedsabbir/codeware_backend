@@ -100,7 +100,7 @@
             </div>
             <flux:error name="fields" />
 
-            <flux:button class="mt-3" size="sm" icon="plus" wire:click="addField">Add field</flux:button>
+            <flux:button class="mt-3" size="sm" icon="plus" wire:click="addField" square tooltip="Add field" aria-label="Add field" />
 
             @if ($crudId)
                 <p class="mt-3 text-xs text-zinc-500">Existing fields keep their type (they are real database columns). You can rename them, reorder them, add new ones, or remove one — which deletes its column.</p>

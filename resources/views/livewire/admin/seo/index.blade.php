@@ -147,9 +147,7 @@
                 </div>
             @endforeach
         </div>
-        <flux:button size="sm" variant="ghost" icon="plus" wire:click="addCanonicalUrl">
-            Add Link
-        </flux:button>
+        <flux:button size="sm" variant="ghost" icon="plus" wire:click="addCanonicalUrl" square tooltip="Add Link" aria-label="Add Link" />
     </x-admin-section-card>
 
     <div>

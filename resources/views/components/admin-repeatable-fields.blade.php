@@ -180,9 +180,8 @@
     <flux:button type="button" size="sm" variant="outline" icon="plus"
         wire:click="addRepeaterRow('{{ $settingKey }}', {{ json_encode(array_column($fields, 'name')) }})"
         :disabled="$count >= $max"
-        class="w-full">
-        {{ $addLabel }}
-    </flux:button>
+        :tooltip="$addLabel" :aria-label="$addLabel"
+        class="w-full" />
 
     @if ($count >= $max)
         <p class="text-[11px] text-zinc-400">Up to {{ $max }} rows.</p>

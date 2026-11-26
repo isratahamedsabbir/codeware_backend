@@ -39,7 +39,7 @@
             @endif
         </x-slot:titleActions>
         <x-slot:actions>
-            <flux:button size="sm" variant="outline" icon="plus" wire:click="addCard" x-on:click="open = true">Add card</flux:button>
+            <flux:button size="sm" variant="outline" icon="plus" wire:click="addCard" x-on:click="open = true" square tooltip="Add card" aria-label="Add card" />
         </x-slot:actions>
 
         <div class="space-y-3">
@@ -111,7 +111,7 @@
             @endif
         </x-slot:titleActions>
         <x-slot:actions>
-            <flux:button size="sm" variant="outline" icon="plus" wire:click="addConstant" x-on:click="open = true">Add field</flux:button>
+            <flux:button size="sm" variant="outline" icon="plus" wire:click="addConstant" x-on:click="open = true" square tooltip="Add field" aria-label="Add field" />
         </x-slot:actions>
         <flux:error name="constant" />
 
