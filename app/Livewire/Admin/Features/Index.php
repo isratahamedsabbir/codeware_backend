@@ -36,6 +36,29 @@ class Index extends Component
         }
     }
 
+    /**
+     * Each switch is bound with wire:model.live, so a toggle is saved the
+     * moment it is flipped — there is no separate Save button.
+     */
+    public function updatedFeatures(mixed $value, ?string $key = null): void
+    {
+        if ($key === null || ! array_key_exists($key, Features::ALL)) {
+            return;
+        }
+
+        $enabled = (bool) $value;
+        $this->features[$key] = $enabled;
+
+        Feature::updateOrCreate(['key' => $key], ['label' => Features::ALL[$key], 'is_enabled' => $enabled]);
+
+        AdminActivity::log('updated', 'Feature "'.Features::ALL[$key].'" '.($enabled ? 'enabled' : 'disabled'));
+
+        $this->dispatch('notify', message: __(':feature :state.', [
+            'feature' => Features::ALL[$key],
+            'state' => $enabled ? __('enabled') : __('disabled'),
+        ]));
+    }
+
     public function save(): void
     {
         foreach ($this->features as $key => $enabled) {

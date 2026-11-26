@@ -24,6 +24,17 @@
         }
     }">
 
+        {{-- Environment — a button at the top right that opens its own modal.
+             Not saved on change like the widgets: a wrong APP_ENV can take the
+             site down, so it keeps an explicit Save plus a confirmation. --}}
+        <div class="mb-3 flex justify-end">
+            <flux:button size="sm" variant="outline" icon="rocket-launch"
+                x-on:click="$flux.modal('settings-env').show()">
+                {{ __('Environment') }}:
+                <span class="ml-1 font-semibold text-primary">{{ config('app.env') }}</span>
+            </flux:button>
+        </div>
+
         {{-- Tab nav — a card of icon tabs, each with a one-line summary. --}}
         @php
             $settingsTabs = [
@@ -66,30 +77,6 @@
                      Telegram live on Developer Tools → Site Settings now. --}}
                 <div class="grid grid-cols-1 gap-5 items-start">
                     <div class="space-y-5">
-                        {{-- Environment --}}
-                        <x-admin-section-card header-border="border-zinc-100" icon="rocket-launch" title="Environment"
-                            description="Which environment this install runs as.">
-                            <flux:field class="max-w-xs">
-                                <flux:label>Runtime environment</flux:label>
-                                <select wire:model="appEnv" class="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-700">
-                                    <option value="local">local</option>
-                                    <option value="staging">staging</option>
-                                    <option value="production">production</option>
-                                    <option value="testing">testing</option>
-                                    <option value="developer">developer</option>
-                                </select>
-                                <flux:error name="appEnv" />
-                            </flux:field>
-
-                            <flux:text class="text-xs text-amber-600 dark:text-amber-400">
-                                A wrong value can take the site down until it is fixed. The rest of the app's .env-backed settings live on Developer Tools.
-                            </flux:text>
-
-                            <flux:button size="sm" variant="outline" wire:click="confirmSaveEnvironment" wire:loading.attr="disabled">
-                                Save Environment
-                            </flux:button>
-                        </x-admin-section-card>
-
                         {{-- Image uploads sit right under General so the space they
                              would otherwise leave empty is put to use. --}}
                         @foreach ($groupedSettings as $group => $items)
@@ -145,14 +132,14 @@ $imageMeta = match ($setting->key) {
                     description="Shows a floating button in the corner of every admin page.">
                     <x-slot:actions>
                         <label class="flex items-center gap-2 text-sm text-zinc-600 cursor-pointer">
-                            <input type="checkbox" wire:model="settings.floating_button_enabled" class="rounded border-zinc-300 text-primary" />
+                            <input type="checkbox" wire:model.live="settings.floating_button_enabled" class="rounded border-zinc-300 text-primary" />
                             Enable
                         </label>
                     </x-slot:actions>
 
                     <flux:field>
                         <flux:label>Action</flux:label>
-                        <select wire:model="settings.floating_button_action"
+                        <select wire:model.live="settings.floating_button_action"
                             class="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-700">
                             <option value="link">Open link</option>
                             <option value="back">Go back</option>
@@ -161,7 +148,7 @@ $imageMeta = match ($setting->key) {
                     </flux:field>
                     <flux:field x-show="$wire.settings.floating_button_action === 'link'">
                         <flux:label>Link URL</flux:label>
-                        <flux:input wire:model="settings.floating_button_link" placeholder="https://example.com" />
+                        <flux:input wire:model.blur="settings.floating_button_link" placeholder="https://example.com" />
                     </flux:field>
                 </x-admin-section-card>
 
@@ -170,7 +157,7 @@ $imageMeta = match ($setting->key) {
                     description="How action buttons (Edit, Delete, ...) appear on admin list tables.">
                     <flux:field>
                         <flux:label>Display style</flux:label>
-                        <select wire:model="settings.admin_actions_display"
+                        <select wire:model.live="settings.admin_actions_display"
                             class="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-700">
                             <option value="inline">Inline icon buttons</option>
                             <option value="dropdown">Three-dot dropdown menu</option>
@@ -186,7 +173,7 @@ $imageMeta = match ($setting->key) {
                     description="Adds a calculator icon to the admin header for quick math.">
                     <x-slot:actions>
                         <label class="flex items-center gap-2 text-sm text-zinc-600 cursor-pointer">
-                            <input type="checkbox" wire:model="settings.calculator_enabled" class="rounded border-zinc-300 text-primary" />
+                            <input type="checkbox" wire:model.live="settings.calculator_enabled" class="rounded border-zinc-300 text-primary" />
                             Enable
                         </label>
                     </x-slot:actions>
@@ -204,7 +191,7 @@ $imageMeta = match ($setting->key) {
                     description="Adds a note icon to the admin header for quick reminders.">
                     <x-slot:actions>
                         <label class="flex items-center gap-2 text-sm text-zinc-600 cursor-pointer">
-                            <input type="checkbox" wire:model="settings.sticky_note_enabled" class="rounded border-zinc-300 text-primary" />
+                            <input type="checkbox" wire:model.live="settings.sticky_note_enabled" class="rounded border-zinc-300 text-primary" />
                             Enable
                         </label>
                     </x-slot:actions>
@@ -222,7 +209,7 @@ $imageMeta = match ($setting->key) {
                     description="Shows the app name, with a soft shine, in the middle of the admin header.">
                     <x-slot:actions>
                         <label class="flex items-center gap-2 text-sm text-zinc-600 cursor-pointer">
-                            <input type="checkbox" wire:model="settings.app_name_label_enabled" class="rounded border-zinc-300 text-primary" />
+                            <input type="checkbox" wire:model.live="settings.app_name_label_enabled" class="rounded border-zinc-300 text-primary" />
                             Enable
                         </label>
                     </x-slot:actions>
@@ -237,7 +224,7 @@ $imageMeta = match ($setting->key) {
                     description="Shows the notification bell in the admin header.">
                     <x-slot:actions>
                         <label class="flex items-center gap-2 text-sm text-zinc-600 cursor-pointer">
-                            <input type="checkbox" wire:model="settings.notifications_enabled" class="rounded border-zinc-300 text-primary" />
+                            <input type="checkbox" wire:model.live="settings.notifications_enabled" class="rounded border-zinc-300 text-primary" />
                             Enable
                         </label>
                     </x-slot:actions>
@@ -253,7 +240,7 @@ $imageMeta = match ($setting->key) {
                     description="Adds a Shop On/Off button to the admin header for quickly closing the storefront to new orders.">
                     <x-slot:actions>
                         <label class="flex items-center gap-2 text-sm text-zinc-600 cursor-pointer">
-                            <input type="checkbox" wire:model="settings.shop_toggle_enabled" class="rounded border-zinc-300 text-primary" />
+                            <input type="checkbox" wire:model.live="settings.shop_toggle_enabled" class="rounded border-zinc-300 text-primary" />
                             Enable
                         </label>
                     </x-slot:actions>
@@ -270,7 +257,7 @@ $imageMeta = match ($setting->key) {
                     description="Shows the language dropdown in the admin header.">
                     <x-slot:actions>
                         <label class="flex items-center gap-2 text-sm text-zinc-600 cursor-pointer">
-                            <input type="checkbox" wire:model="settings.language_switcher_enabled" class="rounded border-zinc-300 text-primary" />
+                            <input type="checkbox" wire:model.live="settings.language_switcher_enabled" class="rounded border-zinc-300 text-primary" />
                             Enable
                         </label>
                     </x-slot:actions>
@@ -280,16 +267,59 @@ $imageMeta = match ($setting->key) {
                     </p>
                 </x-admin-section-card>
                 @endif
+
                 </div>
             </div>
         </div>
 
-        <div class="mt-6">
+        {{-- Widgets save on change (see updatedSettings()), so only General needs the button. --}}
+        <div class="mt-6" x-show="tab === 'general'">
             <flux:button variant="primary" size="sm" wire:click="save" wire:loading.attr="disabled">
                 Save Settings
             </flux:button>
         </div>
     </div>
+
+    {{-- Environment editor (opened from the button above the tabs) --}}
+    <flux:modal name="settings-env" class="md:w-[28rem]"
+        x-on:close-modal.window="if ($event.detail.name === 'settings-env') $flux.modal('settings-env').close()">
+        <div class="space-y-4">
+            <div class="flex items-center gap-3">
+                <div class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <flux:icon.rocket-launch class="size-5" />
+                </div>
+                <div>
+                    <flux:heading>{{ __('Environment') }}</flux:heading>
+                    <flux:text class="text-xs">{{ __('Which environment this install runs as.') }}</flux:text>
+                </div>
+            </div>
+
+            <flux:field>
+                <flux:label>{{ __('Runtime environment') }}</flux:label>
+                <select wire:model="appEnv" class="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-700">
+                    <option value="local">local</option>
+                    <option value="staging">staging</option>
+                    <option value="production">production</option>
+                    <option value="testing">testing</option>
+                    <option value="developer">developer</option>
+                </select>
+                <flux:error name="appEnv" />
+            </flux:field>
+
+            <flux:text class="text-xs text-amber-600 dark:text-amber-400">
+                {{ __("A wrong value can take the site down until it is fixed. The rest of the app's .env-backed settings live on Developer Tools.") }}
+            </flux:text>
+
+            <div class="flex gap-2 pt-1">
+                <flux:button size="sm" variant="primary" wire:click="confirmSaveEnvironment" wire:loading.attr="disabled">
+                    {{ __('Save Environment') }}
+                </flux:button>
+                <flux:modal.close>
+                    <flux:button size="sm" variant="ghost">{{ __('Cancel') }}</flux:button>
+                </flux:modal.close>
+            </div>
+        </div>
+    </flux:modal>
 
         {{-- Environment save confirmation --}}
     <flux:modal name="settings-env-confirm" class="md:w-96"

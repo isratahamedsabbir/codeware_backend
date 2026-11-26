@@ -51,10 +51,10 @@
                              A plain anchor rather than wire:navigate: the guide is another
                              page entirely, and a full load is what actually honours the
                              fragment and lands on the heading. --}}
-                        @if (AppSupporteatures::enabled('developer-guide'))
+                        @if (\App\Support\Features::enabled('developer-guide'))
                         <a href="{{ route('admin.developer-guide') }}#theme-settings"
-                            title="how theme settings work and are declared — open the developer guide"
-                            aria-label="how theme settings work and are declared — open the developer guide"
+                            title="How theme settings work and are declared — open the Developer Guide"
+                            aria-label="How theme settings work and are declared — open the Developer Guide"
                             class="flex size-5 items-center justify-center text-zinc-400 transition-colors hover:text-primary">
                             <flux:icon.information-circle class="size-4" />
                         </a>

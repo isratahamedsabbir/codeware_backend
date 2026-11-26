@@ -558,3 +558,35 @@ it('seeder creates the Additional Data section toggles, enabled by default', fun
     expect(Setting::productAdditionalDataEnabled())->toBeTrue()
         ->and(Setting::postAdditionalDataEnabled())->toBeTrue();
 });
+
+it('saves a widget toggle the moment it changes, without calling save', function () {
+    Setting::set('calculator_enabled', true);
+
+    Livewire::test(SettingsIndex::class)
+        ->set('settings.calculator_enabled', false);
+
+    expect((bool) Setting::get('calculator_enabled'))->toBeFalse();
+});
+
+it('saves the table actions style on change with a toast, not a reload', function () {
+    Livewire::test(SettingsIndex::class)
+        ->set('settings.admin_actions_display', 'dropdown')
+        ->assertDispatched('notify');
+
+    expect(Setting::get('admin_actions_display'))->toBe('dropdown');
+});
+
+it('does not auto-save General tab fields — they still wait for the Save button', function () {
+    Setting::set('site_name', 'Before');
+
+    Livewire::test(SettingsIndex::class)
+        ->set('settings.site_name', 'After');
+
+    expect(Setting::get('site_name'))->toBe('Before');
+});
+
+it('names the setting in the message shown on change', function () {
+    Livewire::test(SettingsIndex::class)
+        ->set('settings.admin_actions_display', 'dropdown')
+        ->assertDispatched('notify', message: 'Table actions style updated.');
+});

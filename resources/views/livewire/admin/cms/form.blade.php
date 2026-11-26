@@ -29,10 +29,10 @@
                  a file constant "resolves to" its public URL when the picker
                  stores the URL as the value outright, and never mentioned that
                  cards cannot be reordered at all. --}}
-            @if (AppSupporteatures::enabled('developer-guide'))
+            @if (\App\Support\Features::enabled('developer-guide'))
             <a href="{{ route('admin.developer-guide') }}#section-cards"
-                title="how section cards work — open the developer guide"
-                aria-label="how section cards work — open the developer guide"
+                title="How section cards work — open the Developer Guide"
+                aria-label="How section cards work — open the Developer Guide"
                 class="flex size-5 items-center justify-center text-zinc-400 transition-colors hover:text-primary">
                 <flux:icon.information-circle class="size-4" />
             </a>
@@ -106,10 +106,10 @@
             {{-- Into the Developer Guide rather than a copy of it — this modal
                  carried the same stale "resolves to its public URL" claim and
                  never said a renamed section silently returns null. --}}
-            @if (AppSupporteatures::enabled('developer-guide'))
+            @if (\App\Support\Features::enabled('developer-guide'))
             <a href="{{ route('admin.developer-guide') }}#section-constants"
-                title="how section constants work — open the developer guide"
-                aria-label="how section constants work — open the developer guide"
+                title="How section constants work — open the Developer Guide"
+                aria-label="How section constants work — open the Developer Guide"
                 class="flex size-5 items-center justify-center text-zinc-400 transition-colors hover:text-primary">
                 <flux:icon.information-circle class="size-4" />
             </a>

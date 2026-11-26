@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\BuilderAssetController;
 use App\Http\Controllers\Admin\CategoryExportController;
 use App\Http\Controllers\Admin\ChunkedUploadController;
 use App\Http\Controllers\Admin\ContactExportController;
@@ -34,6 +35,7 @@ use App\Livewire\Admin\Advance\PasswordGenerator;
 use App\Livewire\Admin\Advance\Robots;
 use App\Livewire\Admin\Advance\Sitemap;
 use App\Livewire\Admin\Auth\Login;
+use App\Livewire\Admin\Builders\Editor;
 use App\Livewire\Admin\Careers\Applications;
 use App\Livewire\Admin\Cruds\Records;
 use App\Livewire\Admin\Dashboard;
@@ -140,8 +142,8 @@ Route::middleware(['auth', 'admin', 'activity-log', 'mfa'])->group(function () {
         Route::get('/pages/export', [PageExportController::class, 'export'])->name('pages.export');
         Route::get('/pages/create', App\Livewire\Admin\Pages\Form::class)->name('pages.create');
         Route::get('/pages/{id}/edit', App\Livewire\Admin\Pages\Form::class)->name('pages.edit');
-        Route::post('/builders/assets', [App\Http\Controllers\Admin\BuilderAssetController::class, 'store'])->name('builders.assets');
-        Route::get('/builders/{id}/edit', App\Livewire\Admin\Builders\Editor::class)->name('builders.edit');
+        Route::post('/builders/assets', [BuilderAssetController::class, 'store'])->name('builders.assets');
+        Route::get('/builders/{id}/edit', Editor::class)->name('builders.edit');
         Route::get('/builders', App\Livewire\Admin\Builders\Index::class)->name('builders');
     });
 

@@ -509,11 +509,51 @@ it('renders the features screen, only in the developer environment', function ()
     app()->instance('env', 'developer');
 
     Livewire::test(FeaturesIndex::class)
-        ->assertSee('Blog (Posts)')
-        ->assertSee('Categories (shared by Blog and Products)')
-        ->assertSee('Tags (shared by Blog and Products)')
+        // Each card shows the name as a title and the bracketed part as its hint.
+        ->assertSee('Blog')
+        ->assertSee('Posts')
+        ->assertSee('Categories')
+        ->assertSee('shared by Blog and Products')
+        ->assertSee('Tags')
         ->assertSee('Chat')
-        ->assertSee('File Manager');
+        ->assertSee('File Manager')
+        ->assertSee('Theme Settings')
+        ->assertSee('Developer Guide');
+});
+
+it('lists theme settings and the developer guide as toggleable, default-on features', function () {
+    expect(Features::ALL)->toHaveKeys(['theme-settings', 'developer-guide'])
+        ->and(Features::DEFAULT_ENABLED)->toContain('theme-settings', 'developer-guide')
+        ->and(Features::enabled('theme-settings'))->toBeTrue()
+        ->and(Features::enabled('developer-guide'))->toBeTrue();
+
+    disableFeature('developer-guide');
+
+    expect(Features::enabled('developer-guide'))->toBeFalse();
+});
+
+it('drops every help link into the developer guide once that feature is off', function () {
+    $guideUrl = route('admin.developer-guide');
+
+    expect(Livewire::test(App\Livewire\Admin\Plugins\Index::class)->html())->toContain($guideUrl);
+
+    disableFeature('developer-guide');
+
+    expect(Livewire::test(App\Livewire\Admin\Plugins\Index::class)->html())->not->toContain($guideUrl);
+});
+
+it('hides the Theme Settings and Developer Guide links from the sidebar once their features are off', function () {
+    $this->seed(AdminMenuSeeder::class);
+
+    $visible = fn () => MenuItem::query()->whereIn('route_name', ['admin.theme-settings', 'admin.developer-guide'])
+        ->get()->filter->isVisibleToCurrentUser()->pluck('route_name')->all();
+
+    expect($visible())->toContain('admin.theme-settings', 'admin.developer-guide');
+
+    disableFeature('theme-settings');
+    disableFeature('developer-guide');
+
+    expect($visible())->toBe([]);
 });
 
 it('404s the features route outside the developer environment', function () {
@@ -546,6 +586,20 @@ it('can toggle a feature off through its own admin screen', function () {
     expect(Features::enabled('chat'))->toBeFalse();
 
     $this->get(route('admin.chat'))->assertNotFound();
+});
+
+it('saves a feature the moment its switch is toggled, without a save call', function () {
+    app()->instance('env', 'developer');
+
+    Livewire::test(FeaturesIndex::class)
+        ->set('features.chat', false)
+        ->assertDispatched('notify');
+
+    expect(Features::enabled('chat'))->toBeFalse();
+
+    Livewire::test(FeaturesIndex::class)->set('features.chat', true);
+
+    expect(Features::enabled('chat'))->toBeTrue();
 });
 
 it('reflects a disabled feature as an unchecked checkbox on reload', function () {

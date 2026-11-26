@@ -14,7 +14,7 @@ use App\Models\Feature;
 class Features
 {
     public const ALL = [
-        'env' => 'Env (App, Maintenance & API Settings)',
+        'env' => 'Developer Tools (App, Maintenance & API Settings)',
         'blog' => 'Blog (Posts)',
         'types' => 'Types (the product/post split behind Categories, Tags & Brands)',
         'groups' => 'Groups (named groups under a Type, used by the Media Library gallery)',

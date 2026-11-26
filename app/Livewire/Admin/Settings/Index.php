@@ -98,12 +98,59 @@ class Index extends Component
         $this->js('window.location.reload()');
     }
 
+    /**
+     * The Widgets tab has no Save button: each of its fields is bound live and
+     * saved the moment it changes. Header widgets and the floating button are
+     * rendered by layouts.admin, which Livewire's re-render never touches, so
+     * those reload the page; the table-actions style only needs a toast.
+     */
+    public const WIDGET_KEYS = [
+        'floating_button_enabled' => 'Floating button',
+        'floating_button_action' => 'Floating button action',
+        'floating_button_link' => 'Floating button link',
+        'admin_actions_display' => 'Table actions style',
+        'calculator_enabled' => 'Calculator',
+        'sticky_note_enabled' => 'Sticky note',
+        'app_name_label_enabled' => 'App name',
+        'notifications_enabled' => 'Notifications',
+        'shop_toggle_enabled' => 'Shop toggle',
+        'language_switcher_enabled' => 'Language switcher',
+    ];
+
+    public function updatedSettings(mixed $value, ?string $key = null): void
+    {
+        if ($key === null || ! array_key_exists($key, self::WIDGET_KEYS)) {
+            return;
+        }
+
+        Setting::set($key, $value);
+
+        $label = __(self::WIDGET_KEYS[$key]);
+        $message = is_bool($value)
+            ? __(':widget :state.', ['widget' => $label, 'state' => $value ? __('enabled') : __('disabled')])
+            : __(':widget updated.', ['widget' => $label]);
+
+        AdminActivity::log('updated', $message);
+
+        if ($key === 'admin_actions_display') {
+            $this->dispatch('notify', message: $message);
+
+            return;
+        }
+
+        // Shown as a toast by layouts.admin once the reload lands.
+        session()->flash('success', $message);
+        $this->js('window.location.reload()');
+    }
+
     public function confirmSaveEnvironment(): void
     {
         $this->validate([
             'appEnv' => 'required|in:local,staging,production,testing,developer',
         ]);
 
+        // Swap the editor modal for the confirmation, rather than stacking them.
+        $this->dispatch('close-modal', name: 'settings-env');
         $this->dispatch('open-modal', name: 'settings-env-confirm');
     }
 
