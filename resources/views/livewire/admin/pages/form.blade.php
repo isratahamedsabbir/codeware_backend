@@ -56,12 +56,14 @@
 
                      A plain anchor rather than wire.navigate: a full load is what
                      honours the fragment and lands on the heading. --}}
+                @if (AppSupporteatures::enabled('developer-guide'))
                 <a href="{{ route('admin.developer-guide') }}#page-constants"
-                    title="How page constants work — open the Developer Guide"
-                    aria-label="How page constants work — open the Developer Guide"
+                    title="how page constants work — open the developer guide"
+                    aria-label="how page constants work — open the developer guide"
                     class="flex size-5 items-center justify-center text-zinc-400 transition-colors hover:text-primary">
                     <flux:icon.information-circle class="size-4" />
                 </a>
+                @endif
             </x-slot:titleActions>
             <x-slot:actions>
                 <flux:button size="sm" variant="outline" icon="plus" wire:click="addConstant" x-on:click="open = true">Add field</flux:button>

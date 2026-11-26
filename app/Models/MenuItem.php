@@ -130,6 +130,8 @@ class MenuItem extends Model
         'admin.plugins' => 'plugins',
         'admin.cruds' => 'crud',
         'admin.about' => 'about',
+        'admin.theme-settings' => 'theme-settings',
+        'admin.developer-guide' => 'developer-guide',
         'admin.history' => 'audit-log',
         'admin.countries' => 'location',
         'admin.divisions' => 'location',

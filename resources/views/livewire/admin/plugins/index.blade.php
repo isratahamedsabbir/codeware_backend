@@ -34,12 +34,14 @@
              the heading's label — the same slot Theme Settings' "How to create a
              theme" link uses. --}}
         <x-slot:titleActions>
+            @if (AppSupporteatures::enabled('developer-guide'))
             <a href="{{ route('admin.developer-guide') }}#plugins" wire:navigate.hover
-                title="How to build and use plugins — open the Developer Guide"
-                aria-label="How to build and use plugins — open the Developer Guide"
+                title="how to build and use plugins — open the developer guide"
+                aria-label="how to build and use plugins — open the developer guide"
                 class="flex size-5 items-center justify-center text-zinc-400 transition-colors hover:text-primary">
                 <flux:icon.information-circle class="size-4" />
             </a>
+            @endif
         </x-slot:titleActions>
 
         <div class="divide-y divide-zinc-100 dark:divide-zinc-700">

@@ -93,9 +93,12 @@ Route::middleware(['auth', 'admin', 'activity-log', 'mfa'])->group(function () {
 
     // Developer Guide — the panel's own documentation: how plugins and themes
     // are built and used, how features and settings work, and how Pages, their
-    // inner content and the rest of the CMS fit together. Like About, always
-    // reachable regardless of role or feature flags.
-    Route::get('/developer-guide', DeveloperGuide::class)->name('developer-guide');
+    // inner content and the rest of the CMS fit together. Reachable by every admin
+    // role; only the "developer-guide" feature toggle can turn it off (which also
+    // drops every help link that points into it).
+    Route::middleware('feature:developer-guide')->group(function () {
+        Route::get('/developer-guide', DeveloperGuide::class)->name('developer-guide');
+    });
 
     // About — company info, reachable by every admin role; only the "about" feature toggle can turn it off
     Route::middleware('feature:about')->group(function () {
@@ -178,8 +181,10 @@ Route::middleware(['auth', 'admin', 'activity-log', 'mfa'])->group(function () {
         // Theme Settings — its own screen (under Library & System) for the active
         // theme's settings (site_theme plus homepage copy/imagery), separate from
         // the general Settings page.
-        Route::get('/theme-settings', App\Livewire\Admin\ThemeSettings\Index::class)->name('theme-settings');
-        Route::get('/theme-settings/{slug}', Edit::class)->where('slug', '[A-Za-z0-9_-]+')->name('theme-settings.edit');
+        Route::middleware('feature:theme-settings')->group(function () {
+            Route::get('/theme-settings', App\Livewire\Admin\ThemeSettings\Index::class)->name('theme-settings');
+            Route::get('/theme-settings/{slug}', Edit::class)->where('slug', '[A-Za-z0-9_-]+')->name('theme-settings.edit');
+        });
         Route::get('/seo', App\Livewire\Admin\Seo\Index::class)->name('seo');
         Route::get('/social', App\Livewire\Admin\Social\Index::class)->name('social');
         Route::get('/mobile-apps', App\Livewire\Admin\MobileApps\Index::class)->name('mobile-apps');

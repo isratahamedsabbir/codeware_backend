@@ -1,8 +1,4 @@
 <div class="max-w-[1600px] space-y-6">
-    <flux:text class="text-zinc-500">
-        Enter your payment gateway credentials. Credentials are stored privately and never exposed via the public API.
-    </flux:text>
-
     <div class="columns-1 lg:columns-2 gap-5 [&>*]:mb-5 [&>*]:break-inside-avoid">
 
     @if (isset($gateways['paypal']))

@@ -48,6 +48,8 @@ class Features
         'plugins' => 'Plugins (install & manage plugin modules)',
         'crud' => 'CRUD (builder & generated record screens)',
         'about' => 'About (company info page)',
+        'theme-settings' => 'Theme Settings',
+        'developer-guide' => 'Developer Guide (in-panel documentation & its help links)',
     ];
 
     /**
@@ -65,6 +67,8 @@ class Features
         'access-control',
         'plugins',
         'localization',
+        'theme-settings',
+        'developer-guide',
     ];
 
     /**

@@ -29,12 +29,14 @@
                  a file constant "resolves to" its public URL when the picker
                  stores the URL as the value outright, and never mentioned that
                  cards cannot be reordered at all. --}}
+            @if (AppSupporteatures::enabled('developer-guide'))
             <a href="{{ route('admin.developer-guide') }}#section-cards"
-                title="How section cards work — open the Developer Guide"
-                aria-label="How section cards work — open the Developer Guide"
+                title="how section cards work — open the developer guide"
+                aria-label="how section cards work — open the developer guide"
                 class="flex size-5 items-center justify-center text-zinc-400 transition-colors hover:text-primary">
                 <flux:icon.information-circle class="size-4" />
             </a>
+            @endif
         </x-slot:titleActions>
         <x-slot:actions>
             <flux:button size="sm" variant="outline" icon="plus" wire:click="addCard" x-on:click="open = true">Add card</flux:button>
@@ -104,12 +106,14 @@
             {{-- Into the Developer Guide rather than a copy of it — this modal
                  carried the same stale "resolves to its public URL" claim and
                  never said a renamed section silently returns null. --}}
+            @if (AppSupporteatures::enabled('developer-guide'))
             <a href="{{ route('admin.developer-guide') }}#section-constants"
-                title="How section constants work — open the Developer Guide"
-                aria-label="How section constants work — open the Developer Guide"
+                title="how section constants work — open the developer guide"
+                aria-label="how section constants work — open the developer guide"
                 class="flex size-5 items-center justify-center text-zinc-400 transition-colors hover:text-primary">
                 <flux:icon.information-circle class="size-4" />
             </a>
+            @endif
         </x-slot:titleActions>
         <x-slot:actions>
             <flux:button size="sm" variant="outline" icon="plus" wire:click="addConstant" x-on:click="open = true">Add field</flux:button>

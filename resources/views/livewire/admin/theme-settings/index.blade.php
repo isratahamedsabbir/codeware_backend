@@ -82,12 +82,14 @@
              points at the rest of the same section; scroll-mt-24 on the target keeps
              the heading clear of the sticky header. --}}
         <x-slot:titleActions>
+            @if (AppSupporteatures::enabled('developer-guide'))
             <a href="{{ route('admin.developer-guide') }}#create-a-theme"
-                title="How to create a theme — open the Developer Guide"
-                aria-label="How to create a theme — open the Developer Guide"
+                title="how to create a theme — open the developer guide"
+                aria-label="how to create a theme — open the developer guide"
                 class="flex size-5 items-center justify-center text-zinc-400 transition-colors hover:text-primary">
                 <flux:icon.information-circle class="size-4" />
             </a>
+            @endif
         </x-slot:titleActions>
 
         {{-- Download failures have nowhere of their own to go now that the actions live

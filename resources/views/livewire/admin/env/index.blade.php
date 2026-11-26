@@ -65,12 +65,14 @@
                     description="Takes the public site offline for every visitor. The admin panel and login stay reachable either way."
                     class="w-full scroll-mt-24 {{ $maintenanceMode ? 'border-red-300! dark:border-red-800!' : '' }}">
                     <x-slot:titleActions>
+                        @if (AppSupporteatures::enabled('developer-guide'))
                         <a href="{{ route('admin.developer-guide') }}#integration-maintenance"
-                            title="What maintenance mode does — open the Developer Guide"
-                            aria-label="What maintenance mode does — open the Developer Guide"
+                            title="what maintenance mode does — open the developer guide"
+                            aria-label="what maintenance mode does — open the developer guide"
                             class="flex size-5 items-center justify-center text-zinc-400 transition-colors hover:text-primary">
                             <flux:icon.information-circle class="size-4" />
                         </a>
+                        @endif
                     </x-slot:titleActions>
                     <x-slot:actions>
                         <flux:switch wire:model.live="maintenanceMode" aria-label="Maintenance mode" title="Take the public site offline" />
@@ -83,12 +85,14 @@
                     description="Shows full error details and stack traces to visitors. Leave this off in production."
                     class="w-full scroll-mt-24 {{ $debugMode ? 'border-amber-300! dark:border-amber-800!' : '' }}">
                     <x-slot:titleActions>
+                        @if (AppSupporteatures::enabled('developer-guide'))
                         <a href="{{ route('admin.developer-guide') }}#integration-debug"
-                            title="What debug mode does — open the Developer Guide"
-                            aria-label="What debug mode does — open the Developer Guide"
+                            title="what debug mode does — open the developer guide"
+                            aria-label="what debug mode does — open the developer guide"
                             class="flex size-5 items-center justify-center text-zinc-400 transition-colors hover:text-primary">
                             <flux:icon.information-circle class="size-4" />
                         </a>
+                        @endif
                     </x-slot:titleActions>
                     <x-slot:actions>
                         <flux:switch wire:model.live="debugMode" :disabled="! $debugMode && $this->debugLocked()" aria-label="Debug mode" title="{{ ! $debugMode && $this->debugLocked() ? 'Disabled in production' : 'Show full error details to visitors' }}" />
@@ -100,12 +104,14 @@
             <x-admin-section-card id="env-section-app" class="scroll-mt-24" header-border="border-zinc-100" icon="rocket-launch" title="App"
                 description="Core application identity, URLs and cache store.">
                 <x-slot:titleActions>
+                    @if (AppSupporteatures::enabled('developer-guide'))
                     <a href="{{ route('admin.developer-guide') }}#integration-app"
-                        title="About this section — open the Developer Guide"
-                        aria-label="About this section — open the Developer Guide"
+                        title="about this section — open the developer guide"
+                        aria-label="about this section — open the developer guide"
                         class="flex size-5 items-center justify-center text-zinc-400 transition-colors hover:text-primary">
                         <flux:icon.information-circle class="size-4" />
                     </a>
+                    @endif
                 </x-slot:titleActions>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-5 gap-y-3">
                     @foreach ($this->envFields()['App'] as $key => $meta)
@@ -122,12 +128,14 @@
             {{-- Google Login --}}
             <x-admin-section-card id="env-section-google-login" class="scroll-mt-24" header-border="border-zinc-100" icon="globe-alt" title="Google Login">
                 <x-slot:titleActions>
+                    @if (AppSupporteatures::enabled('developer-guide'))
                     <a href="{{ route('admin.developer-guide') }}#integration-google-login"
-                        title="Where to get these — open the Developer Guide"
-                        aria-label="Where to get these — open the Developer Guide"
+                        title="where to get these — open the developer guide"
+                        aria-label="where to get these — open the developer guide"
                         class="flex size-5 items-center justify-center text-zinc-400 transition-colors hover:text-primary">
                         <flux:icon.information-circle class="size-4" />
                     </a>
+                    @endif
                 </x-slot:titleActions>
                 <div class="grid grid-cols-1 gap-y-3">
                     @foreach ($this->envFields()['Google Login'] as $key => $meta)
@@ -139,12 +147,14 @@
             {{-- Facebook Login --}}
             <x-admin-section-card id="env-section-facebook-login" class="scroll-mt-24" header-border="border-zinc-100" icon="chat-bubble-left-right" title="Facebook Login">
                 <x-slot:titleActions>
+                    @if (AppSupporteatures::enabled('developer-guide'))
                     <a href="{{ route('admin.developer-guide') }}#integration-facebook-login"
-                        title="Where to get these — open the Developer Guide"
-                        aria-label="Where to get these — open the Developer Guide"
+                        title="where to get these — open the developer guide"
+                        aria-label="where to get these — open the developer guide"
                         class="flex size-5 items-center justify-center text-zinc-400 transition-colors hover:text-primary">
                         <flux:icon.information-circle class="size-4" />
                     </a>
+                    @endif
                 </x-slot:titleActions>
                 <div class="grid grid-cols-1 gap-y-3">
                     @foreach ($this->envFields()['Facebook Login'] as $key => $meta)
@@ -187,12 +197,14 @@
             <x-admin-section-card id="env-section-recaptcha" class="scroll-mt-24" header-border="border-zinc-100" icon="shield-check" title="reCAPTCHA"
                 description="Used by any login whose role has reCAPTCHA switched on. Both keys are needed before it can verify anything.">
                 <x-slot:titleActions>
+                    @if (AppSupporteatures::enabled('developer-guide'))
                     <a href="{{ route('admin.developer-guide') }}#integration-recaptcha"
-                        title="Where to get these — open the Developer Guide"
-                        aria-label="Where to get these — open the Developer Guide"
+                        title="where to get these — open the developer guide"
+                        aria-label="where to get these — open the developer guide"
                         class="flex size-5 items-center justify-center text-zinc-400 transition-colors hover:text-primary">
                         <flux:icon.information-circle class="size-4" />
                     </a>
+                    @endif
                 </x-slot:titleActions>
                 <div class="grid grid-cols-1 gap-y-3">
                     @foreach ($this->envFields()['reCAPTCHA'] as $key => $meta)
@@ -208,12 +220,14 @@
             <x-admin-section-card id="env-section-turnstile" class="scroll-mt-24" header-border="border-zinc-100" icon="shield-check" title="Cloudflare Turnstile"
                 description="Used when Active Captcha is set to turnstile. Both keys are needed before it can verify anything.">
                 <x-slot:titleActions>
+                    @if (AppSupporteatures::enabled('developer-guide'))
                     <a href="{{ route('admin.developer-guide') }}#integration-turnstile"
-                        title="Where to get these — open the Developer Guide"
-                        aria-label="Where to get these — open the Developer Guide"
+                        title="where to get these — open the developer guide"
+                        aria-label="where to get these — open the developer guide"
                         class="flex size-5 items-center justify-center text-zinc-400 transition-colors hover:text-primary">
                         <flux:icon.information-circle class="size-4" />
                     </a>
+                    @endif
                 </x-slot:titleActions>
                 <div class="grid grid-cols-1 gap-y-3">
                     @foreach ($this->envFields()['Turnstile'] as $key => $meta)
@@ -232,12 +246,14 @@
             <x-admin-section-card id="env-section-google-tag-manager" class="scroll-mt-24" header-border="border-zinc-100" icon="tag" title="Google Tag Manager"
                 description="The container ID (e.g. GTM-XXXXXXX) loaded on every public theme page. A blank ID turns the container off.">
                 <x-slot:titleActions>
+                    @if (AppSupporteatures::enabled('developer-guide'))
                     <a href="{{ route('admin.developer-guide') }}#integration-google-tag-manager"
-                        title="Where to get this — open the Developer Guide"
-                        aria-label="Where to get this — open the Developer Guide"
+                        title="where to get this — open the developer guide"
+                        aria-label="where to get this — open the developer guide"
                         class="flex size-5 items-center justify-center text-zinc-400 transition-colors hover:text-primary">
                         <flux:icon.information-circle class="size-4" />
                     </a>
+                    @endif
                 </x-slot:titleActions>
                 <div class="grid grid-cols-1 gap-y-3">
                     @foreach ($this->envFields()['Google Tag Manager'] as $key => $meta)
@@ -250,12 +266,14 @@
             <x-admin-section-card id="env-section-google-maps" class="scroll-mt-24" header-border="border-zinc-100" icon="map" title="Google Maps"
                 description="Used wherever the app needs to render a Google Map (e.g. store/branch locations).">
                 <x-slot:titleActions>
+                    @if (AppSupporteatures::enabled('developer-guide'))
                     <a href="{{ route('admin.developer-guide') }}#integration-google-maps"
-                        title="Where to get this — open the Developer Guide"
-                        aria-label="Where to get this — open the Developer Guide"
+                        title="where to get this — open the developer guide"
+                        aria-label="where to get this — open the developer guide"
                         class="flex size-5 items-center justify-center text-zinc-400 transition-colors hover:text-primary">
                         <flux:icon.information-circle class="size-4" />
                     </a>
+                    @endif
                 </x-slot:titleActions>
                 <div class="max-w-xl">
                     @foreach ($this->envFields()['Google Maps'] as $key => $meta)
@@ -310,12 +328,14 @@
             <x-admin-section-card id="env-section-aws-s3" class="scroll-mt-24" header-border="border-zinc-100" icon="cloud" title="AWS S3"
                 description="Only needed if FILESYSTEM_DISK is set to s3 â€” otherwise uploads stay on local disk and these are unused.">
                 <x-slot:titleActions>
+                    @if (AppSupporteatures::enabled('developer-guide'))
                     <a href="{{ route('admin.developer-guide') }}#integration-aws-s3"
-                        title="Where to get these — open the Developer Guide"
-                        aria-label="Where to get these — open the Developer Guide"
+                        title="where to get these — open the developer guide"
+                        aria-label="where to get these — open the developer guide"
                         class="flex size-5 items-center justify-center text-zinc-400 transition-colors hover:text-primary">
                         <flux:icon.information-circle class="size-4" />
                     </a>
+                    @endif
                 </x-slot:titleActions>
                 <div class="grid grid-cols-1 gap-y-3">
                     @foreach ($this->envFields()['AWS S3'] as $key => $meta)
@@ -328,12 +348,14 @@
             <x-admin-section-card id="env-section-firebase" class="scroll-mt-24" header-border="border-zinc-100" icon="fire" title="Firebase"
                 description="Service-account credentials for the Firebase Admin SDK (e.g. push notifications).">
                 <x-slot:titleActions>
+                    @if (AppSupporteatures::enabled('developer-guide'))
                     <a href="{{ route('admin.developer-guide') }}#integration-firebase"
-                        title="Where to get this — open the Developer Guide"
-                        aria-label="Where to get this — open the Developer Guide"
+                        title="where to get this — open the developer guide"
+                        aria-label="where to get this — open the developer guide"
                         class="flex size-5 items-center justify-center text-zinc-400 transition-colors hover:text-primary">
                         <flux:icon.information-circle class="size-4" />
                     </a>
+                    @endif
                 </x-slot:titleActions>
                 <div class="max-w-xl">
                     <flux:field>
@@ -361,12 +383,14 @@
             <x-admin-section-card id="env-section-cms-editor" class="scroll-mt-24" header-border="border-zinc-100" icon="pencil-square" title="CMS Editor"
                 description="Base URL of the Next.js Puck editor this admin panel opens for visual editing.">
                 <x-slot:titleActions>
+                    @if (AppSupporteatures::enabled('developer-guide'))
                     <a href="{{ route('admin.developer-guide') }}#integration-cms-editor"
-                        title="What this controls — open the Developer Guide"
-                        aria-label="What this controls — open the Developer Guide"
+                        title="what this controls — open the developer guide"
+                        aria-label="what this controls — open the developer guide"
                         class="flex size-5 items-center justify-center text-zinc-400 transition-colors hover:text-primary">
                         <flux:icon.information-circle class="size-4" />
                     </a>
+                    @endif
                 </x-slot:titleActions>
                 <div class="max-w-xl">
                     @foreach ($this->envFields()['CMS Editor'] as $key => $meta)

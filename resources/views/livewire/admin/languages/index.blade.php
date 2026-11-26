@@ -9,13 +9,6 @@
 
 <div class="bg-white rounded-[5px] shadow-sm overflow-hidden">
 
-    {{-- Description --}}
-    <div class="px-6 pt-4">
-        <p class="text-sm text-zinc-500">
-            {{ __('Languages available in the admin panel. The default language is used when no other is selected.') }}
-        </p>
-    </div>
-
     {{-- Toolbar --}}
     <div class="flex items-center gap-3 p-4 flex-wrap">
         <x-per-page-select :options="$this->perPageOptions()" />
